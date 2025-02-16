@@ -1,0 +1,29 @@
+  {
+  "project_info": {
+    "project_number": "459629759236",
+    "project_id": "filmsstore-9151b",
+    "storage_bucket": "filmsstore-9151b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:459629759236:android:3425e6ff2007f64b9c9e51",
+        "android_client_info": {
+          "package_name": "com.example.films_shop"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDB6e-yCRrXbVyEM8p4kNBKPNAwjdEtSdY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
