@@ -3,6 +3,7 @@ package com.example.films_shop.view
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -29,6 +30,7 @@ import androidx.navigation.toRoute
 import com.example.films_shop.main_screen.MainScreen
 import com.example.films_shop.main_screen.add_film_screen.AddFilmScreen
 import com.example.films_shop.main_screen.add_film_screen.AddFilmScreenObject
+import com.example.films_shop.main_screen.api.MovieViewModel
 import com.example.films_shop.main_screen.data.Film
 import com.example.films_shop.main_screen.details_screen.data.DetailsNavObject
 import com.example.films_shop.main_screen.details_screen.ui.DetailsScreen
@@ -36,24 +38,36 @@ import com.example.films_shop.main_screen.login.LoginScreen
 import com.example.films_shop.main_screen.login.data_nav.LoginScreenObject
 import com.example.films_shop.main_screen.login.data_nav.MainScreenDataObject
 import com.example.films_shop.ui.theme.BookShopTheme
+import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 
+@Suppress("IMPLICIT_CAST_TO_ANY") // это связано с тем что путь не в строком формате
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val movieViewModel: MovieViewModel by viewModels() // <-- Создаем ViewModel
+        val auth = Firebase.auth
+        val currentUser = auth.currentUser
+        val startDestination = if (currentUser != null) MainScreenDataObject(
+            currentUser.uid,
+            currentUser.email ?: ""
+        ) else LoginScreenObject
+
         setContent {
             BookShopTheme {
                 val navController = rememberNavController()
                 NavHost(
                     navController = navController,
-                    startDestination = LoginScreenObject
+                    startDestination = startDestination
                 )
                 {
                     composable<LoginScreenObject>
                     {
                         LoginScreen { navData ->
-                            navController.navigate(navData)
+                            navController.navigate(navData) {
+                                popUpTo(LoginScreenObject) { inclusive = true }
+                            }
                         }
                     }
                     composable<MainScreenDataObject>
@@ -61,6 +75,7 @@ class MainActivity : ComponentActivity() {
                         val navData = navEntry.toRoute<MainScreenDataObject>()
                         MainScreen(
                             navData,
+                            movieViewModel,
                             onFilmDetailsClick = { film ->
                                 navController.navigate(
                                     DetailsNavObject(
@@ -86,6 +101,14 @@ class MainActivity : ComponentActivity() {
                                         imageUrl = film.imageUrl
                                     )
                                 )
+                            },
+                            onExitClick = {
+                                Firebase.auth.signOut()
+                                navController.navigate(LoginScreenObject) {
+                                    popUpTo(0) {
+                                        inclusive = true
+                                    }
+                                }
                             }
                         ) {
                             navController.navigate(AddFilmScreenObject())

@@ -42,6 +42,8 @@ val custom_font = FontFamily(
 fun DrawerBody(
     onAdmin: (Boolean) -> Unit = {},
     onAdminClick: () -> Unit = {},
+    onApiClick: () -> Unit = {},
+    onExitClick: () -> Unit = {},
     onFavClick: () -> Unit = {},
     onGenreClick: (String) -> Unit = {},
 ) {
@@ -63,7 +65,9 @@ fun DrawerBody(
         }
     }
     Box(
-        modifier = Modifier.fillMaxSize().background(colorResource(R.color.custom_blue))
+        modifier = Modifier
+            .fillMaxSize()
+            .background(colorResource(R.color.custom_blue))
     )
     {
         Image(
@@ -113,19 +117,19 @@ fun DrawerBody(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
-                                if (categoriesList[0] == item)
-                                {
+                                if (categoriesList[0] == item) {
                                     onFavClick()
                                 } else {
                                     onGenreClick(item)
                                 }
-                    }
+                            }
                     ) // Поместили все в Column для слушателя клика
                     {
                         Spacer(
                             modifier = Modifier.height(16.dp) // Просто пропуск
                         )
-                        Text(color = Color.Black,
+                        Text(
+                            color = Color.Black,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
                             fontFamily = custom_font,
@@ -151,21 +155,67 @@ fun DrawerBody(
                 modifier = Modifier.height(16.dp) // Просто пропуск
             )
             if (isAdminState.value)
+            {
+                Button(
+                    onClick = {
+                        onAdminClick()
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth(0.5f)
+                        .padding(5.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Red
+                    )
+                )
+                {
+                    Text(
+                        text = "Admin panel",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = custom_font,
+                        color = Color.White
+                    )
+                }
+                Button(
+                    onClick = {
+                        onApiClick()
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth(0.5f)
+                        .padding(5.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Red
+                    )
+                )
+                {
+                    Text(
+                        text = "Load films",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = custom_font,
+                        color = Color.White
+                    )
+                }
+            }
             Button(
                 onClick = {
-                    onAdminClick()
+                    onExitClick()
                 },
-                modifier = Modifier.fillMaxWidth(0.5f).padding(5.dp),
+                modifier = Modifier
+                    .fillMaxWidth(0.5f)
+                    .padding(5.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Red
+                    containerColor = Color.Black
                 )
             )
             {
-                Text(text = "Admin panel",
+                Text(
+                    text = "Выйти с аккаунта",
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
                     fontFamily = custom_font,
-                    color = Color.White)
+                    color = Color.White
+                )
             }
         }
 

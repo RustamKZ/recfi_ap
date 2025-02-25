@@ -162,7 +162,7 @@ fun compressAndConvertToBase64(uri: Uri, contentResolver: ContentResolver): Stri
     val originalBitmap = BitmapFactory.decodeStream(inputStream)
 
     val outputStream = ByteArrayOutputStream()
-    originalBitmap.compress(Bitmap.CompressFormat.JPEG, 30, outputStream) // Сжатие до 50% качества
+    originalBitmap.compress(Bitmap.CompressFormat.JPEG, 10, outputStream) // Сжатие до 50% качества
 
     val compressedBytes = outputStream.toByteArray()
     return Base64.encodeToString(compressedBytes, Base64.DEFAULT)

@@ -1,5 +1,6 @@
 package com.example.films_shop.main_screen
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -27,6 +28,8 @@ import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
+import com.example.films_shop.main_screen.api.MovieViewModel
+import com.example.films_shop.main_screen.api.apiKey
 import com.example.films_shop.main_screen.bottom_menu.BottomMenu
 import com.example.films_shop.main_screen.business_logic.getAllFavFilms
 import com.example.films_shop.main_screen.business_logic.getAllFavsIds
@@ -42,9 +45,11 @@ import kotlinx.coroutines.launch
 @Composable
 fun MainScreen(
     navData: MainScreenDataObject,
+    movieViewModel: MovieViewModel,
     onFilmEditClick: (Film) -> Unit,
     onFilmDetailsClick: (Film) -> Unit,
-    onAdminClick: () -> Unit
+    onExitClick: () -> Unit,
+    onAdminClick: () -> Unit,
 ) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val coroutineScope = rememberCoroutineScope()
@@ -58,6 +63,7 @@ fun MainScreen(
         mutableStateOf(false)
     }
     val isAdminState = remember { mutableStateOf(false) }
+    val isUserAccountVisible = remember { mutableStateOf(false) }  // Новое состояние для отображения данных пользователя
     val db = remember {
         Firebase.firestore
     }
@@ -83,6 +89,9 @@ fun MainScreen(
                     onAdmin = { isAdmin ->
                         isAdminState.value = isAdmin
                     },
+                    onApiClick = {
+                        movieViewModel.fetchAndSaveMovies(apiKey)
+                    },
                     onFavClick = {
                         selectedFavFilms.value = true
                         getAllFavsIds(db, navData.uid) { favs ->
@@ -91,27 +100,25 @@ fun MainScreen(
                                 filmsListState.value = films
                             }
                         }
-                        coroutineScope.launch {
-                            drawerState.close()
-                        }
+                        coroutineScope.launch { drawerState.close() }
                     },
                     onAdminClick = {
-                        coroutineScope.launch {
-                            drawerState.close()
-                        }
+                        coroutineScope.launch { drawerState.close() }
                         selectedFavFilms.value = false
                         onAdminClick()
                     },
+                    onExitClick = {
+                        coroutineScope.launch { drawerState.close() }
+                        onExitClick()
+                    },
                     onGenreClick = { genre ->
                         getAllFavsIds(db, navData.uid) { favs ->
-                            if (genre == "All")
-                            {
+                            if (genre == "All") {
                                 getAllFilms(db, favs) { films ->
                                     isFavListEmptyState.value = films.isEmpty()
                                     filmsListState.value = films
                                 }
-                            }
-                            else {
+                            } else {
                                 getAllFilms(db, favs, genre, true) { films ->
                                     isFavListEmptyState.value = films.isEmpty()
                                     filmsListState.value = films
@@ -119,9 +126,7 @@ fun MainScreen(
                             }
                         }
                         selectedFavFilms.value = false
-                        coroutineScope.launch {
-                            drawerState.close()
-                        }
+                        coroutineScope.launch { drawerState.close() }
                     }
                 )
             }
@@ -133,6 +138,7 @@ fun MainScreen(
                 BottomMenu(
                     onHomeClick = {
                         selectedFavFilms.value = false
+                        isUserAccountVisible.value = false
                         getAllFavsIds(db, navData.uid) { favs ->
                             getAllFilms(db, favs, "") { films ->
                                 isFavListEmptyState.value = films.isEmpty()
@@ -141,14 +147,31 @@ fun MainScreen(
                         }
                     },
                     onAccountClick = {
+                        isUserAccountVisible.value = true  // При нажатии на "Аккаунт", показываем данные пользователя
                         selectedFavFilms.value = false
                     }
                 )
             }
         )
-        {
-            paddingValues ->
-            if (isFavListEmptyState.value) {
+        { paddingValues ->
+            if (isUserAccountVisible.value) {  // Если включен режим просмотра аккаунта
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    // Здесь можно вывести данные пользователя
+                    Text(
+                        text = "User Info",
+                        fontFamily = custom_font
+                    )
+                    Text(
+                        text = "Email: ${navData.email}",
+                        fontFamily = custom_font
+                    )
+                    // Другие поля с данными пользователя
+                }
+            } else if (isFavListEmptyState.value) {  // Если список фильмов пуст
                 Column(
                     modifier = Modifier.fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally
@@ -166,43 +189,44 @@ fun MainScreen(
                         iterations = LottieConstants.IterateForever
                     )
                 }
-            }
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-            ) {
-                items(filmsListState.value) { film ->
-                    FilmListItemUi(
-                        isAdminState.value,
-                        film,
-                        onFilmDetailsClick = { filmdt ->
-                            onFilmDetailsClick(filmdt)
-                        },
-                        onEditClick = {
-                            onFilmEditClick(it)
-                        },
-                        onFavoriteClick = {
-                            filmsListState.value = filmsListState.value.map { fm ->
-                                if (fm.key == film.key) {
-                                    onFavs(
-                                        db,
-                                        navData.uid,
-                                        Favorite(fm.key),
-                                        !fm.isFavorite
-                                    )
-                                    fm.copy(isFavorite = !fm.isFavorite)
-                                } else {
-                                    fm
+            } else {  // Если показываем список фильмов
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                ) {
+                    items(filmsListState.value) { film ->
+                        FilmListItemUi(
+                            isAdminState.value,
+                            film,
+                            onFilmDetailsClick = { filmdt ->
+                                onFilmDetailsClick(filmdt)
+                            },
+                            onEditClick = {
+                                onFilmEditClick(it)
+                            },
+                            onFavoriteClick = {
+                                filmsListState.value = filmsListState.value.map { fm ->
+                                    if (fm.key == film.key) {
+                                        onFavs(
+                                            db,
+                                            navData.uid,
+                                            Favorite(fm.key),
+                                            !fm.isFavorite
+                                        )
+                                        fm.copy(isFavorite = !fm.isFavorite)
+                                    } else {
+                                        fm
+                                    }
+                                }
+                                if (selectedFavFilms.value) {
+                                    filmsListState.value = filmsListState.value.filter { it.isFavorite }
+                                    isFavListEmptyState.value = filmsListState.value.isEmpty()
                                 }
                             }
-                            if (selectedFavFilms.value) {
-                                filmsListState.value = filmsListState.value.filter { it.isFavorite }
-                                isFavListEmptyState.value = filmsListState.value.isEmpty()
-                            }
-                        }
-                    )
+                        )
+                    }
                 }
             }
         }

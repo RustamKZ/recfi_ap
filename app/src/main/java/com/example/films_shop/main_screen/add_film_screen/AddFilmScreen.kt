@@ -53,7 +53,7 @@ fun AddFilmScreen(
     onSaved: () -> Unit = {}
 ) {
     val cv = LocalContext.current.contentResolver
-    var selectedGenre = remember { mutableStateOf(navData.genre) }
+    val selectedGenre = remember { mutableStateOf(navData.genre) }
     val title = remember { mutableStateOf(navData.title) }
     val description = remember { mutableStateOf(navData.description) }
     val year = remember { mutableStateOf(navData.year) }
