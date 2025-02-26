@@ -17,9 +17,9 @@ sealed class BottomMenuItem(
         title = "Account",
         icon = R.drawable.account_logo,
     )
-    object Settings : BottomMenuItem(
-        route = "settings",
-        title = "Settings",
-        icon = R.drawable.baseline_app_settings_alt_24,
+    object TestApi : BottomMenuItem(
+        route = "test_api",
+        title = "test_api",
+        icon = R.drawable.baseline_api_24,
     )
 }

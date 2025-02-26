@@ -12,12 +12,13 @@ import androidx.compose.ui.res.painterResource
 @Composable
 fun BottomMenu(
     onAccountClick: () -> Unit = {},
-    onHomeClick: () -> Unit = {}
+    onHomeClick: () -> Unit = {},
+    onApiTestClick: () -> Unit = {}
 ) {
     val items = listOf(
         BottomMenuItem.Home,
         BottomMenuItem.Account,
-        BottomMenuItem.Settings,
+        BottomMenuItem.TestApi,
     )
     val selectedItem = remember { mutableStateOf("Home") }
     NavigationBar() {
@@ -29,6 +30,7 @@ fun BottomMenu(
                     when(item.title) {
                         BottomMenuItem.Home.title -> onHomeClick()
                         BottomMenuItem.Account.title -> onAccountClick()
+                        BottomMenuItem.TestApi.title -> onApiTestClick()
                     }
                 },
                 icon = {

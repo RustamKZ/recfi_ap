@@ -1,5 +1,6 @@
 package com.example.films_shop.view
 
+import MovieViewModel
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -30,10 +31,10 @@ import androidx.navigation.toRoute
 import com.example.films_shop.main_screen.MainScreen
 import com.example.films_shop.main_screen.add_film_screen.AddFilmScreen
 import com.example.films_shop.main_screen.add_film_screen.AddFilmScreenObject
-import com.example.films_shop.main_screen.api.MovieViewModel
+import com.example.films_shop.main_screen.api.details.DetailsMovieScreen
+import com.example.films_shop.main_screen.api.details.DetailsNavMovieObject
 import com.example.films_shop.main_screen.data.Film
 import com.example.films_shop.main_screen.details_screen.data.DetailsNavObject
-import com.example.films_shop.main_screen.details_screen.ui.DetailsScreen
 import com.example.films_shop.main_screen.login.LoginScreen
 import com.example.films_shop.main_screen.login.data_nav.LoginScreenObject
 import com.example.films_shop.main_screen.login.data_nav.MainScreenDataObject
@@ -87,7 +88,6 @@ class MainActivity : ComponentActivity() {
                                         imageUrl = film.imageUrl
                                     )
                                 )
-
                             },
                             onFilmEditClick = { film ->
                                 navController.navigate(
@@ -109,6 +109,18 @@ class MainActivity : ComponentActivity() {
                                         inclusive = true
                                     }
                                 }
+                            },
+                            onMovieDetailsClick = { movie ->
+                                navController.navigate(
+                                    DetailsNavMovieObject(
+                                        title = movie.name ?: "Неизвестно",
+                                        genre = movie.genres?.joinToString(", ") { it.name } ?: "Неизвестно",
+                                        year = movie.year?.toString() ?: "Неизвестно",
+                                        director = "Неизвестно",
+                                        description = movie.description ?: "Описание отсутствует",
+                                        imageUrl = movie.poster?.url ?: ""
+                                    )
+                                )
                             }
                         ) {
                             navController.navigate(AddFilmScreenObject())
@@ -121,10 +133,10 @@ class MainActivity : ComponentActivity() {
                             navController.popBackStack()
                         }
                     }
-                    composable<DetailsNavObject>
+                    composable<DetailsNavMovieObject>
                     { navEntry ->
-                        val navData = navEntry.toRoute<DetailsNavObject>()
-                        DetailsScreen(navData)
+                        val navData = navEntry.toRoute<DetailsNavMovieObject>()
+                        DetailsMovieScreen(navData)
                     }
                 }
             }

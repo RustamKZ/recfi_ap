@@ -1,5 +1,6 @@
 package com.example.films_shop.main_screen
 
+import MovieViewModel
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
@@ -24,12 +26,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.paging.LoadState
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
-import com.example.films_shop.main_screen.api.MovieViewModel
-import com.example.films_shop.main_screen.api.apiKey
+import com.example.films_shop.main_screen.api.Movie
+import com.example.films_shop.main_screen.api.MovieitemUi
 import com.example.films_shop.main_screen.bottom_menu.BottomMenu
 import com.example.films_shop.main_screen.business_logic.getAllFavFilms
 import com.example.films_shop.main_screen.business_logic.getAllFavsIds
@@ -49,6 +53,7 @@ fun MainScreen(
     onFilmEditClick: (Film) -> Unit,
     onFilmDetailsClick: (Film) -> Unit,
     onExitClick: () -> Unit,
+    onMovieDetailsClick: (Movie) -> Unit,
     onAdminClick: () -> Unit,
 ) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
@@ -63,11 +68,16 @@ fun MainScreen(
         mutableStateOf(false)
     }
     val isAdminState = remember { mutableStateOf(false) }
-    val isUserAccountVisible = remember { mutableStateOf(false) }  // Новое состояние для отображения данных пользователя
+    val isUserAccountVisible =
+        remember { mutableStateOf(false) }  // Новое состояние для отображения данных пользователя
+    val isApiTestVisible =
+        remember { mutableStateOf(false) } // Состояние для тестирования  показа API
+    val movies = movieViewModel.moviePagingFlow.collectAsLazyPagingItems()
     val db = remember {
         Firebase.firestore
     }
-    val composition = rememberLottieComposition(spec = LottieCompositionSpec.Asset("emptyListAnim.json"))
+    val composition =
+        rememberLottieComposition(spec = LottieCompositionSpec.Asset("emptyListAnim.json"))
     LaunchedEffect(Unit) {
         getAllFavsIds(db, navData.uid) { favs ->
             getAllFilms(db, favs) { films ->
@@ -90,7 +100,7 @@ fun MainScreen(
                         isAdminState.value = isAdmin
                     },
                     onApiClick = {
-                        movieViewModel.fetchAndSaveMovies(apiKey)
+
                     },
                     onFavClick = {
                         selectedFavFilms.value = true
@@ -145,16 +155,56 @@ fun MainScreen(
                                 filmsListState.value = films
                             }
                         }
+                        isApiTestVisible.value = false
                     },
                     onAccountClick = {
-                        isUserAccountVisible.value = true  // При нажатии на "Аккаунт", показываем данные пользователя
+                        isUserAccountVisible.value =
+                            true  // При нажатии на "Аккаунт", показываем данные пользователя
+                        selectedFavFilms.value = false
+                        isApiTestVisible.value = false
+                    },
+                    onApiTestClick = {
+                        isApiTestVisible.value = true
                         selectedFavFilms.value = false
                     }
                 )
             }
         )
         { paddingValues ->
-            if (isUserAccountVisible.value) {  // Если включен режим просмотра аккаунта
+            if (isApiTestVisible.value) {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    modifier = Modifier.fillMaxSize().padding(8.dp)
+                ) {
+                    items(movies.itemCount) { index ->
+                        val movie = movies[index]
+                        if (movie != null) {
+                            MovieitemUi(
+                                movie = movie,
+                                onMovieDetailsClick = { movie ->
+                                    onMovieDetailsClick(movie)
+                                }
+                            )
+                        }
+                    }
+
+                    movies.apply {
+                        when {
+                            loadState.append is LoadState.Loading -> {
+                                item {
+                                    CircularProgressIndicator(modifier = Modifier.padding(16.dp))
+                                }
+                            }
+                            loadState.refresh is LoadState.Loading -> {
+                                item {
+                                    CircularProgressIndicator(modifier = Modifier.padding(16.dp))
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            else if (isUserAccountVisible.value) {  // Если включен режим просмотра аккаунта
                 Column(
                     modifier = Modifier.fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -221,7 +271,8 @@ fun MainScreen(
                                     }
                                 }
                                 if (selectedFavFilms.value) {
-                                    filmsListState.value = filmsListState.value.filter { it.isFavorite }
+                                    filmsListState.value =
+                                        filmsListState.value.filter { it.isFavorite }
                                     isFavListEmptyState.value = filmsListState.value.isEmpty()
                                 }
                             }

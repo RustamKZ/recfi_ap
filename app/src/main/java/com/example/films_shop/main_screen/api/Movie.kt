@@ -6,6 +6,7 @@ data class Movie(
     val description: String?,
     val year: Int?,
     val poster: Poster?,
+    val genres: List<Genre>?,
     val rating: Rating?
 )
 
@@ -15,6 +16,10 @@ data class Poster(
 
 data class Rating(
     val kp: Double?
+)
+
+data class Genre(
+    val name: String
 )
 
 
