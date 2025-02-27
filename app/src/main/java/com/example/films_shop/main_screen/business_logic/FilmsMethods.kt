@@ -6,12 +6,42 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Base64
 import android.util.Log
+import com.example.films_shop.main_screen.api.Genre
+import com.example.films_shop.main_screen.api.Movie
+import com.example.films_shop.main_screen.api.Poster
+import com.example.films_shop.main_screen.api.Rating
 import com.example.films_shop.main_screen.data.Favorite
 import com.example.films_shop.main_screen.data.FavoriteMovie
 import com.example.films_shop.main_screen.data.Film
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FirebaseFirestore
 import java.io.ByteArrayOutputStream
+
+fun getFavoriteMovies(
+    db: FirebaseFirestore,
+    uid: String,
+    onResult: (List<Movie>) -> Unit
+) {
+    db.collection("users")
+        .document(uid)
+        .collection("favorites")
+        .get()
+        .addOnSuccessListener { snapshot ->
+            val movies = snapshot.documents.mapNotNull { it.toObject(FavoriteMovie::class.java) }
+                .map { favorite ->
+                    Movie(
+                        id = favorite.key,
+                        name = favorite.name,
+                        year = favorite.year,
+                        poster = favorite.posterUrl?.let { Poster(it) },
+                        genres = favorite.genres?.map { Genre(it) },
+                        rating = Rating(favorite.rating ?: 0.0),
+                        isFavorite = true
+                    )
+                }
+            onResult(movies)
+        }
+}
 
 fun getAllFavFilms(
     db: FirebaseFirestore,
@@ -128,9 +158,11 @@ fun onFavs(
 fun onFavsMovies(
     db: FirebaseFirestore,
     uid: String,
-    favorite: FavoriteMovie,
+    movie: Movie,
     isFavorite: Boolean
 ) {
+    val favorite = FavoriteMovie(movie)
+
     if (isFavorite) {
         Log.d("MyLog", "Adding movie to favorites: ${favorite.key}")
         db.collection("users")
@@ -139,7 +171,7 @@ fun onFavsMovies(
             .document(favorite.key)
             .set(favorite)
     } else {
-        Log.d("MyLog", "Adding movie to favorites: ${favorite.key}")
+        Log.d("MyLog", "Removing movie from favorites: ${favorite.key}")
         db.collection("users")
             .document(uid)
             .collection("favorites")
@@ -147,6 +179,7 @@ fun onFavsMovies(
             .delete()
     }
 }
+
 
 
 fun ImageToBase64(

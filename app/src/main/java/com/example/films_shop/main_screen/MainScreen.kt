@@ -1,6 +1,7 @@
 package com.example.films_shop.main_screen
 
 import MovieViewModel
+import android.annotation.SuppressLint
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -18,9 +19,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,6 +54,7 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.launch
 
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun MainScreen(
     navData: MainScreenDataObject,
@@ -75,6 +79,7 @@ fun MainScreen(
     val isFavListEmptyState = remember {
         mutableStateOf(false)
     }
+    var favoriteMovies by movieViewModel.favoriteMoviesState
     val isAdminState = remember { mutableStateOf(false) }
     val isUserAccountVisible =
         remember { mutableStateOf(false) }  // Новое состояние для отображения данных пользователя
@@ -87,17 +92,22 @@ fun MainScreen(
     val composition =
         rememberLottieComposition(spec = LottieCompositionSpec.Asset("emptyListAnim.json"))
     LaunchedEffect(movies.itemSnapshotList) {
+        movieViewModel.loadFavoriteMovies(db, navData.uid)
         val movieList = movies.itemSnapshotList.items
         if (movieList.isNotEmpty()) {
             moviesListState.value = movieList
             Log.d("MyLog", "moviesListState загружено: ${movieList.size}, null элементов: ${movies.itemSnapshotList.items.count { it == null }}")
         }
+
         getAllFavsIds(db, navData.uid) { favs ->
             getAllFilms(db, favs) { films ->
                 isFavListEmptyState.value = films.isEmpty()
                 filmsListState.value = films
             }
         }
+    }
+    if (favoriteMovies.isNotEmpty()) {
+        Log.d("MyLog", "moviesListState обновлено, избранных: ${favoriteMovies.size}")
     }
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -183,7 +193,7 @@ fun MainScreen(
                 )
             }
         )
-        { paddingValues ->
+        {
             if (isApiTestVisible.value) {
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),
@@ -207,7 +217,7 @@ fun MainScreen(
                                             onFavsMovies(
                                                 db,
                                                 navData.uid,
-                                                FavoriteMovie(mv.id),
+                                                mv,
                                                 !mv.isFavorite
                                             )
                                             Log.d("MyLog", "BEFORE COPY: ${mv.id}, isFavorite: ${mv.isFavorite}, poster: ${mv.poster}, genres: ${mv.genres}, rating: ${mv.rating}")
@@ -279,42 +289,25 @@ fun MainScreen(
                         iterations = LottieConstants.IterateForever
                     )
                 }
-            } else {  // Если показываем список фильмов
+            } else {
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues)
+                    modifier = Modifier.fillMaxSize().padding(8.dp)
                 ) {
-                    items(filmsListState.value) { film ->
-                        FilmListItemUi(
-                            isAdminState.value,
-                            film,
-                            onFilmDetailsClick = { filmdt ->
-                                onFilmDetailsClick(filmdt)
-                            },
-                            onEditClick = {
-                                onFilmEditClick(it)
+                    items(favoriteMovies.size) { index ->
+                        val movie = favoriteMovies[index]
+                        MovieitemUi(
+                            movie = movie,
+                            onMovieDetailsClick = { movie ->
+                                Log.d("MyLog", "movie.id: ${movie.id}")
+                                onMovieDetailsClick(movie)
                             },
                             onFavoriteClick = {
-                                filmsListState.value = filmsListState.value.map { fm ->
-                                    if (fm.key == film.key) {
-                                        onFavs(
-                                            db,
-                                            navData.uid,
-                                            Favorite(fm.key),
-                                            !fm.isFavorite
-                                        )
-                                        fm.copy(isFavorite = !fm.isFavorite)
-                                    } else {
-                                        fm
-                                    }
-                                }
-                                if (selectedFavFilms.value) {
-                                    filmsListState.value =
-                                        filmsListState.value.filter { it.isFavorite }
-                                    isFavListEmptyState.value = filmsListState.value.isEmpty()
-                                }
+                                Log.d("MyLog", "movie.id: ${movie.id}")
+                                onFavsMovies(db, navData.uid, movie, !movie.isFavorite)
+                                favoriteMovies =
+                                    favoriteMovies.filter { it.id != movie.id }
+                                isFavListEmptyState.value = favoriteMovies.isEmpty()
                             }
                         )
                     }
