@@ -1,6 +1,7 @@
 package com.example.films_shop.main_screen
 
 import MovieViewModel
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,6 +21,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -34,12 +36,15 @@ import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.films_shop.main_screen.api.Movie
 import com.example.films_shop.main_screen.api.MovieitemUi
+import com.example.films_shop.main_screen.api.copySafe
 import com.example.films_shop.main_screen.bottom_menu.BottomMenu
 import com.example.films_shop.main_screen.business_logic.getAllFavFilms
 import com.example.films_shop.main_screen.business_logic.getAllFavsIds
 import com.example.films_shop.main_screen.business_logic.getAllFilms
 import com.example.films_shop.main_screen.business_logic.onFavs
+import com.example.films_shop.main_screen.business_logic.onFavsMovies
 import com.example.films_shop.main_screen.data.Favorite
+import com.example.films_shop.main_screen.data.FavoriteMovie
 import com.example.films_shop.main_screen.data.Film
 import com.example.films_shop.main_screen.login.data_nav.MainScreenDataObject
 import com.google.firebase.firestore.ktx.firestore
@@ -61,6 +66,9 @@ fun MainScreen(
     val filmsListState = remember {
         mutableStateOf(emptyList<Film>())
     }
+    val moviesListState = remember {
+            mutableStateOf(emptyList<Movie>())
+    }
     val selectedFavFilms = remember {
         mutableStateOf(false)
     }
@@ -78,7 +86,12 @@ fun MainScreen(
     }
     val composition =
         rememberLottieComposition(spec = LottieCompositionSpec.Asset("emptyListAnim.json"))
-    LaunchedEffect(Unit) {
+    LaunchedEffect(movies.itemSnapshotList) {
+        val movieList = movies.itemSnapshotList.items
+        if (movieList.isNotEmpty()) {
+            moviesListState.value = movieList
+            Log.d("MyLog", "moviesListState загружено: ${movieList.size}, null элементов: ${movies.itemSnapshotList.items.count { it == null }}")
+        }
         getAllFavsIds(db, navData.uid) { favs ->
             getAllFilms(db, favs) { films ->
                 isFavListEmptyState.value = films.isEmpty()
@@ -182,7 +195,34 @@ fun MainScreen(
                             MovieitemUi(
                                 movie = movie,
                                 onMovieDetailsClick = { movie ->
+                                    Log.d("MyLog", "movie.id: ${movie.id}")
                                     onMovieDetailsClick(movie)
+                                },
+                                onFavoriteClick = {
+                                    Log.d("MyLog", "movie.id: ${movie.id}")
+                                    val updatedList = moviesListState.value.map { mv ->
+                                        Log.d("MyLog", "mv.id: ${mv.id}")
+                                        Log.d("MyLog", "movie.id: ${movie.id}")
+                                        if (mv.id == movie.id) {
+                                            onFavsMovies(
+                                                db,
+                                                navData.uid,
+                                                FavoriteMovie(mv.id),
+                                                !mv.isFavorite
+                                            )
+                                            Log.d("MyLog", "BEFORE COPY: ${mv.id}, isFavorite: ${mv.isFavorite}, poster: ${mv.poster}, genres: ${mv.genres}, rating: ${mv.rating}")
+                                            mv.copySafe(isFavorite = !mv.isFavorite)
+                                        } else {
+                                            mv
+                                        }
+                                    }.toMutableStateList()
+                                    moviesListState.value = updatedList // <-- присваиваем обновленный список
+                                    Log.d("MyLog", "moviesListState size: ${moviesListState.value.size}")
+                                    if (selectedFavFilms.value) {
+                                        moviesListState.value =
+                                            moviesListState.value.filter { it.isFavorite }
+                                        isFavListEmptyState.value = filmsListState.value.isEmpty()
+                                    }
                                 }
                             )
                         }

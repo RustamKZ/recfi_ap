@@ -5,7 +5,9 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Base64
+import android.util.Log
 import com.example.films_shop.main_screen.data.Favorite
+import com.example.films_shop.main_screen.data.FavoriteMovie
 import com.example.films_shop.main_screen.data.Film
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FirebaseFirestore
@@ -115,6 +117,29 @@ fun onFavs(
             .document(favorite.key)
             .set(favorite)
     } else {
+        db.collection("users")
+            .document(uid)
+            .collection("favorites")
+            .document(favorite.key)
+            .delete()
+    }
+}
+
+fun onFavsMovies(
+    db: FirebaseFirestore,
+    uid: String,
+    favorite: FavoriteMovie,
+    isFavorite: Boolean
+) {
+    if (isFavorite) {
+        Log.d("MyLog", "Adding movie to favorites: ${favorite.key}")
+        db.collection("users")
+            .document(uid)
+            .collection("favorites")
+            .document(favorite.key)
+            .set(favorite)
+    } else {
+        Log.d("MyLog", "Adding movie to favorites: ${favorite.key}")
         db.collection("users")
             .document(uid)
             .collection("favorites")
