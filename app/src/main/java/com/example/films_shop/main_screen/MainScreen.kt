@@ -10,13 +10,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -28,6 +31,7 @@ import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -44,16 +48,17 @@ import com.example.films_shop.main_screen.bottom_menu.BottomMenu
 import com.example.films_shop.main_screen.business_logic.getAllFavFilms
 import com.example.films_shop.main_screen.business_logic.getAllFavsIds
 import com.example.films_shop.main_screen.business_logic.getAllFilms
-import com.example.films_shop.main_screen.business_logic.onFavs
 import com.example.films_shop.main_screen.business_logic.onFavsMovies
-import com.example.films_shop.main_screen.data.Favorite
-import com.example.films_shop.main_screen.data.FavoriteMovie
 import com.example.films_shop.main_screen.data.Film
+import com.example.films_shop.main_screen.films_ui.FavMovieScreen
+import com.example.films_shop.main_screen.films_ui.MovieScreen
 import com.example.films_shop.main_screen.login.data_nav.MainScreenDataObject
+import com.example.films_shop.main_screen.top_bar.TopBarMenu
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun MainScreen(
@@ -65,6 +70,9 @@ fun MainScreen(
     onMovieDetailsClick: (Movie) -> Unit,
     onAdminClick: () -> Unit,
 ) {
+    var scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(
+        state = rememberTopAppBarState()
+    )
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val coroutineScope = rememberCoroutineScope()
     val filmsListState = remember {
@@ -79,7 +87,8 @@ fun MainScreen(
     val isFavListEmptyState = remember {
         mutableStateOf(false)
     }
-    var favoriteMovies by movieViewModel.favoriteMoviesState
+    //var favoriteMovies by movieViewModel.favoriteMoviesState
+    val favoriteMoviesState = remember { movieViewModel.favoriteMoviesState }
     val isAdminState = remember { mutableStateOf(false) }
     val isUserAccountVisible =
         remember { mutableStateOf(false) }  // Новое состояние для отображения данных пользователя
@@ -106,8 +115,8 @@ fun MainScreen(
             }
         }
     }
-    if (favoriteMovies.isNotEmpty()) {
-        Log.d("MyLog", "moviesListState обновлено, избранных: ${favoriteMovies.size}")
+    if (favoriteMoviesState.value.isNotEmpty()) {
+        Log.d("MyLog", "moviesListState обновлено, избранных: ${favoriteMoviesState.value.size}")
     }
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -166,7 +175,14 @@ fun MainScreen(
         }
     ) {
         Scaffold(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .nestedScroll(scrollBehavior.nestedScrollConnection),
+            topBar = {
+                TopBarMenu(
+                    scrollBehavior = scrollBehavior
+                )
+            },
             bottomBar = {
                 BottomMenu(
                     onHomeClick = {
@@ -193,66 +209,19 @@ fun MainScreen(
                 )
             }
         )
-        {
+        { paddingValues ->
             if (isApiTestVisible.value) {
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
-                    modifier = Modifier.fillMaxSize().padding(8.dp)
-                ) {
-                    items(movies.itemCount) { index ->
-                        val movie = movies[index]
-                        if (movie != null) {
-                            MovieitemUi(
-                                movie = movie,
-                                onMovieDetailsClick = { movie ->
-                                    Log.d("MyLog", "movie.id: ${movie.id}")
-                                    onMovieDetailsClick(movie)
-                                },
-                                onFavoriteClick = {
-                                    Log.d("MyLog", "movie.id: ${movie.id}")
-                                    val updatedList = moviesListState.value.map { mv ->
-                                        Log.d("MyLog", "mv.id: ${mv.id}")
-                                        Log.d("MyLog", "movie.id: ${movie.id}")
-                                        if (mv.id == movie.id) {
-                                            onFavsMovies(
-                                                db,
-                                                navData.uid,
-                                                mv,
-                                                !mv.isFavorite
-                                            )
-                                            Log.d("MyLog", "BEFORE COPY: ${mv.id}, isFavorite: ${mv.isFavorite}, poster: ${mv.poster}, genres: ${mv.genres}, rating: ${mv.rating}")
-                                            mv.copySafe(isFavorite = !mv.isFavorite)
-                                        } else {
-                                            mv
-                                        }
-                                    }.toMutableStateList()
-                                    moviesListState.value = updatedList // <-- присваиваем обновленный список
-                                    Log.d("MyLog", "moviesListState size: ${moviesListState.value.size}")
-                                    if (selectedFavFilms.value) {
-                                        moviesListState.value =
-                                            moviesListState.value.filter { it.isFavorite }
-                                        isFavListEmptyState.value = filmsListState.value.isEmpty()
-                                    }
-                                }
-                            )
-                        }
-                    }
-
-                    movies.apply {
-                        when {
-                            loadState.append is LoadState.Loading -> {
-                                item {
-                                    CircularProgressIndicator(modifier = Modifier.padding(16.dp))
-                                }
-                            }
-                            loadState.refresh is LoadState.Loading -> {
-                                item {
-                                    CircularProgressIndicator(modifier = Modifier.padding(16.dp))
-                                }
-                            }
-                        }
-                    }
-                }
+                MovieScreen(
+                movies = movies,
+                onMovieDetailsClick = onMovieDetailsClick,
+                moviesListState = moviesListState,
+                db = db,
+                navData = navData,
+                selectedFavFilms = selectedFavFilms,
+                isFavListEmptyState = isFavListEmptyState,
+                filmsListState = filmsListState,
+                paddingValues = paddingValues
+                )
             }
             else if (isUserAccountVisible.value) {  // Если включен режим просмотра аккаунта
                 Column(
@@ -290,28 +259,14 @@ fun MainScreen(
                     )
                 }
             } else {
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
-                    modifier = Modifier.fillMaxSize().padding(8.dp)
-                ) {
-                    items(favoriteMovies.size) { index ->
-                        val movie = favoriteMovies[index]
-                        MovieitemUi(
-                            movie = movie,
-                            onMovieDetailsClick = { movie ->
-                                Log.d("MyLog", "movie.id: ${movie.id}")
-                                onMovieDetailsClick(movie)
-                            },
-                            onFavoriteClick = {
-                                Log.d("MyLog", "movie.id: ${movie.id}")
-                                onFavsMovies(db, navData.uid, movie, !movie.isFavorite)
-                                favoriteMovies =
-                                    favoriteMovies.filter { it.id != movie.id }
-                                isFavListEmptyState.value = favoriteMovies.isEmpty()
-                            }
-                        )
-                    }
-                }
+                FavMovieScreen(
+                    favoriteMoviesState = favoriteMoviesState,
+                    onMovieDetailsClick = { movie -> /* Действие по клику */ },
+                    db = db,
+                    navData = navData,
+                    isFavListEmptyState = isFavListEmptyState,
+                    paddingValues = paddingValues
+                )
             }
         }
     }
