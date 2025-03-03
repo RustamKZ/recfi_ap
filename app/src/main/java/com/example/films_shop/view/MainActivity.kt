@@ -35,6 +35,8 @@ import com.example.films_shop.main_screen.api.details.DetailsMovieScreen
 import com.example.films_shop.main_screen.api.details.DetailsNavMovieObject
 import com.example.films_shop.main_screen.data.Film
 import com.example.films_shop.main_screen.details_screen.data.DetailsNavObject
+import com.example.films_shop.main_screen.films_ui.HomeScreen
+import com.example.films_shop.main_screen.films_ui.HomeScreenObject
 import com.example.films_shop.main_screen.login.LoginScreen
 import com.example.films_shop.main_screen.login.data_nav.LoginScreenObject
 import com.example.films_shop.main_screen.login.data_nav.MainScreenDataObject
@@ -54,15 +56,20 @@ class MainActivity : ComponentActivity() {
             currentUser.uid,
             currentUser.email ?: ""
         ) else LoginScreenObject
+        val testStartDestination = HomeScreenObject
 
         setContent {
             BookShopTheme {
                 val navController = rememberNavController()
                 NavHost(
                     navController = navController,
-                    startDestination = startDestination
+                    startDestination = testStartDestination
                 )
                 {
+                    composable<HomeScreenObject>
+                    {
+                        HomeScreen()
+                    }
                     composable<LoginScreenObject>
                     {
                         LoginScreen { navData ->

@@ -93,7 +93,7 @@ fun MainScreen(
     val isUserAccountVisible =
         remember { mutableStateOf(false) }  // Новое состояние для отображения данных пользователя
     val isApiTestVisible =
-        remember { mutableStateOf(false) } // Состояние для тестирования  показа API
+        remember { mutableStateOf(true) } // Состояние для тестирования  показа API
     val movies = movieViewModel.moviePagingFlow.collectAsLazyPagingItems()
     val db = remember {
         Firebase.firestore
@@ -186,6 +186,16 @@ fun MainScreen(
             bottomBar = {
                 BottomMenu(
                     onHomeClick = {
+                        isApiTestVisible.value = true
+                        selectedFavFilms.value = false
+                    },
+                    onAccountClick = {
+                        isUserAccountVisible.value =
+                            true  // При нажатии на "Аккаунт", показываем данные пользователя
+                        selectedFavFilms.value = false
+                        isApiTestVisible.value = false
+                    },
+                    onFavouriteClick = {
                         selectedFavFilms.value = false
                         isUserAccountVisible.value = false
                         getAllFavsIds(db, navData.uid) { favs ->
@@ -195,16 +205,6 @@ fun MainScreen(
                             }
                         }
                         isApiTestVisible.value = false
-                    },
-                    onAccountClick = {
-                        isUserAccountVisible.value =
-                            true  // При нажатии на "Аккаунт", показываем данные пользователя
-                        selectedFavFilms.value = false
-                        isApiTestVisible.value = false
-                    },
-                    onApiTestClick = {
-                        isApiTestVisible.value = true
-                        selectedFavFilms.value = false
                     }
                 )
             }

@@ -29,7 +29,8 @@ fun FavMovieScreen(
         columns = GridCells.Fixed(2),
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(
-            top = paddingValues.calculateTopPadding()
+            top = paddingValues.calculateTopPadding(),
+            bottom = paddingValues.calculateBottomPadding()
         )
     ) {
         items(favoriteMoviesState.value.size) { index ->
