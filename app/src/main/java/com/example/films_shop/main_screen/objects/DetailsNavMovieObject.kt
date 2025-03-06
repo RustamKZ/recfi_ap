@@ -1,4 +1,4 @@
-package com.example.films_shop.main_screen.api.details
+package com.example.films_shop.main_screen.objects
 
 import kotlinx.serialization.Serializable
 

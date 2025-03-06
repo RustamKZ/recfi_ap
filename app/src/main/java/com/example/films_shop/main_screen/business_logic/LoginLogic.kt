@@ -1,9 +1,6 @@
-package com.example.films_shop.main_screen.login
+package com.example.films_shop.main_screen.business_logic
 
-import android.util.Log
-import androidx.compose.runtime.Composable
-import com.example.films_shop.main_screen.login.data_nav.MainScreenDataObject
-import com.google.firebase.auth.EmailAuthProvider
+import com.example.films_shop.main_screen.objects.MainScreenDataObject
 import com.google.firebase.auth.FirebaseAuth
 
 fun signUp(

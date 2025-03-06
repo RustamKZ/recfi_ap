@@ -16,7 +16,7 @@ import com.example.films_shop.main_screen.api.Poster
 import com.example.films_shop.main_screen.api.Rating
 import com.example.films_shop.main_screen.api.RetrofitInstance
 import com.example.films_shop.main_screen.api.apiKey
-import com.example.films_shop.main_screen.data.FavoriteMovie
+import com.example.films_shop.main_screen.business_logic.FavoriteMovie
 import com.google.firebase.firestore.FirebaseFirestore
 import retrofit2.HttpException
 import java.io.IOException

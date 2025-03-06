@@ -10,10 +10,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.example.films_shop.main_screen.custom_font
+import com.example.films_shop.main_screen.screens.custom_font
 import com.example.films_shop.ui.theme.BorderColor
 
 @Composable

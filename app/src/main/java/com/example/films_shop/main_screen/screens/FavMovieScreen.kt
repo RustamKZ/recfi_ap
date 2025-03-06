@@ -1,19 +1,18 @@
-package com.example.films_shop.main_screen.films_ui
+package com.example.films_shop.main_screen.screens
 
 import android.util.Log
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import com.example.films_shop.main_screen.api.Movie
 import com.example.films_shop.main_screen.api.MovieitemUi
 import com.example.films_shop.main_screen.business_logic.onFavsMovies
-import com.example.films_shop.main_screen.login.data_nav.MainScreenDataObject
+import com.example.films_shop.main_screen.objects.MainScreenDataObject
 import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
@@ -25,6 +24,12 @@ fun FavMovieScreen(
     isFavListEmptyState: MutableState<Boolean>,
     paddingValues: PaddingValues
 ) {
+    LaunchedEffect(favoriteMoviesState.value) {
+        if (favoriteMoviesState.value.isNotEmpty()) {
+            isFavListEmptyState.value = false
+        }
+    }
+
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         modifier = Modifier.fillMaxSize(),

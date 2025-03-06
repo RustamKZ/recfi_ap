@@ -1,4 +1,4 @@
-package com.example.films_shop.main_screen.api.details
+package com.example.films_shop.main_screen.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -30,7 +30,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.example.films_shop.main_screen.custom_font
+import com.example.films_shop.main_screen.objects.DetailsNavMovieObject
 import com.example.films_shop.ui.theme.ButtonColor
 
 @Composable

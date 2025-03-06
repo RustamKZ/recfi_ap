@@ -1,10 +1,6 @@
-package com.example.films_shop.main_screen.data
+package com.example.films_shop.main_screen.business_logic
 
 import com.example.films_shop.main_screen.api.Movie
-
-data class Favorite(
-    val key: String = ""
-)
 
 data class FavoriteMovie(
     val key: String = "",

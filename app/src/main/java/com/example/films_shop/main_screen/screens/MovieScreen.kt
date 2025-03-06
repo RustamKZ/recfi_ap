@@ -1,4 +1,4 @@
-package com.example.films_shop.main_screen.films_ui
+package com.example.films_shop.main_screen.screens
 
 import android.util.Log
 import androidx.compose.foundation.layout.PaddingValues
@@ -18,8 +18,7 @@ import com.example.films_shop.main_screen.api.Movie
 import com.example.films_shop.main_screen.api.MovieitemUi
 import com.example.films_shop.main_screen.api.copySafe
 import com.example.films_shop.main_screen.business_logic.onFavsMovies
-import com.example.films_shop.main_screen.data.Film
-import com.example.films_shop.main_screen.login.data_nav.MainScreenDataObject
+import com.example.films_shop.main_screen.objects.MainScreenDataObject
 import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
@@ -31,7 +30,6 @@ fun MovieScreen(
     navData: MainScreenDataObject,
     selectedFavFilms: MutableState<Boolean>,
     isFavListEmptyState: MutableState<Boolean>,
-    filmsListState: MutableState<List<Film>>,
     paddingValues: PaddingValues
 ) {
     LazyVerticalGrid(
@@ -73,7 +71,9 @@ fun MovieScreen(
                         if (selectedFavFilms.value) {
                             moviesListState.value =
                                 moviesListState.value.filter { it.isFavorite }
-                            isFavListEmptyState.value = filmsListState.value.isEmpty()
+                        }
+                        if (moviesListState.value.isNotEmpty()) {
+                            isFavListEmptyState.value = false
                         }
                     }
                 )
