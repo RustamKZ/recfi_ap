@@ -37,10 +37,9 @@ class MoviePagingSource(
                         ?: Poster("https://raw.githubusercontent.com/RustamKZ/recfi_ap/refs/heads/master/poster.jpg")
                 )
             }
-
-
+            val filteredMovies = updatedMovies.filter { it.name != null }
             LoadResult.Page(
-                data = updatedMovies,
+                data = filteredMovies,
                 prevKey = if (page == 1) null else page - 1,
                 nextKey = if (response.docs.isNotEmpty()) page + 1 else null
             )
