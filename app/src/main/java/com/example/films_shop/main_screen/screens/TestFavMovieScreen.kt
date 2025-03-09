@@ -4,7 +4,6 @@ import MovieViewModel
 import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -12,7 +11,6 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -26,7 +24,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.films_shop.main_screen.api.MovieitemUi
 import com.example.films_shop.main_screen.bottom_menu.BottomMenu
-import com.example.films_shop.main_screen.business_logic.onFavsMovies
 import com.example.films_shop.main_screen.objects.DetailsNavMovieObject
 import com.example.films_shop.main_screen.objects.MainScreenDataObject
 import com.example.films_shop.main_screen.top_bar.TopBarMenu
@@ -93,21 +90,21 @@ fun TestFavMovieScreen(
                     val movie = favoriteMoviesState.value[index]
                     MovieitemUi(
                         movie = movie,
-                        onMovieDetailsClick = { movie ->
+                        onMovieDetailsClick = {
                             navController.navigate(
                                 DetailsNavMovieObject(
+                                    id = movie.id ?: "",
                                     title = movie.name ?: "Неизвестно",
                                     genre = movie.genres?.joinToString(", ") { it.name }
                                         ?: "Неизвестно",
                                     year = movie.year ?: "Неизвестно",
                                     director = "Неизвестно",
                                     description = movie.description ?: "Описание отсутствует",
-                                    imageUrl = movie.poster?.url ?: ""
+                                    imageUrl = movie.poster?.url ?: "",
+                                    rating = movie.rating?.kp ?: 0.0,
+                                    isFavorite = movie.isFavorite
                                 )
                             )
-                        },
-                        onFavoriteClick = {
-                            onFavsMovies(db, navData.uid, movie, !movie.isFavorite)
                         }
                     )
                 }

@@ -1,7 +1,6 @@
 package com.example.films_shop.main_screen.screens
 
 import MovieViewModel
-import android.annotation.SuppressLint
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -72,7 +71,7 @@ fun MainScreen(
     navController: NavController,
     showTopBar: Boolean = true,
     showBottomBar: Boolean = true,
-    scrollBehavior: TopAppBarScrollBehavior,
+    scrollBehavior: TopAppBarScrollBehavior
 ) {
     val moviesListState = remember {
         mutableStateOf(emptyList<Movie>())
@@ -142,7 +141,7 @@ fun MainScreen(
                 ) {
                     Text(
                         text = "Сейчас в тренде",
-                        fontSize = 15.sp,
+                        fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(start = 24.dp)
                     )
@@ -211,7 +210,7 @@ fun MainScreen(
                     ) {
                         Text(
                             text = "Рекомендуем",
-                            fontSize = 15.sp,
+                            fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(start = 24.dp)
                         )
@@ -288,7 +287,7 @@ fun MainScreen(
                         ) {
                             Text(
                                 text = "Сериалы",
-                                fontSize = 15.sp,
+                                fontSize = 20.sp,
                                 fontWeight = FontWeight.Bold,
                                 modifier = Modifier.padding(start = 24.dp)
                             )
@@ -352,7 +351,7 @@ fun MainScreen(
                         ) {
                             Text(
                                 text = "Фильмы",
-                                fontSize = 15.sp,
+                                fontSize = 20.sp,
                                 fontWeight = FontWeight.Bold,
                                 modifier = Modifier.padding(start = 24.dp)
                             )

@@ -5,7 +5,6 @@ import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
@@ -15,15 +14,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
-import com.example.films_shop.main_screen.bottom_menu.BottomMenu
-import com.example.films_shop.main_screen.bottom_menu.BottomMenuItem
 import com.example.films_shop.main_screen.objects.AccountDetailsObject
 import com.example.films_shop.main_screen.objects.DetailsNavMovieObject
 import com.example.films_shop.main_screen.objects.FavMovieScreenDataObject
 import com.example.films_shop.main_screen.objects.LoginScreenObject
 import com.example.films_shop.main_screen.objects.MainScreenDataObject
 import com.example.films_shop.main_screen.objects.MovieScreenDataObject
-import com.example.films_shop.main_screen.top_bar.TopBarMenu
 import com.example.films_shop.ui.theme.BookShopTheme
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
@@ -41,7 +37,6 @@ class MainActivity : ComponentActivity() {
             currentUser.uid,
             currentUser.email ?: ""
         ) else LoginScreenObject
-
         setContent {
             BookShopTheme {
                 val navController = rememberNavController()
@@ -105,9 +100,7 @@ class MainActivity : ComponentActivity() {
                             AccountDetailsScreen(
                                 navController = navController,
                                 navData,
-                                showTopBar= false,
                                 showBottomBar = true,
-                                scrollBehavior
                             ) {
                                 Firebase.auth.signOut()
                                 navController.navigate(LoginScreenObject) {
@@ -122,7 +115,9 @@ class MainActivity : ComponentActivity() {
                         { navEntry ->
                             val navData = navEntry.toRoute<DetailsNavMovieObject>()
                             DetailsMovieScreen(
-                                navData
+                                navObject = navData,
+                                navData = MovieScreenDataObject(uid = currentUser?.uid ?: "", email = currentUser?.email ?: ""),
+                                movieViewModel
                             )
                         }
                     }

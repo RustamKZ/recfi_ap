@@ -30,8 +30,7 @@ import coil.compose.AsyncImage
 @Composable
 fun MovieitemUi(
     movie: Movie,
-    onMovieDetailsClick: (Movie) -> Unit,
-    onFavoriteClick: () -> Unit
+    onMovieDetailsClick: (Movie) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -69,20 +68,5 @@ fun MovieitemUi(
             fontSize = 14.sp,
             color = Color.Blue
         )
-        Spacer(modifier = Modifier.height(5.dp))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = {
-                Log.d("MyLog", "click")
-                onFavoriteClick()
-            }) {
-                Icon(
-                    if (movie.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                    contentDescription = "Favorite Logo"
-                )
-            }
-        }
     }
 }

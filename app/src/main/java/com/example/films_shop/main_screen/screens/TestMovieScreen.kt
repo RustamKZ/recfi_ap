@@ -2,21 +2,12 @@ package com.example.films_shop.main_screen.screens
 
 import MovieViewModel
 import android.util.Log
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -29,9 +20,7 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.films_shop.main_screen.api.Movie
 import com.example.films_shop.main_screen.api.MovieitemUi
 import com.example.films_shop.main_screen.bottom_menu.BottomMenu
-import com.example.films_shop.main_screen.business_logic.onFavsMovies
 import com.example.films_shop.main_screen.objects.DetailsNavMovieObject
-import com.example.films_shop.main_screen.objects.MainScreenDataObject
 import com.example.films_shop.main_screen.objects.MovieScreenDataObject
 import com.example.films_shop.main_screen.top_bar.TopBarMenu
 import com.google.firebase.firestore.ktx.firestore
@@ -87,20 +76,21 @@ fun TestMovieScreen(
                     MovieitemUi(
                         movie = movie,
                         onMovieDetailsClick = {
+                            Log.d("MyLog", "movie.isFavorite ${movie.isFavorite}")
                             navController.navigate(
                                 DetailsNavMovieObject(
+                                    id = movie.id ?: "",
                                     title = movie.name ?: "Неизвестно",
                                     genre = movie.genres?.joinToString(", ") { it.name }
                                         ?: "Неизвестно",
-                                    year = movie.year?.toString() ?: "Неизвестно",
+                                    year = movie.year ?: "Неизвестно",
                                     director = "Неизвестно",
                                     description = movie.description ?: "Описание отсутствует",
-                                    imageUrl = movie.poster?.url ?: ""
+                                    imageUrl = movie.poster?.url ?: "",
+                                    rating = movie.rating?.kp ?: 0.0,
+                                    isFavorite = movie.isFavorite
                                 )
                             )
-                        },
-                        onFavoriteClick = {
-                            onFavsMovies(db, navData.uid, movie, !movie.isFavorite)
                         }
                     )
                 }

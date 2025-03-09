@@ -1,9 +1,10 @@
 package com.example.films_shop.main_screen.screens
 
+import MovieViewModel
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,11 +15,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -33,19 +32,29 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import com.example.films_shop.main_screen.bottom_menu.BottomMenu
+import com.example.films_shop.main_screen.api.Genre
+import com.example.films_shop.main_screen.api.Movie
+import com.example.films_shop.main_screen.api.Poster
+import com.example.films_shop.main_screen.api.Rating
+import com.example.films_shop.main_screen.business_logic.onFavsMovies
 import com.example.films_shop.main_screen.objects.DetailsNavMovieObject
-import com.example.films_shop.main_screen.top_bar.TopBarMenu
+import com.example.films_shop.main_screen.objects.MovieScreenDataObject
 import com.example.films_shop.ui.theme.ButtonColor
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 
 @Composable
 fun DetailsMovieScreen(
     navObject: DetailsNavMovieObject = DetailsNavMovieObject(),
+    navData: MovieScreenDataObject? = null,
+    movieViewModel: MovieViewModel
 ) {
     var expanded by remember { mutableStateOf(false) }
+    val favoriteMovies = movieViewModel.favoriteMoviesState.value
+    val isFavorite = favoriteMovies.any { it.id == navObject.id }
     val scrollState = rememberScrollState()
+    val db = Firebase.firestore
     Scaffold(
         topBar = {
 
@@ -164,14 +173,34 @@ fun DetailsMovieScreen(
                     )
                     {
                         Button(
-                            onClick = { /* Действие */ },
+                            onClick = {
+                                // Используем переданный navData для получения uid пользователя
+                                // и добавления фильма в избранное
+                                navData?.let { data ->
+                                    // Здесь нужно создать объект Movie из navObject
+                                    val movie = Movie(
+                                        id = navObject.id,
+                                        name = navObject.title,
+                                        description = navObject.description,
+                                        poster = Poster(url = navObject.imageUrl),
+                                        genres = navObject.genre.split(", ")
+                                            .map { Genre(name = it) },
+                                        year = navObject.year.toIntOrNull().toString(),
+                                        rating = Rating(navObject.rating),
+                                        isFavorite = isFavorite
+                                    )
+                                    // Вызываем функцию onFavsMovies
+                                    onFavsMovies(db, data.uid, movie, !movie.isFavorite)
+                                }
+                            },
                             modifier = Modifier
                                 .fillMaxWidth(0.5f)
                                 .padding(bottom = 16.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = ButtonColor)
-                        ) {
+                        )
+                        {
                             Text(
-                                text = "text",
+                                text = if (!isFavorite) "Добавить в избранное" else "Удалить из избранных",
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Bold,
                                 fontFamily = custom_font,
