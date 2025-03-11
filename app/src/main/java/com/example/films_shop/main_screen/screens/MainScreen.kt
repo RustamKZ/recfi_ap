@@ -51,8 +51,10 @@ import coil.compose.AsyncImage
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.films_shop.R
+import com.example.films_shop.main_screen.api.BookApi.BookViewModel
 import com.example.films_shop.main_screen.api.Movie
 import com.example.films_shop.main_screen.bottom_menu.BottomMenu
+import com.example.films_shop.main_screen.objects.BookScreenDataObject
 import com.example.films_shop.main_screen.objects.MainScreenDataObject
 import com.example.films_shop.main_screen.objects.MovieScreenDataObject
 import com.example.films_shop.main_screen.top_bar.TopBarMenu
@@ -68,6 +70,7 @@ val custom_font = FontFamily(
 fun MainScreen(
     navData: MainScreenDataObject,
     movieViewModel: MovieViewModel,
+    bookViewModel: BookViewModel,
     navController: NavController,
     showTopBar: Boolean = true,
     showBottomBar: Boolean = true,
@@ -79,6 +82,7 @@ fun MainScreen(
     //var favoriteMovies by movieViewModel.favoriteMoviesState
     val favoriteMoviesState = remember { movieViewModel.favoriteMoviesState }
     val movies = movieViewModel.moviePagingFlow.collectAsLazyPagingItems()
+    val books = bookViewModel.bookPagingFlow.collectAsLazyPagingItems()
     val db = remember {
         Firebase.firestore
     }
@@ -147,7 +151,6 @@ fun MainScreen(
                     )
                     Button(
                         onClick = {
-                            Log.d("MyLog", "Click on see all")
                             navController.navigate(
                                 MovieScreenDataObject(
                                     navData.uid,
@@ -392,6 +395,76 @@ fun MainScreen(
                                         AsyncImage(
                                             model = movie.poster?.url,
                                             contentDescription = "Постер фильма",
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(250.dp)
+                                                .clip(RoundedCornerShape(15.dp)),
+                                            contentScale = ContentScale.Crop
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    Column(
+
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Книги",
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(start = 24.dp)
+                            )
+                            Button(
+                                onClick = {
+                                    navController.navigate(
+                                        BookScreenDataObject(
+                                            navData.uid,
+                                            navData.email
+                                        )
+                                    )
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color.Transparent, // Прозрачный фон
+                                    contentColor = Color.Black // Цвет текста
+                                ),
+                                contentPadding = PaddingValues(0.dp), // Убираем отступы внутри кнопки
+                                modifier = Modifier
+                                    .padding(end = 24.dp)
+                                    .wrapContentSize()
+                            ) {
+                                Text(
+                                    text = "Посмотреть",
+                                    fontSize = 10.sp,
+                                    color = MaterialTheme.colorScheme.onBackground.copy(0.7f),
+                                )
+                            }
+
+                        }
+                        LazyRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            items(minOf(10, books.itemCount)) { index ->
+                                books[index]?.let { book ->
+                                    Log.d("MyLog", "${book.thumbnail}")
+                                    Box(
+                                        modifier = Modifier
+                                            .padding(start = 8.dp)
+                                            .width(120.dp)
+                                            .height(200.dp)
+                                            .clip(RoundedCornerShape(15.dp))
+                                            .background(Color.Gray),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        AsyncImage(
+                                            model = book.thumbnail?.replace("http://", "https://"),
+                                            contentDescription = "Обложка книги",
                                             modifier = Modifier
                                                 .fillMaxWidth()
                                                 .height(250.dp)

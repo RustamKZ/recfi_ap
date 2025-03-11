@@ -14,7 +14,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import com.example.films_shop.main_screen.api.BookApi.BookViewModel
 import com.example.films_shop.main_screen.objects.AccountDetailsObject
+import com.example.films_shop.main_screen.objects.BookScreenDataObject
+import com.example.films_shop.main_screen.objects.DetailsNavBookObject
 import com.example.films_shop.main_screen.objects.DetailsNavMovieObject
 import com.example.films_shop.main_screen.objects.FavMovieScreenDataObject
 import com.example.films_shop.main_screen.objects.LoginScreenObject
@@ -31,6 +34,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val movieViewModel: MovieViewModel by viewModels()
+        val bookViewModel: BookViewModel by viewModels()
         val auth = Firebase.auth
         val currentUser = auth.currentUser
         val startDestination = if (currentUser != null) MainScreenDataObject(
@@ -64,6 +68,7 @@ class MainActivity : ComponentActivity() {
                             MainScreen(
                                 navData,
                                 movieViewModel,
+                                bookViewModel,
                                 navController,
                                 showTopBar= true,
                                 showBottomBar = true,
@@ -87,6 +92,17 @@ class MainActivity : ComponentActivity() {
                             TestMovieScreen(
                                 navController = navController,
                                 movieViewModel = movieViewModel,
+                                navData = navData,
+                                showTopBar= true,
+                                showBottomBar = true,
+                                scrollBehavior
+                            )
+                        }
+                        composable<BookScreenDataObject> { navEntry ->
+                            val navData = navEntry.toRoute<BookScreenDataObject>()
+                            BookScreen(
+                                navController = navController,
+                                bookViewModel = bookViewModel,
                                 navData = navData,
                                 showTopBar= true,
                                 showBottomBar = true,
@@ -118,6 +134,16 @@ class MainActivity : ComponentActivity() {
                                 navObject = navData,
                                 navData = MovieScreenDataObject(uid = currentUser?.uid ?: "", email = currentUser?.email ?: ""),
                                 movieViewModel
+                            )
+                        }
+                        composable< DetailsNavBookObject>
+                        {
+                            navEntry ->
+                            val navData = navEntry.toRoute<DetailsNavBookObject>()
+                            DetailsBookScreen(
+                                navObject = navData,
+                                navData = BookScreenDataObject(uid = currentUser?.uid ?: "", email = currentUser?.email ?: ""),
+                                bookViewModel
                             )
                         }
                     }
