@@ -14,4 +14,16 @@ interface MovieApiService {
         @Query("sortType") sortType: String = "-1",
         @Query("rating.kp") rating: String = "7-10"
     ): MovieResponse
+
+    @GET("v1.4/movie")
+    suspend fun getTop250Movies(
+        @Header("X-API-KEY") apiKey: String,
+        @Query("page") page: Int = 2,
+        @Query("limit") limit: Int = 250,
+        @Query("selectFields") selectFields: List<String> = listOf(
+            "persons", "id", "year", "description", "rating", "genres", "poster", "name"
+        ),
+        @Query("sortField") sortField: String = "top250",
+        @Query("sortType") sortType: String = "-1"
+    ): MovieResponse
 }

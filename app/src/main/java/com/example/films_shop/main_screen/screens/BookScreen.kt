@@ -79,13 +79,13 @@ fun BookScreen(
                         onBookDetailsClick = {
                             navController.navigate(
                                 DetailsNavBookObject(
-                                    id = book.id ?: "",
-                                    title = book.title ?: "Неизвестно",
+                                    id = book.id,
+                                    title = book.title,
                                     authors = book.authors?.joinToString(", ")
                                         ?: "Неизвестно",
                                     description = book.description ?: "Описание отсутствует",
                                     thumbnail = book.thumbnail?: "",
-                                    publishedDate = book.publishedDate ?: "",
+                                    publishedDate = book.publishedDate ?: "Неизвестно",
                                     isFavorite = book.isFavorite
                                 )
                             )

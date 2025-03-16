@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.films_shop.main_screen.api.Genre
 import com.example.films_shop.main_screen.api.Movie
+import com.example.films_shop.main_screen.api.Persons
 import com.example.films_shop.main_screen.api.Poster
 import com.example.films_shop.main_screen.api.Rating
 import com.example.films_shop.main_screen.business_logic.onFavsMovies
@@ -142,7 +143,7 @@ fun DetailsMovieScreen(
                             fontFamily = custom_font
                         )
                         Text(
-                            text = navObject.director,
+                            text = navObject.persons,
                             color = Color.Black,
                             fontSize = 16.sp,
                             fontFamily = custom_font
@@ -186,6 +187,7 @@ fun DetailsMovieScreen(
                                         genres = navObject.genre.split(", ")
                                             .map { Genre(name = it) },
                                         year = navObject.year.toIntOrNull().toString(),
+                                        persons = navObject.persons.split(", ").map { Persons(name = it) },
                                         rating = Rating(navObject.rating),
                                         isFavorite = isFavorite
                                     )

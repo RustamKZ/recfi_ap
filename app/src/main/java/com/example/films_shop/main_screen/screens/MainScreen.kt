@@ -86,8 +86,6 @@ fun MainScreen(
     val db = remember {
         Firebase.firestore
     }
-    val composition =
-        rememberLottieComposition(spec = LottieCompositionSpec.Asset("emptyListAnim.json"))
     LaunchedEffect(movies.itemSnapshotList) {
         movieViewModel.loadFavoriteMovies(db, navData.uid)
         val movieList = movies.itemSnapshotList.items
@@ -452,7 +450,6 @@ fun MainScreen(
                         ) {
                             items(minOf(10, books.itemCount)) { index ->
                                 books[index]?.let { book ->
-                                    Log.d("MyLog", "${book.thumbnail}")
                                     Box(
                                         modifier = Modifier
                                             .padding(start = 8.dp)

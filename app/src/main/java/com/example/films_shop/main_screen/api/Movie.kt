@@ -6,7 +6,8 @@ data class Movie(
     val description: String? = "",
     val year: String? = "",
     val poster: Poster?,
-    val genres: List<Genre>?,
+    val persons: List<Persons>?= emptyList(),
+    val genres: List<Genre>?= emptyList(),
     val rating: Rating?,
     val isFavorite: Boolean = false
 )
@@ -23,18 +24,10 @@ data class Genre(
     val name: String
 )
 
-fun Movie.copySafe(
-    id: String = this.id,
-    name: String = this.name ?: "",
-    description: String? = this.description,
-    year: String? = this.year,
-    poster: Poster? = this.poster ?: Poster(""), // Предотвращаем null
-    genres: List<Genre>? = this.genres ?: emptyList(), // Предотвращаем null
-    rating: Rating? = this.rating ?: Rating(0.0), // Предотвращаем null
-    isFavorite: Boolean = this.isFavorite
-): Movie {
-    return Movie(id, name, description, year, poster, genres, rating, isFavorite)
-}
+data class Persons(
+    val name: String = "",
+    val profession: String = ""
+)
 
 
 const val apiKey = "CS3QP35-CCE4F8D-N7APS7G-VAN76RX"

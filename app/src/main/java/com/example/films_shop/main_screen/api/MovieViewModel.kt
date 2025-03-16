@@ -12,6 +12,7 @@ import com.example.films_shop.main_screen.api.Genre
 import kotlinx.coroutines.flow.Flow
 import com.example.films_shop.main_screen.api.Movie
 import com.example.films_shop.main_screen.api.MovieApiService
+import com.example.films_shop.main_screen.api.Persons
 import com.example.films_shop.main_screen.api.Poster
 import com.example.films_shop.main_screen.api.Rating
 import com.example.films_shop.main_screen.api.RetrofitInstance
@@ -29,15 +30,17 @@ class MoviePagingSource(
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Movie> {
         val page = params.key ?: 1
         return try {
-            val response = apiService.getPopularMovies(apiKey, page = page, limit = 10)
+            val response = apiService.getTop250Movies(apiKey, page = page, limit = 10)
 
             val updatedMovies = response.docs.map { movie ->
                 movie.copy(
                     poster = movie.poster?.copy(url = movie.poster.url ?: "https://raw.githubusercontent.com/RustamKZ/recfi_ap/refs/heads/master/poster.jpg")
-                        ?: Poster("https://raw.githubusercontent.com/RustamKZ/recfi_ap/refs/heads/master/poster.jpg")
+                        ?: Poster("https://raw.githubusercontent.com/RustamKZ/recfi_ap/refs/heads/master/poster.jpg"),
+                    persons = movie.persons?.filter { it.profession == "режиссеры" } ?: emptyList()
                 )
             }
             val filteredMovies = updatedMovies.filter { it.name != null }
+
             LoadResult.Page(
                 data = filteredMovies,
                 prevKey = if (page == 1) null else page - 1,
@@ -60,10 +63,10 @@ class MovieViewModel : ViewModel() {
     val favoriteMoviesState = mutableStateOf<List<Movie>>(emptyList())
 
     fun loadFavoriteMovies(db: FirebaseFirestore, uid: String) {
-        db.collection("users").document(uid).collection("favorites")
+        db.collection("users").document(uid).collection("favorites_movies")
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    Log.e("MyLog", "Ошибка загрузки избранных", error)
+                    Log.e("MyLog", "Ошибка загрузки избранных фильмов", error)
                     return@addSnapshotListener
                 }
                 snapshot?.let {
@@ -76,6 +79,8 @@ class MovieViewModel : ViewModel() {
                                 poster = favorite.posterUrl?.let { Poster(it) },
                                 genres = favorite.genres?.map { Genre(it) },
                                 rating = Rating(favorite.rating ?: 0.0),
+                                persons = favorite.persons?.map { Persons(it) },
+                                description = favorite.description,
                                 isFavorite = true
                             )
                         }

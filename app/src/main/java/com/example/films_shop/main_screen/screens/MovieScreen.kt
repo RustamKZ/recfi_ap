@@ -28,7 +28,7 @@ import com.google.firebase.ktx.Firebase
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TestMovieScreen(
+fun MovieScreen(
     navController: NavController,
     movieViewModel: MovieViewModel,
     navData: MovieScreenDataObject,
@@ -84,10 +84,11 @@ fun TestMovieScreen(
                                     genre = movie.genres?.joinToString(", ") { it.name }
                                         ?: "Неизвестно",
                                     year = movie.year ?: "Неизвестно",
-                                    director = "Неизвестно",
                                     description = movie.description ?: "Описание отсутствует",
                                     imageUrl = movie.poster?.url ?: "",
                                     rating = movie.rating?.kp ?: 0.0,
+                                    persons = movie.persons?.joinToString(", ") { it.name }
+                                        ?: "Неизвестно",
                                     isFavorite = movie.isFavorite
                                 )
                             )

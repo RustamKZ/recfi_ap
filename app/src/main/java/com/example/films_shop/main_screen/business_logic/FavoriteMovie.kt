@@ -7,7 +7,9 @@ data class FavoriteMovie(
     val name: String? = "",
     val year: String? = "",
     val posterUrl: String? = "",
+    val description: String? = "",
     val genres: List<String>? = emptyList(),
+    val persons: List<String>? = emptyList(),
     val rating: Double? = null
 ) {
     constructor(movie: Movie) : this(
@@ -15,7 +17,9 @@ data class FavoriteMovie(
         name = movie.name,
         year = movie.year,
         posterUrl = movie.poster?.url,
+        description = movie.description,
         genres = movie.genres?.map { it.name },
+        persons = movie.persons?.map {it.name},
         rating = movie.rating?.kp
     )
 }

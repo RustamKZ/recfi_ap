@@ -11,7 +11,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.navigation.NavController
 import com.example.films_shop.main_screen.objects.AccountDetailsObject
-import com.example.films_shop.main_screen.objects.FavMovieScreenDataObject
+import com.example.films_shop.main_screen.objects.FavScreenDataObject
 import com.example.films_shop.main_screen.objects.MainScreenDataObject
 
 @Composable
@@ -41,7 +41,7 @@ fun BottomMenu(
                             AccountDetailsObject(uid, email) // Передаем данные
                         )
                         is BottomMenuItem.Favourite -> navController.navigate(
-                            FavMovieScreenDataObject(uid, email)
+                            FavScreenDataObject(uid, email)
                         )
                     }
                 },

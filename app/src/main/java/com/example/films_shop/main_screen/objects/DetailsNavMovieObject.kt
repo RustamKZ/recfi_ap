@@ -8,9 +8,9 @@ data class DetailsNavMovieObject (
     val title: String = "",
     val genre: String = "",
     val year: String = "",
-    val director: String = "",
     val description: String = "",
     val imageUrl: String = "",
+    val persons: String = "",
     val rating: Double = 0.0,
     val isFavorite: Boolean = false
 )

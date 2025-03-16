@@ -31,11 +31,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.example.films_shop.main_screen.api.BookApi.Book
 import com.example.films_shop.main_screen.api.BookApi.BookViewModel
 import com.example.films_shop.main_screen.api.Genre
 import com.example.films_shop.main_screen.api.Movie
 import com.example.films_shop.main_screen.api.Poster
 import com.example.films_shop.main_screen.api.Rating
+import com.example.films_shop.main_screen.business_logic.onFavsBooks
 import com.example.films_shop.main_screen.business_logic.onFavsMovies
 import com.example.films_shop.main_screen.objects.BookScreenDataObject
 import com.example.films_shop.main_screen.objects.DetailsNavBookObject
@@ -52,10 +54,10 @@ fun DetailsBookScreen(
     bookViewModel: BookViewModel
 ) {
     var expanded by remember { mutableStateOf(false) }
-    //val favoriteBooks = bookViewModel.favoriteBooksState.value
-    //val isFavorite = favoriteMovies.any { it.id == navObject.id }
+    val favoriteBooks = bookViewModel.favoriteBooksState.value
+    val isFavorite = favoriteBooks.any { it.id == navObject.id }
     val scrollState = rememberScrollState()
-    //val db = Firebase.firestore
+    val db = Firebase.firestore
     Scaffold(
         topBar = {
 
@@ -161,7 +163,18 @@ fun DetailsBookScreen(
                     {
                         Button(
                             onClick = {
-
+                                navData?.let { data ->
+                                    val book = Book(
+                                        id = navObject.id,
+                                        title = navObject.title,
+                                        description = navObject.description,
+                                        thumbnail = navObject.thumbnail,
+                                        authors = navObject.authors.split(", "),
+                                        publishedDate = navObject.publishedDate,
+                                        isFavorite = isFavorite
+                                    )
+                                    onFavsBooks(db, data.uid, book, !book.isFavorite)
+                                }
                             },
                             modifier = Modifier
                                 .fillMaxWidth(0.5f)
@@ -170,7 +183,7 @@ fun DetailsBookScreen(
                         )
                         {
                             Text(
-                                text = if (!navObject.isFavorite) "Добавить в избранное" else "Удалить из избранных",
+                                text = if (!isFavorite) "Добавить в избранное" else "Удалить из избранных",
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Bold,
                                 fontFamily = custom_font,

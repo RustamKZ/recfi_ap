@@ -22,6 +22,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.films_shop.main_screen.api.MovieitemUi
 import com.example.films_shop.main_screen.bottom_menu.BottomMenu
 import com.example.films_shop.main_screen.objects.DetailsNavMovieObject
@@ -33,7 +37,7 @@ import com.google.firebase.ktx.Firebase
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("RememberReturnType")
 @Composable
-fun TestFavMovieScreen(
+fun FavMovieScreen(
     navData: MainScreenDataObject,
     movieViewModel: MovieViewModel,
     navController: NavController,
@@ -44,7 +48,8 @@ fun TestFavMovieScreen(
     val favoriteMoviesState = remember { movieViewModel.favoriteMoviesState }
     val db = Firebase.firestore
     val isFavListEmptyState = remember { mutableStateOf(favoriteMoviesState.value.isEmpty()) }
-
+    val composition =
+        rememberLottieComposition(spec = LottieCompositionSpec.Asset("emptyListAnim.json"))
     LaunchedEffect(Unit) {
         movieViewModel.loadFavoriteMovies(db, navData.uid)
     }
@@ -78,6 +83,10 @@ fun TestFavMovieScreen(
                     fontWeight = FontWeight.Bold,
                     color = Color.Gray
                 )
+                LottieAnimation(
+                    composition = composition.value,
+                    iterations = LottieConstants.IterateForever
+                )
             }
         } else {
             LazyVerticalGrid(
@@ -98,9 +107,10 @@ fun TestFavMovieScreen(
                                     genre = movie.genres?.joinToString(", ") { it.name }
                                         ?: "Неизвестно",
                                     year = movie.year ?: "Неизвестно",
-                                    director = "Неизвестно",
                                     description = movie.description ?: "Описание отсутствует",
                                     imageUrl = movie.poster?.url ?: "",
+                                    persons = movie.persons?.joinToString(", ") { it.name }
+                                        ?: "Неизвестно",
                                     rating = movie.rating?.kp ?: 0.0,
                                     isFavorite = movie.isFavorite
                                 )

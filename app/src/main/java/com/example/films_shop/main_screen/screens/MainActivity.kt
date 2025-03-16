@@ -19,7 +19,9 @@ import com.example.films_shop.main_screen.objects.AccountDetailsObject
 import com.example.films_shop.main_screen.objects.BookScreenDataObject
 import com.example.films_shop.main_screen.objects.DetailsNavBookObject
 import com.example.films_shop.main_screen.objects.DetailsNavMovieObject
+import com.example.films_shop.main_screen.objects.FavBookScreenDataObject
 import com.example.films_shop.main_screen.objects.FavMovieScreenDataObject
+import com.example.films_shop.main_screen.objects.FavScreenDataObject
 import com.example.films_shop.main_screen.objects.LoginScreenObject
 import com.example.films_shop.main_screen.objects.MainScreenDataObject
 import com.example.films_shop.main_screen.objects.MovieScreenDataObject
@@ -75,21 +77,41 @@ class MainActivity : ComponentActivity() {
                                 scrollBehavior
                             )
                         }
+                        composable<FavScreenDataObject>
+                        { navEntry ->
+                            val navData = navEntry.toRoute<FavScreenDataObject>()
+                            FavScreen(
+                                navData = MainScreenDataObject(navData.uid, navData.email),
+                                navController = navController,
+                            )
+                        }
                         composable<FavMovieScreenDataObject>
                         { navEntry ->
                             val navData = navEntry.toRoute<FavMovieScreenDataObject>()
-                            TestFavMovieScreen(
+                            FavMovieScreen(
                                 navData = MainScreenDataObject(navData.uid, navData.email),
-                                movieViewModel = movieViewModel,
+                                movieViewModel,
                                 navController = navController,
-                                showTopBar= true,
-                                showBottomBar = true,
+                                true,
+                                true,
+                                scrollBehavior
+                            )
+                        }
+                        composable<FavBookScreenDataObject>
+                        { navEntry ->
+                            val navData = navEntry.toRoute<FavBookScreenDataObject>()
+                            FavBookScreen(
+                                navData = MainScreenDataObject(navData.uid, navData.email),
+                                bookViewModel,
+                                navController = navController,
+                                true,
+                                true,
                                 scrollBehavior
                             )
                         }
                         composable<MovieScreenDataObject> { navEntry ->
                             val navData = navEntry.toRoute<MovieScreenDataObject>()
-                            TestMovieScreen(
+                            MovieScreen(
                                 navController = navController,
                                 movieViewModel = movieViewModel,
                                 navData = navData,

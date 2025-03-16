@@ -5,7 +5,7 @@ data class Book(
     val title: String,
     val authors: List<String>?,
     val thumbnail: String?,
-    val publishedDate: String?,
+    val publishedDate: String? = "Неизвестно",
     val description: String?,
     val isFavorite: Boolean = false
 )
