@@ -17,6 +17,7 @@ import androidx.navigation.toRoute
 import com.example.films_shop.main_screen.api.BookApi.BookViewModel
 import com.example.films_shop.main_screen.objects.AccountDetailsObject
 import com.example.films_shop.main_screen.objects.BookScreenDataObject
+import com.example.films_shop.main_screen.objects.CartoonScreenDataObject
 import com.example.films_shop.main_screen.objects.DetailsNavBookObject
 import com.example.films_shop.main_screen.objects.DetailsNavMovieObject
 import com.example.films_shop.main_screen.objects.FavBookScreenDataObject
@@ -25,6 +26,7 @@ import com.example.films_shop.main_screen.objects.FavScreenDataObject
 import com.example.films_shop.main_screen.objects.LoginScreenObject
 import com.example.films_shop.main_screen.objects.MainScreenDataObject
 import com.example.films_shop.main_screen.objects.MovieScreenDataObject
+import com.example.films_shop.main_screen.objects.SeriesScreenDataObject
 import com.example.films_shop.ui.theme.BookShopTheme
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
@@ -117,7 +119,32 @@ class MainActivity : ComponentActivity() {
                                 navData = navData,
                                 showTopBar= true,
                                 showBottomBar = true,
-                                scrollBehavior
+                                scrollBehavior,
+                                ContentType.MOVIES
+                            )
+                        }
+                        composable<SeriesScreenDataObject> { navEntry ->
+                            val navData = navEntry.toRoute<MovieScreenDataObject>()
+                            MovieScreen(
+                                navController = navController,
+                                movieViewModel = movieViewModel,
+                                navData = navData,
+                                showTopBar= true,
+                                showBottomBar = true,
+                                scrollBehavior,
+                                ContentType.TV_SERIES
+                            )
+                        }
+                        composable<CartoonScreenDataObject> { navEntry ->
+                            val navData = navEntry.toRoute<MovieScreenDataObject>()
+                            MovieScreen(
+                                navController = navController,
+                                movieViewModel = movieViewModel,
+                                navData = navData,
+                                showTopBar= true,
+                                showBottomBar = true,
+                                scrollBehavior,
+                                ContentType.CARTOONS
                             )
                         }
                         composable<BookScreenDataObject> { navEntry ->

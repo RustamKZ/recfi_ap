@@ -55,8 +55,10 @@ import com.example.films_shop.main_screen.api.BookApi.BookViewModel
 import com.example.films_shop.main_screen.api.Movie
 import com.example.films_shop.main_screen.bottom_menu.BottomMenu
 import com.example.films_shop.main_screen.objects.BookScreenDataObject
+import com.example.films_shop.main_screen.objects.CartoonScreenDataObject
 import com.example.films_shop.main_screen.objects.MainScreenDataObject
 import com.example.films_shop.main_screen.objects.MovieScreenDataObject
+import com.example.films_shop.main_screen.objects.SeriesScreenDataObject
 import com.example.films_shop.main_screen.top_bar.TopBarMenu
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -74,28 +76,22 @@ fun MainScreen(
     navController: NavController,
     showTopBar: Boolean = true,
     showBottomBar: Boolean = true,
-    scrollBehavior: TopAppBarScrollBehavior
+    scrollBehavior: TopAppBarScrollBehavior,
 ) {
     val moviesListState = remember {
         mutableStateOf(emptyList<Movie>())
     }
     //var favoriteMovies by movieViewModel.favoriteMoviesState
     val favoriteMoviesState = remember { movieViewModel.favoriteMoviesState }
-    val movies = movieViewModel.moviePagingFlow.collectAsLazyPagingItems()
+    val movies = movieViewModel.moviesPagingFlow.collectAsLazyPagingItems()
+    val series = movieViewModel.tvSeriesPagingFlow.collectAsLazyPagingItems()
+    val cartoons = movieViewModel.cartoonsPagingFlow.collectAsLazyPagingItems()
     val books = bookViewModel.bookPagingFlow.collectAsLazyPagingItems()
     val db = remember {
         Firebase.firestore
     }
     LaunchedEffect(movies.itemSnapshotList) {
         movieViewModel.loadFavoriteMovies(db, navData.uid)
-        val movieList = movies.itemSnapshotList.items
-        if (movieList.isNotEmpty()) {
-            moviesListState.value = movieList
-            Log.d(
-                "MyLog",
-                "moviesListState загружено: ${movieList.size}, null элементов: ${movies.itemSnapshotList.items.count { it == null }}"
-            )
-        }
     }
     if (favoriteMoviesState.value.isNotEmpty()) {
         Log.d(
@@ -142,7 +138,7 @@ fun MainScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Сейчас в тренде",
+                        text = "Фильмы",
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(start = 24.dp)
@@ -216,7 +212,12 @@ fun MainScreen(
                             modifier = Modifier.padding(start = 24.dp)
                         )
                         Button(
-                            onClick = { /* Действие при нажатии */ },
+                            onClick = {
+                                MovieScreenDataObject(
+                                    navData.uid,
+                                    navData.email
+                                )
+                            },
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = Color.Transparent, // Прозрачный фон
                                 contentColor = Color.Black // Цвет текста
@@ -294,7 +295,12 @@ fun MainScreen(
                             )
                             Button(
                                 onClick = {
-
+                                    navController.navigate(
+                                        SeriesScreenDataObject(
+                                            navData.uid,
+                                            navData.email
+                                        )
+                                    )
                                 },
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = Color.Transparent,
@@ -317,8 +323,8 @@ fun MainScreen(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            items(minOf(10, movies.itemCount)) { index ->
-                                movies[index]?.let { movie ->
+                            items(minOf(10, series.itemCount)) { index ->
+                                series[index]?.let { movie ->
                                     Box(
                                         modifier = Modifier
                                             .padding(start = 8.dp)
@@ -330,7 +336,7 @@ fun MainScreen(
                                     ) {
                                         AsyncImage(
                                             model = movie.poster?.url,
-                                            contentDescription = "Постер фильма",
+                                            contentDescription = "Постер сериала",
                                             modifier = Modifier
                                                 .fillMaxWidth()
                                                 .height(250.dp)
@@ -351,13 +357,20 @@ fun MainScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "Фильмы",
+                                text = "Мультфильмы",
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.Bold,
                                 modifier = Modifier.padding(start = 24.dp)
                             )
                             Button(
-                                onClick = { /* Действие при нажатии */ },
+                                onClick = {
+                                    navController.navigate(
+                                        CartoonScreenDataObject(
+                                            navData.uid,
+                                            navData.email
+                                        )
+                                    )
+                                },
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = Color.Transparent, // Прозрачный фон
                                     contentColor = Color.Black // Цвет текста
@@ -379,8 +392,8 @@ fun MainScreen(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            items(minOf(10, movies.itemCount)) { index ->
-                                movies[index]?.let { movie ->
+                            items(minOf(10, cartoons.itemCount)) { index ->
+                                cartoons[index]?.let { movie ->
                                     Box(
                                         modifier = Modifier
                                             .padding(start = 8.dp)

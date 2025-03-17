@@ -1,5 +1,6 @@
 package com.example.films_shop.main_screen.screens
 
+import ContentType
 import MovieViewModel
 import android.util.Log
 import androidx.compose.foundation.layout.fillMaxSize
@@ -34,9 +35,14 @@ fun MovieScreen(
     navData: MovieScreenDataObject,
     showTopBar: Boolean = true,
     showBottomBar: Boolean = true,
-    scrollBehavior: TopAppBarScrollBehavior
+    scrollBehavior: TopAppBarScrollBehavior,
+    contentType: ContentType
 ) {
-    val movies = movieViewModel.moviePagingFlow.collectAsLazyPagingItems()
+    LaunchedEffect(contentType) {
+        movieViewModel.setContentType(contentType)
+    }
+    val movies = movieViewModel.currentContentFlow.collectAsLazyPagingItems()
+
     val db = Firebase.firestore
     val moviesListState = remember { mutableStateOf(emptyList<Movie>()) }
 
@@ -69,7 +75,7 @@ fun MovieScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .nestedScroll(scrollBehavior.nestedScrollConnection)
-                .padding( top = innerPadding.calculateTopPadding())
+                .padding(top = innerPadding.calculateTopPadding())
         ) {
             items(movies.itemCount) { index ->
                 movies[index]?.let { movie ->
@@ -81,6 +87,7 @@ fun MovieScreen(
                                 DetailsNavMovieObject(
                                     id = movie.id ?: "",
                                     title = movie.name ?: "Неизвестно",
+                                    type = movie.type ?: "Неизвестно",
                                     genre = movie.genres?.joinToString(", ") { it.name }
                                         ?: "Неизвестно",
                                     year = movie.year ?: "Неизвестно",

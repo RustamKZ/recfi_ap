@@ -3,6 +3,7 @@ package com.example.films_shop.main_screen.api
 data class Movie(
     val id: String = "",
     val name: String? = "",
+    val type: String? = "",
     val description: String? = "",
     val year: String? = "",
     val poster: Poster?,

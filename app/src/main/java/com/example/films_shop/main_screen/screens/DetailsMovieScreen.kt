@@ -182,6 +182,7 @@ fun DetailsMovieScreen(
                                     val movie = Movie(
                                         id = navObject.id,
                                         name = navObject.title,
+                                        type = navObject.type,
                                         description = navObject.description,
                                         poster = Poster(url = navObject.imageUrl),
                                         genres = navObject.genre.split(", ")

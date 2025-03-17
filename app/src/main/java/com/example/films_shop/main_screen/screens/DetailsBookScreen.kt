@@ -33,16 +33,9 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.films_shop.main_screen.api.BookApi.Book
 import com.example.films_shop.main_screen.api.BookApi.BookViewModel
-import com.example.films_shop.main_screen.api.Genre
-import com.example.films_shop.main_screen.api.Movie
-import com.example.films_shop.main_screen.api.Poster
-import com.example.films_shop.main_screen.api.Rating
 import com.example.films_shop.main_screen.business_logic.onFavsBooks
-import com.example.films_shop.main_screen.business_logic.onFavsMovies
 import com.example.films_shop.main_screen.objects.BookScreenDataObject
 import com.example.films_shop.main_screen.objects.DetailsNavBookObject
-import com.example.films_shop.main_screen.objects.DetailsNavMovieObject
-import com.example.films_shop.main_screen.objects.MovieScreenDataObject
 import com.example.films_shop.ui.theme.ButtonColor
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase

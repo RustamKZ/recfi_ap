@@ -21,9 +21,36 @@ interface MovieApiService {
         @Query("page") page: Int = 2,
         @Query("limit") limit: Int = 250,
         @Query("selectFields") selectFields: List<String> = listOf(
-            "persons", "id", "year", "description", "rating", "genres", "poster", "name"
+            "persons", "id", "year", "description", "rating", "genres", "poster", "name", "type"
         ),
         @Query("sortField") sortField: String = "top250",
-        @Query("sortType") sortType: String = "-1"
+        @Query("sortType") sortType: String = "-1",
+        @Query("type") type: String = "movie"
+    ): MovieResponse
+
+    @GET("v1.4/movie")
+    suspend fun getTop250TvSeries(
+        @Header("X-API-KEY") apiKey: String,
+        @Query("page") page: Int = 1,
+        @Query("limit") limit: Int = 250,
+        @Query("selectFields") selectFields: List<String> = listOf(
+            "persons", "id", "year", "description", "rating", "genres", "poster", "name", "type"
+        ),
+        @Query("sortField") sortField: String = "top250",
+        @Query("sortType") sortType: String = "-1",
+        @Query("type") type: String = "tv-series"
+    ): MovieResponse
+
+    @GET("v1.4/movie")
+    suspend fun getTop250Cartoons(
+        @Header("X-API-KEY") apiKey: String,
+        @Query("page") page: Int = 1,
+        @Query("limit") limit: Int = 250,
+        @Query("selectFields") selectFields: List<String> = listOf(
+            "persons", "id", "year", "description", "rating", "genres", "poster", "name", "type"
+        ),
+        @Query("sortField") sortField: String = "top250",
+        @Query("sortType") sortType: String = "-1",
+        @Query("type") type: String = "cartoon"
     ): MovieResponse
 }

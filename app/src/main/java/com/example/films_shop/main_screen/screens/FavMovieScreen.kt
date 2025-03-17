@@ -104,6 +104,7 @@ fun FavMovieScreen(
                                 DetailsNavMovieObject(
                                     id = movie.id ?: "",
                                     title = movie.name ?: "Неизвестно",
+                                    type = movie.type?: "Неизвестно",
                                     genre = movie.genres?.joinToString(", ") { it.name }
                                         ?: "Неизвестно",
                                     year = movie.year ?: "Неизвестно",
