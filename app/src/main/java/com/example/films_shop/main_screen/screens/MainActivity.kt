@@ -21,8 +21,10 @@ import com.example.films_shop.main_screen.objects.CartoonScreenDataObject
 import com.example.films_shop.main_screen.objects.DetailsNavBookObject
 import com.example.films_shop.main_screen.objects.DetailsNavMovieObject
 import com.example.films_shop.main_screen.objects.FavBookScreenDataObject
+import com.example.films_shop.main_screen.objects.FavCartoonScreenDataObject
 import com.example.films_shop.main_screen.objects.FavMovieScreenDataObject
 import com.example.films_shop.main_screen.objects.FavScreenDataObject
+import com.example.films_shop.main_screen.objects.FavSeriesScreenDataObject
 import com.example.films_shop.main_screen.objects.LoginScreenObject
 import com.example.films_shop.main_screen.objects.MainScreenDataObject
 import com.example.films_shop.main_screen.objects.MovieScreenDataObject
@@ -96,7 +98,34 @@ class MainActivity : ComponentActivity() {
                                 navController = navController,
                                 true,
                                 true,
-                                scrollBehavior
+                                scrollBehavior,
+                                ContentType.MOVIES
+                            )
+                        }
+                        composable<FavSeriesScreenDataObject>
+                        { navEntry ->
+                            val navData = navEntry.toRoute<FavSeriesScreenDataObject>()
+                            FavMovieScreen(
+                                navData = MainScreenDataObject(navData.uid, navData.email),
+                                movieViewModel,
+                                navController = navController,
+                                true,
+                                true,
+                                scrollBehavior,
+                                ContentType.TV_SERIES
+                            )
+                        }
+                        composable<FavCartoonScreenDataObject>
+                        { navEntry ->
+                            val navData = navEntry.toRoute<FavCartoonScreenDataObject>()
+                            FavMovieScreen(
+                                navData = MainScreenDataObject(navData.uid, navData.email),
+                                movieViewModel,
+                                navController = navController,
+                                true,
+                                true,
+                                scrollBehavior,
+                                ContentType.CARTOONS
                             )
                         }
                         composable<FavBookScreenDataObject>

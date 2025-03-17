@@ -47,7 +47,7 @@ fun MovieScreen(
     val moviesListState = remember { mutableStateOf(emptyList<Movie>()) }
 
     LaunchedEffect(movies.itemSnapshotList) {
-        movieViewModel.loadFavoriteMovies(db, navData.uid)
+        movieViewModel.loadFavoriteMovies(db, navData.uid, contentType)
         val movieList = movies.itemSnapshotList.items
         if (movieList.isNotEmpty()) {
             moviesListState.value = movieList

@@ -52,8 +52,13 @@ fun DetailsMovieScreen(
     movieViewModel: MovieViewModel
 ) {
     var expanded by remember { mutableStateOf(false) }
-    val favoriteMovies = movieViewModel.favoriteMoviesState.value
-    val isFavorite = favoriteMovies.any { it.id == navObject.id }
+    val isFavorite = remember(
+        movieViewModel.favoriteMoviesState.value,
+        movieViewModel.favoriteTvSeriesState.value,
+        movieViewModel.favoriteCartoonsState.value
+    ) {
+        movieViewModel.isInFavorites(navObject.id)
+    }
     val scrollState = rememberScrollState()
     val db = Firebase.firestore
     Scaffold(

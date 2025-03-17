@@ -27,7 +27,9 @@ import androidx.navigation.NavController
 import com.example.films_shop.R
 import com.example.films_shop.main_screen.bottom_menu.BottomMenu
 import com.example.films_shop.main_screen.objects.FavBookScreenDataObject
+import com.example.films_shop.main_screen.objects.FavCartoonScreenDataObject
 import com.example.films_shop.main_screen.objects.FavMovieScreenDataObject
+import com.example.films_shop.main_screen.objects.FavSeriesScreenDataObject
 import com.example.films_shop.main_screen.objects.MainScreenDataObject
 
 @Composable
@@ -95,7 +97,12 @@ fun FavScreen(
                     .padding(start = 8.dp, end = 8.dp, bottom = 16.dp)
                     .clip(RoundedCornerShape(15.dp))
                     .clickable {
-
+                        navController.navigate(
+                            FavCartoonScreenDataObject(
+                                navData.uid,
+                                navData.email
+                            )
+                        )
                     }
             ) {
                 Image(
@@ -122,7 +129,12 @@ fun FavScreen(
                     .padding(start = 8.dp, end = 8.dp, bottom = 16.dp)
                     .clip(RoundedCornerShape(15.dp))
                     .clickable {
-
+                        navController.navigate(
+                            FavSeriesScreenDataObject(
+                                navData.uid,
+                                navData.email
+                            )
+                        )
                     }
             ) {
                 Image(

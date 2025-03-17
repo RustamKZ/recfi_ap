@@ -77,7 +77,8 @@ class MoviePagingSource(
 
 class MovieViewModel : ViewModel() {
     val favoriteMoviesState = mutableStateOf<List<Movie>>(emptyList())
-
+    val favoriteTvSeriesState = mutableStateOf<List<Movie>>(emptyList())
+    val favoriteCartoonsState = mutableStateOf<List<Movie>>(emptyList())
     val currentContentType = MutableStateFlow(ContentType.MOVIES)
 
     val moviesPagingFlow = createPagingFlow(ContentType.MOVIES)
@@ -104,7 +105,13 @@ class MovieViewModel : ViewModel() {
         currentContentType.value = type
     }
 
-    fun loadFavoriteMovies(db: FirebaseFirestore, uid: String) {
+    fun isInFavorites(id: String): Boolean {
+        return favoriteMoviesState.value.any { it.id == id } ||
+                favoriteTvSeriesState.value.any { it.id == id } ||
+                favoriteCartoonsState.value.any { it.id == id }
+    }
+
+    fun loadFavoriteMovies(db: FirebaseFirestore, uid: String, contentType: ContentType? = null) {
         db.collection("users").document(uid).collection("favorites_movies")
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
@@ -112,7 +119,7 @@ class MovieViewModel : ViewModel() {
                     return@addSnapshotListener
                 }
                 snapshot?.let {
-                    val movies = it.documents.mapNotNull { doc -> doc.toObject(FavoriteMovie::class.java) }
+                    val allFavorites = it.documents.mapNotNull { doc -> doc.toObject(FavoriteMovie::class.java) }
                         .map { favorite ->
                             Movie(
                                 id = favorite.key,
@@ -127,8 +134,24 @@ class MovieViewModel : ViewModel() {
                                 isFavorite = true
                             )
                         }
-                    favoriteMoviesState.value = movies
-                    Log.d("MyLog", "Избранное обновлено, всего: ${movies.size}")
+
+                    // Если тип контента не указан, обновляем все состояния
+                    if (contentType == null) {
+                        favoriteMoviesState.value = allFavorites.filter { it.type == ContentType.MOVIES.apiValue }
+                        favoriteTvSeriesState.value = allFavorites.filter { it.type == ContentType.TV_SERIES.apiValue }
+                        favoriteCartoonsState.value = allFavorites.filter { it.type == ContentType.CARTOONS.apiValue }
+                        Log.d("MyLog", "Все избранное обновлено: фильмы=${favoriteMoviesState.value.size}, " +
+                                "сериалы=${favoriteTvSeriesState.value.size}, мультфильмы=${favoriteCartoonsState.value.size}")
+                    } else {
+                        // Если тип указан, обновляем только соответствующее состояние
+                        val filtered = allFavorites.filter { it.type == contentType.apiValue }
+                        when (contentType) {
+                            ContentType.MOVIES -> favoriteMoviesState.value = filtered
+                            ContentType.TV_SERIES -> favoriteTvSeriesState.value = filtered
+                            ContentType.CARTOONS -> favoriteCartoonsState.value = filtered
+                        }
+                        Log.d("MyLog", "Избранное типа ${contentType.apiValue} обновлено, всего: ${filtered.size}")
+                    }
                 }
             }
     }

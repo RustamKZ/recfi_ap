@@ -1,5 +1,6 @@
 package com.example.films_shop.main_screen.screens
 
+import ContentType
 import MovieViewModel
 import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Arrangement
@@ -43,15 +44,21 @@ fun FavMovieScreen(
     navController: NavController,
     showTopBar: Boolean = true,
     showBottomBar: Boolean = true,
-    scrollBehavior: TopAppBarScrollBehavior
+    scrollBehavior: TopAppBarScrollBehavior,
+    contentType: ContentType
 ) {
-    val favoriteMoviesState = remember { movieViewModel.favoriteMoviesState }
+    val favoriteContentState = when (contentType) {
+        ContentType.MOVIES -> remember { movieViewModel.favoriteMoviesState }
+        ContentType.TV_SERIES -> remember { movieViewModel.favoriteTvSeriesState }
+        ContentType.CARTOONS -> remember { movieViewModel.favoriteCartoonsState }
+    }
+
     val db = Firebase.firestore
-    val isFavListEmptyState = remember { mutableStateOf(favoriteMoviesState.value.isEmpty()) }
+    val isFavListEmptyState = remember { mutableStateOf(favoriteContentState.value.isEmpty()) }
     val composition =
         rememberLottieComposition(spec = LottieCompositionSpec.Asset("emptyListAnim.json"))
     LaunchedEffect(Unit) {
-        movieViewModel.loadFavoriteMovies(db, navData.uid)
+        movieViewModel.loadFavoriteMovies(db, navData.uid, contentType)
     }
     Scaffold(
         topBar = {
@@ -95,8 +102,8 @@ fun FavMovieScreen(
                     .fillMaxSize()
                     .padding(innerPadding)
             ) {
-                items(favoriteMoviesState.value.size) { index ->
-                    val movie = favoriteMoviesState.value[index]
+                items(favoriteContentState.value.size) { index ->
+                    val movie = favoriteContentState.value[index]
                     MovieitemUi(
                         movie = movie,
                         onMovieDetailsClick = {
