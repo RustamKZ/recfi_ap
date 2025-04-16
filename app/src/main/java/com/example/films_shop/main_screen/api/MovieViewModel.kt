@@ -89,6 +89,11 @@ class MovieViewModel : ViewModel() {
     val tvSeriesPagingFlow = createPagingFlow(ContentType.TV_SERIES)
     val cartoonsPagingFlow = createPagingFlow(ContentType.CARTOONS)
 
+    // Состояние для хранения результатов поиска по TMDB ID
+    val tmdbSearchResultsState = mutableStateOf<List<Movie>>(emptyList())
+    val isSearchingByTmdb = mutableStateOf(false)
+    val searchError = mutableStateOf<String?>(null)
+
     @OptIn(ExperimentalCoroutinesApi::class)
     val currentContentFlow: Flow<PagingData<Movie>> = combine(currentContentType.asStateFlow()) { contentType ->
         when (contentType.single()) {
@@ -159,5 +164,47 @@ class MovieViewModel : ViewModel() {
                     }
                 }
             }
+    }
+
+    // Функция для получения фильмов по TMDB ID
+    // Функция для получения фильмов по нескольким TMDB ID
+    suspend fun getMoviesByTmdbIds(tmdbIds: List<Int>) {
+        isSearchingByTmdb.value = true
+        searchError.value = null
+
+        try {
+            val response = RetrofitInstance.api.getMoviesByTmdbIds(
+                apiKey = apiKey,
+                tmdbIds = tmdbIds
+            )
+
+            Log.d("MovieDebug", "Получены фильмы по TMDB IDs: ${response.docs.size}")
+
+            // Обрабатываем результаты так же, как и в MoviePagingSource
+            val updatedMovies = response.docs.map { movie ->
+                movie.copy(
+                    poster = movie.poster?.copy(url = movie.poster.url ?: "https://raw.githubusercontent.com/RustamKZ/recfi_ap/refs/heads/master/poster.jpg")
+                        ?: Poster("https://raw.githubusercontent.com/RustamKZ/recfi_ap/refs/heads/master/poster.jpg"),
+                    persons = movie.persons?.filter { it.profession == "режиссеры" } ?: emptyList()
+                )
+            }
+
+            // Фильтруем фильмы без названия
+            val filteredMovies = updatedMovies.filter { it.name != null }
+
+            // Обновляем состояние с результатами поиска
+            tmdbSearchResultsState.value = filteredMovies
+        } catch (e: IOException) {
+            Log.e("MovieDebug", "Ошибка сети при поиске по TMDB IDs", e)
+            searchError.value = "Ошибка сети. Проверьте подключение к интернету."
+        } catch (e: HttpException) {
+            Log.e("MovieDebug", "HTTP ошибка при поиске по TMDB IDs: ${e.code()}", e)
+            searchError.value = "Ошибка сервера: ${e.code()}"
+        } catch (e: Exception) {
+            Log.e("MovieDebug", "Непредвиденная ошибка при поиске по TMDB IDs", e)
+            searchError.value = "Произошла ошибка: ${e.message}"
+        } finally {
+            isSearchingByTmdb.value = false
+        }
     }
 }

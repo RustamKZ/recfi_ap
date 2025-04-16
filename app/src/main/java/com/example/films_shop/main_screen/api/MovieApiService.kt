@@ -53,4 +53,13 @@ interface MovieApiService {
         @Query("sortType") sortType: String = "-1",
         @Query("type") type: String = "cartoon"
     ): MovieResponse
+
+    @GET("v1.4/movie")
+    suspend fun getMoviesByTmdbIds(
+        @Header("X-API-KEY") apiKey: String,
+        @Query("externalId.tmdb") tmdbIds: List<Int>,
+        @Query("selectFields") selectFields: List<String> = listOf(
+            "persons", "id", "year", "description", "rating", "genres", "poster", "name", "type", "externalId"
+        )
+    ): MovieResponse
 }

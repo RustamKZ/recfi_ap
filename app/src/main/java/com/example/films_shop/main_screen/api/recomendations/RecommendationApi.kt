@@ -5,13 +5,12 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 data class RecommendationItem(
-    val id: Int
+    val tmdbId: Int
 )
 
 
 interface RecommendationApi {
-
-    @GET("recommend/content_series/{film_id}")
+    @GET("recommend/content/{film_id}")
     suspend fun getRecommendations(
         @Path("film_id") filmId: Int,
         @Query("top_n") topN: Int = 10

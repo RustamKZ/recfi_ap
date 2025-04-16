@@ -23,8 +23,8 @@ import com.example.films_shop.main_screen.api.recomendations.RecommendationViewM
 @Composable
 fun RecommendationScreen(viewModel: RecommendationViewModel = viewModel()) {
     var inputId by remember { mutableStateOf("") }
-    val recommendations by viewModel.recommendations
-    val error by viewModel.error
+    //val recommendations by viewModel.recommendations
+    //val error by viewModel.error
 
     Column(
         modifier = Modifier
@@ -59,19 +59,19 @@ fun RecommendationScreen(viewModel: RecommendationViewModel = viewModel()) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        error?.let {
-            Text(text = it, color = Color.Red)
-        }
-
-        LazyColumn {
-            items(recommendations.size) { index ->
-                Text(
-                    text = recommendations[index],
-                    fontSize = 18.sp,
-                    modifier = Modifier.padding(8.dp)
-                )
-            }
-        }
+//        error?.let {
+//            Text(text = it, color = Color.Red)
+//        }
+//
+//        LazyColumn {
+//            items(recommendations.size) { index ->
+//                Text(
+//                    text = recommendations[index],
+//                    fontSize = 18.sp,
+//                    modifier = Modifier.padding(8.dp)
+//                )
+//            }
+//        }
     }
 }
 
