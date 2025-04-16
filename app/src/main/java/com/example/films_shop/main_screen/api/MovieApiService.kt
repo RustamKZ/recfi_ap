@@ -21,7 +21,7 @@ interface MovieApiService {
         @Query("page") page: Int = 2,
         @Query("limit") limit: Int = 250,
         @Query("selectFields") selectFields: List<String> = listOf(
-            "persons", "id", "year", "description", "rating", "genres", "poster", "name", "type"
+            "persons", "id", "year", "description", "rating", "genres", "poster", "name", "type", "externalId"
         ),
         @Query("sortField") sortField: String = "top250",
         @Query("sortType") sortType: String = "-1",
@@ -34,7 +34,7 @@ interface MovieApiService {
         @Query("page") page: Int = 1,
         @Query("limit") limit: Int = 250,
         @Query("selectFields") selectFields: List<String> = listOf(
-            "persons", "id", "year", "description", "rating", "genres", "poster", "name", "type"
+            "persons", "id", "year", "description", "rating", "genres", "poster", "name", "type", "externalId"
         ),
         @Query("sortField") sortField: String = "top250",
         @Query("sortType") sortType: String = "-1",
@@ -47,7 +47,7 @@ interface MovieApiService {
         @Query("page") page: Int = 1,
         @Query("limit") limit: Int = 250,
         @Query("selectFields") selectFields: List<String> = listOf(
-            "persons", "id", "year", "description", "rating", "genres", "poster", "name", "type"
+            "persons", "id", "year", "description", "rating", "genres", "poster", "name", "type", "externalId"
         ),
         @Query("sortField") sortField: String = "top250",
         @Query("sortType") sortType: String = "-1",

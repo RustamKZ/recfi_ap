@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class DetailsNavMovieObject (
     val id: String = "",
+    val tmdbId: Int = 0,
     val title: String = "",
     val type: String = "",
     val genre: String = "",

@@ -1,7 +1,6 @@
 package com.example.films_shop.main_screen.screens
 
 import MovieViewModel
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,6 +32,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.example.films_shop.main_screen.api.ExternalId
 import com.example.films_shop.main_screen.api.Genre
 import com.example.films_shop.main_screen.api.Movie
 import com.example.films_shop.main_screen.api.Persons
@@ -186,6 +186,7 @@ fun DetailsMovieScreen(
                                     // Здесь нужно создать объект Movie из navObject
                                     val movie = Movie(
                                         id = navObject.id,
+                                        externalId = ExternalId(tmdb = navObject.tmdbId),
                                         name = navObject.title,
                                         type = navObject.type,
                                         description = navObject.description,

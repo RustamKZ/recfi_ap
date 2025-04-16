@@ -5,6 +5,7 @@ import com.example.films_shop.main_screen.api.Movie
 
 data class FavoriteBook(
     val key: String = "",
+    val isbn10: String = "",
     val title: String? = "",
     val authors: List<String>? = emptyList(),
     val thumbnail: String? = "",
@@ -13,6 +14,7 @@ data class FavoriteBook(
 ) {
     constructor(book: Book) : this(
         key = book.id,
+        isbn10 = book.isbn10,
         title = book.title,
         authors = book.authors,
         thumbnail = book.thumbnail,

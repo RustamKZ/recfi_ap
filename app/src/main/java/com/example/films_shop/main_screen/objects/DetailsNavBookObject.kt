@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class DetailsNavBookObject (
     val id: String = "",
+    val isbn10: String = "",
     val title: String = "",
     val authors: String = "",
     val thumbnail: String = "",

@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 
 class BookViewModel : ViewModel() {
-    private val _query = MutableStateFlow("python") // По умолчанию ищем "python"
+    private val _query = MutableStateFlow("роман") // По умолчанию ищем "python"
     val query: StateFlow<String> = _query
     val favoriteBooksState = mutableStateOf<List<Book>>(emptyList())
 
@@ -42,6 +42,7 @@ class BookViewModel : ViewModel() {
                         .map { favorite ->
                             Book(
                                 id = favorite.key,
+                                isbn10 = favorite.isbn10,
                                 title = favorite.title?: "",
                                 authors = favorite.authors,
                                 thumbnail = favorite.thumbnail,

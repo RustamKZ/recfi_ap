@@ -2,6 +2,7 @@ package com.example.films_shop.main_screen.api
 
 data class Movie(
     val id: String = "",
+    val externalId: ExternalId?,
     val name: String? = "",
     val type: String? = "",
     val description: String? = "",
@@ -11,6 +12,10 @@ data class Movie(
     val genres: List<Genre>?= emptyList(),
     val rating: Rating?,
     val isFavorite: Boolean = false
+)
+
+data class ExternalId(
+    val tmdb: Int?
 )
 
 data class Poster(

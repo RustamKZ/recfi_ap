@@ -107,6 +107,7 @@ fun FavBookScreen(
                                 DetailsNavBookObject(
                                     id = book.id ?: "",
                                     title = book.title ?: "Неизвестно",
+                                    isbn10 = book.isbn10,
                                     authors = book.authors?.joinToString(", ")
                                         ?: "Неизвестно",
                                     description = book.description ?: "Описание отсутствует",

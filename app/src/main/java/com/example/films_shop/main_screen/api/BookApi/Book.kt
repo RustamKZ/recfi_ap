@@ -2,6 +2,7 @@ package com.example.films_shop.main_screen.api.BookApi
 
 data class Book(
     val id: String,
+    val isbn10: String,
     val title: String,
     val authors: List<String>?,
     val thumbnail: String?,
@@ -15,7 +16,13 @@ data class VolumeInfo(
     val authors: List<String>?,
     val description: String?,
     val publishedDate: String?,
-    val imageLinks: ImageLinks?
+    val imageLinks: ImageLinks?,
+    val industryIdentifiers: List<IndustryIdentifier>?
+)
+
+data class IndustryIdentifier(
+    val type: String,
+    val identifier: String
 )
 
 data class ImageLinks(

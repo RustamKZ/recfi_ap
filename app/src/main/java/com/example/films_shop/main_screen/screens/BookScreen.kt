@@ -80,6 +80,7 @@ fun BookScreen(
                             navController.navigate(
                                 DetailsNavBookObject(
                                     id = book.id,
+                                    isbn10 = book.isbn10,
                                     title = book.title,
                                     authors = book.authors?.joinToString(", ")
                                         ?: "Неизвестно",

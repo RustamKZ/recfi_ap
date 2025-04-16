@@ -86,6 +86,7 @@ fun MovieScreen(
                             navController.navigate(
                                 DetailsNavMovieObject(
                                     id = movie.id ?: "",
+                                    tmdbId = movie.externalId?.tmdb ?: 0,
                                     title = movie.name ?: "Неизвестно",
                                     type = movie.type ?: "Неизвестно",
                                     genre = movie.genres?.joinToString(", ") { it.name }

@@ -4,6 +4,7 @@ import com.example.films_shop.main_screen.api.Movie
 
 data class FavoriteMovie(
     val key: String = "",
+    val tmdbId: Int? = null,
     val name: String? = "",
     val type: String? = "",
     val year: String? = "",
@@ -15,6 +16,7 @@ data class FavoriteMovie(
 ) {
     constructor(movie: Movie) : this(
         key = movie.id,
+        tmdbId = movie.externalId?.tmdb,
         name = movie.name,
         type = movie.type,
         year = movie.year,

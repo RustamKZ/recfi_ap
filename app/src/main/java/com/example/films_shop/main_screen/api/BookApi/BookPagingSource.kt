@@ -13,13 +13,18 @@ class BookPagingSource(
         return try {
             val response = apiService.searchBooks(query, maxResults = 10, startIndex = page * 10)
             val books = response.items?.map { item ->
+                val isbn10 = item.volumeInfo.industryIdentifiers
+                    ?.firstOrNull { it.type == "ISBN_10" }
+                    ?.identifier?: "Неизвестно"
+
                 Book(
                     id = item.id,
                     title = item.volumeInfo.title,
                     authors = item.volumeInfo.authors ?: listOf("Неизвестный автор"),
                     thumbnail = item.volumeInfo.imageLinks?.thumbnail,
                     publishedDate = item.volumeInfo.publishedDate,
-                    description = item.volumeInfo.description
+                    description = item.volumeInfo.description,
+                    isbn10 = isbn10
                 )
             } ?: emptyList()
 

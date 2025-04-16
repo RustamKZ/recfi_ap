@@ -9,6 +9,7 @@ interface BookApiService {
         @Query("q") query: String,
         @Query("maxResults") maxResults: Int = 10,
         @Query("startIndex") startIndex: Int = 0,
-        @Query("langRestrict") lang: String = "ru"
+        @Query("langRestrict") lang: String = "ru",
+        @Query("orderBy") orderBy: String = "relevance"
     ): BookResponse
 }

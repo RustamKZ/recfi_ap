@@ -8,6 +8,7 @@ import androidx.paging.PagingData
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import androidx.paging.cachedIn
+import com.example.films_shop.main_screen.api.ExternalId
 import com.example.films_shop.main_screen.api.Genre
 import kotlinx.coroutines.flow.Flow
 import com.example.films_shop.main_screen.api.Movie
@@ -47,7 +48,10 @@ class MoviePagingSource(
                 ContentType.TV_SERIES -> apiService.getTop250TvSeries(apiKey, page = page, limit = 10)
                 ContentType.CARTOONS -> apiService.getTop250Cartoons(apiKey, page = page, limit = 10)
             }
-
+            // ЛОГ: выводим все поля каждого фильма
+            response.docs.forEach { movie ->
+                Log.d("MovieDebug", "Загружен фильм: ${movie.name}, tmdbId: ${movie.externalId}")
+            }
             val updatedMovies = response.docs.map { movie ->
                 movie.copy(
                     poster = movie.poster?.copy(url = movie.poster.url ?: "https://raw.githubusercontent.com/RustamKZ/recfi_ap/refs/heads/master/poster.jpg")
@@ -123,6 +127,7 @@ class MovieViewModel : ViewModel() {
                         .map { favorite ->
                             Movie(
                                 id = favorite.key,
+                                externalId = ExternalId(favorite.tmdbId ?: 0),
                                 name = favorite.name,
                                 year = favorite.year,
                                 poster = favorite.posterUrl?.let { Poster(it) },

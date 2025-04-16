@@ -159,6 +159,7 @@ fun DetailsBookScreen(
                                 navData?.let { data ->
                                     val book = Book(
                                         id = navObject.id,
+                                        isbn10 = navObject.isbn10,
                                         title = navObject.title,
                                         description = navObject.description,
                                         thumbnail = navObject.thumbnail,
