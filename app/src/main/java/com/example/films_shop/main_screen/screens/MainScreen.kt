@@ -2,7 +2,10 @@ package com.example.films_shop.main_screen.screens
 
 import MovieViewModel
 import android.util.Log
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,6 +39,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -48,6 +52,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.paging.compose.collectAsLazyPagingItems
 import coil.compose.AsyncImage
+import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.films_shop.R
@@ -56,12 +61,16 @@ import com.example.films_shop.main_screen.api.Movie
 import com.example.films_shop.main_screen.bottom_menu.BottomMenu
 import com.example.films_shop.main_screen.objects.BookScreenDataObject
 import com.example.films_shop.main_screen.objects.CartoonScreenDataObject
+import com.example.films_shop.main_screen.objects.DetailsNavBookObject
+import com.example.films_shop.main_screen.objects.DetailsNavMovieObject
 import com.example.films_shop.main_screen.objects.MainScreenDataObject
 import com.example.films_shop.main_screen.objects.MovieScreenDataObject
 import com.example.films_shop.main_screen.objects.SeriesScreenDataObject
 import com.example.films_shop.main_screen.top_bar.TopBarMenu
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withTimeoutOrNull
 
 val custom_font = FontFamily(
     Font(R.font.custom_font, FontWeight.Normal),
@@ -78,10 +87,12 @@ fun MainScreen(
     showBottomBar: Boolean = true,
     scrollBehavior: TopAppBarScrollBehavior,
 ) {
-    val moviesListState = remember {
-        mutableStateOf(emptyList<Movie>())
-    }
-    //var favoriteMovies by movieViewModel.favoriteMoviesState
+    // Инициализируем состояние анимации
+    val showLoadingAnimation = remember { mutableStateOf(navData.showLoadingAnimation) }
+    val composition =
+        rememberLottieComposition(spec = LottieCompositionSpec.Asset("start_anim.json"))
+    val alpha = remember { Animatable(1f) }
+    val dataLoaded = remember { mutableStateOf(false) }
     val favoriteMoviesState = remember { movieViewModel.favoriteMoviesState }
     val movies = movieViewModel.moviesPagingFlow.collectAsLazyPagingItems()
     val series = movieViewModel.tvSeriesPagingFlow.collectAsLazyPagingItems()
@@ -91,7 +102,33 @@ fun MainScreen(
         Firebase.firestore
     }
     LaunchedEffect(movies.itemSnapshotList) {
+        if (movies.itemCount > 0) {
+            dataLoaded.value = true
+        }
         movieViewModel.loadFavoriteMovies(db, navData.uid)
+    }
+    // Управляем анимацией и её завершением
+    LaunchedEffect(key1 = showLoadingAnimation.value, key2 = dataLoaded.value) {
+        if (showLoadingAnimation.value) {
+            // Минимальное время показа анимации
+            delay(2000)
+
+            // Даже если прошло 2 секунды, ждем загрузки данных
+            // но с ограничением по времени в 5 секунд
+            withTimeoutOrNull(3000) {
+                while (!dataLoaded.value) {
+                    delay(100)
+                }
+            }
+
+            // Плавное скрытие анимации
+            alpha.animateTo(
+                targetValue = 0f,
+                animationSpec = tween(500)
+            )
+
+            showLoadingAnimation.value = false
+        }
     }
     if (favoriteMoviesState.value.isNotEmpty()) {
         Log.d(
@@ -181,7 +218,28 @@ fun MainScreen(
                                     .width(120.dp)
                                     .height(200.dp)
                                     .clip(RoundedCornerShape(15.dp))
-                                    .background(Color.Gray),
+                                    .background(Color.Gray)
+                                    .clickable {
+                                        navController.navigate(
+                                            DetailsNavMovieObject(
+                                                id = movie.id ?: "",
+                                                tmdbId = movie.externalId?.tmdb ?: 0,
+                                                title = movie.name ?: "Неизвестно",
+                                                type = movie.type ?: "Неизвестно",
+                                                genre = movie.genres?.joinToString(", ") { it.name }
+                                                    ?: "Неизвестно",
+                                                year = movie.year ?: "Неизвестно",
+                                                description = movie.description
+                                                    ?: "Описание отсутствует",
+                                                imageUrl = movie.poster?.url ?: "",
+                                                backdropUrl = movie.backdrop?.url ?: "",
+                                                rating = movie.rating?.kp ?: 0.0,
+                                                persons = movie.persons?.joinToString(", ") { it.name }
+                                                    ?: "Неизвестно",
+                                                isFavorite = movie.isFavorite
+                                            )
+                                        )
+                                    },
                                 contentAlignment = Alignment.Center
                             ) {
                                 AsyncImage(
@@ -251,7 +309,7 @@ fun MainScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 AsyncImage(
-                                    model = movie.poster?.url,
+                                    model = movie.backdrop?.url,
                                     contentDescription = "Постер фильма",
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -331,7 +389,28 @@ fun MainScreen(
                                             .width(120.dp)
                                             .height(200.dp)
                                             .clip(RoundedCornerShape(15.dp))
-                                            .background(Color.Gray),
+                                            .background(Color.Gray)
+                                            .clickable {
+                                                navController.navigate(
+                                                    DetailsNavMovieObject(
+                                                        id = movie.id ?: "",
+                                                        tmdbId = movie.externalId?.tmdb ?: 0,
+                                                        title = movie.name ?: "Неизвестно",
+                                                        type = movie.type ?: "Неизвестно",
+                                                        genre = movie.genres?.joinToString(", ") { it.name }
+                                                            ?: "Неизвестно",
+                                                        year = movie.year ?: "Неизвестно",
+                                                        description = movie.description
+                                                            ?: "Описание отсутствует",
+                                                        imageUrl = movie.poster?.url ?: "",
+                                                        backdropUrl = movie.backdrop?.url ?: "",
+                                                        rating = movie.rating?.kp ?: 0.0,
+                                                        persons = movie.persons?.joinToString(", ") { it.name }
+                                                            ?: "Неизвестно",
+                                                        isFavorite = movie.isFavorite
+                                                    )
+                                                )
+                                            },
                                         contentAlignment = Alignment.Center
                                     ) {
                                         AsyncImage(
@@ -400,7 +479,28 @@ fun MainScreen(
                                             .width(120.dp)
                                             .height(200.dp)
                                             .clip(RoundedCornerShape(15.dp))
-                                            .background(Color.Gray),
+                                            .background(Color.Gray)
+                                            .clickable {
+                                                navController.navigate(
+                                                    DetailsNavMovieObject(
+                                                        id = movie.id ?: "",
+                                                        tmdbId = movie.externalId?.tmdb ?: 0,
+                                                        title = movie.name ?: "Неизвестно",
+                                                        type = movie.type ?: "Неизвестно",
+                                                        genre = movie.genres?.joinToString(", ") { it.name }
+                                                            ?: "Неизвестно",
+                                                        year = movie.year ?: "Неизвестно",
+                                                        description = movie.description
+                                                            ?: "Описание отсутствует",
+                                                        imageUrl = movie.poster?.url ?: "",
+                                                        backdropUrl = movie.backdrop?.url ?: "",
+                                                        rating = movie.rating?.kp ?: 0.0,
+                                                        persons = movie.persons?.joinToString(", ") { it.name }
+                                                            ?: "Неизвестно",
+                                                        isFavorite = movie.isFavorite
+                                                    )
+                                                )
+                                            },
                                         contentAlignment = Alignment.Center
                                     ) {
                                         AsyncImage(
@@ -469,7 +569,24 @@ fun MainScreen(
                                             .width(120.dp)
                                             .height(200.dp)
                                             .clip(RoundedCornerShape(15.dp))
-                                            .background(Color.Gray),
+                                            .background(Color.Gray)
+                                            .clickable {
+                                                navController.navigate(
+                                                    DetailsNavBookObject(
+                                                        id = book.id,
+                                                        isbn10 = book.isbn10,
+                                                        title = book.title,
+                                                        authors = book.authors?.joinToString(", ")
+                                                            ?: "Неизвестно",
+                                                        description = book.description
+                                                            ?: "Описание отсутствует",
+                                                        thumbnail = book.thumbnail ?: "",
+                                                        publishedDate = book.publishedDate
+                                                            ?: "Неизвестно",
+                                                        isFavorite = book.isFavorite
+                                                    )
+                                                )
+                                            },
                                         contentAlignment = Alignment.Center
                                     ) {
                                         AsyncImage(
@@ -488,6 +605,21 @@ fun MainScreen(
                     }
                 }
             }
+        }
+    }
+    if (showLoadingAnimation.value) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .alpha(alpha.value),
+            contentAlignment = Alignment.Center
+        ) {
+            LottieAnimation(
+                composition = composition.value,
+                iterations = 1,
+                modifier = Modifier.size(250.dp)
+            )
         }
     }
 }

@@ -10,12 +10,12 @@ sealed class BottomMenuItem(
     object Home : BottomMenuItem(
         route = "home",
         title = "Home",
-        icon = R.drawable.home_logo,
+        icon = R.drawable.baseline_home_24,
     )
     object Account : BottomMenuItem(
         route = "account",
         title = "Account",
-        icon = R.drawable.account_logo,
+        icon = R.drawable.baseline_person_24,
     )
     object Favourite : BottomMenuItem(
         route = "favourite",

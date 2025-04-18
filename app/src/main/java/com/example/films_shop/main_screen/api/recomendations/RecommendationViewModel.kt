@@ -5,6 +5,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.films_shop.main_screen.api.Backdrop
 import com.example.films_shop.main_screen.api.Movie
 import com.example.films_shop.main_screen.api.Poster
 import com.example.films_shop.main_screen.api.RetrofitInstance
@@ -88,8 +89,22 @@ class RecommendationViewModel : ViewModel() {
             // Обрабатываем полученные фильмы так же, как в MovieViewModel
             val updatedMovies = response.docs.map { movie ->
                 movie.copy(
-                    poster = movie.poster?.copy(url = movie.poster.url ?: "https://raw.githubusercontent.com/RustamKZ/recfi_ap/refs/heads/master/poster.jpg")
-                        ?: Poster("https://raw.githubusercontent.com/RustamKZ/recfi_ap/refs/heads/master/poster.jpg"),
+                    poster = if (movie.poster?.url != null) {
+                        movie.poster.copy(url = movie.poster.url)
+                    } else {
+                        Poster("https://raw.githubusercontent.com/RustamKZ/recfi_ap/refs/heads/master/poster.jpg")
+                    },
+                    backdrop = when {
+                        // Проверяем наличие backdrop и что его url не null
+                        movie.backdrop != null && movie.backdrop.url != null ->
+                            movie.backdrop.copy(url = movie.backdrop.url)
+                        // Если есть постер и его url не null, создаем Backdrop
+                        movie.poster != null && movie.poster.url != null ->
+                            Backdrop(movie.poster.url)
+                        // Иначе используем дефолтную ссылку
+                        else ->
+                            Backdrop("https://raw.githubusercontent.com/RustamKZ/recfi_ap/refs/heads/master/poster.jpg")
+                    },
                     persons = movie.persons?.filter { it.profession == "режиссеры" } ?: emptyList()
                 )
             }

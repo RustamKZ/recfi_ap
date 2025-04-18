@@ -8,6 +8,7 @@ import androidx.paging.PagingData
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import androidx.paging.cachedIn
+import com.example.films_shop.main_screen.api.Backdrop
 import com.example.films_shop.main_screen.api.ExternalId
 import com.example.films_shop.main_screen.api.Genre
 import kotlinx.coroutines.flow.Flow
@@ -49,13 +50,24 @@ class MoviePagingSource(
                 ContentType.CARTOONS -> apiService.getTop250Cartoons(apiKey, page = page, limit = 10)
             }
             // ЛОГ: выводим все поля каждого фильма
-            response.docs.forEach { movie ->
-                Log.d("MovieDebug", "Загружен фильм: ${movie.name}, tmdbId: ${movie.externalId}")
-            }
+//            response.docs.forEach { movie ->
+//                Log.d("MovieDebug", "Загружен фильм: ${movie.name}, tmdbId: ${movie.externalId}")
+//            }
             val updatedMovies = response.docs.map { movie ->
                 movie.copy(
                     poster = movie.poster?.copy(url = movie.poster.url ?: "https://raw.githubusercontent.com/RustamKZ/recfi_ap/refs/heads/master/poster.jpg")
                         ?: Poster("https://raw.githubusercontent.com/RustamKZ/recfi_ap/refs/heads/master/poster.jpg"),
+                    backdrop = when {
+                        // Проверяем наличие backdrop и что его url не null
+                        movie.backdrop != null && movie.backdrop.url != null ->
+                            movie.backdrop.copy(url = movie.backdrop.url)
+                        // Если есть постер и его url не null, создаем Backdrop
+                        movie.poster != null && movie.poster.url != null ->
+                            Backdrop(movie.poster.url)
+                        // Иначе используем дефолтную ссылку
+                        else ->
+                            Backdrop("https://raw.githubusercontent.com/RustamKZ/recfi_ap/refs/heads/master/poster.jpg")
+                    },
                     persons = movie.persons?.filter { it.profession == "режиссеры" } ?: emptyList()
                 )
             }
@@ -136,6 +148,7 @@ class MovieViewModel : ViewModel() {
                                 name = favorite.name,
                                 year = favorite.year,
                                 poster = favorite.posterUrl?.let { Poster(it) },
+                                backdrop = favorite.backdropUrl?.let { Backdrop(it) },
                                 genres = favorite.genres?.map { Genre(it) },
                                 rating = Rating(favorite.rating ?: 0.0),
                                 persons = favorite.persons?.map { Persons(it) },
@@ -183,8 +196,19 @@ class MovieViewModel : ViewModel() {
             // Обрабатываем результаты так же, как и в MoviePagingSource
             val updatedMovies = response.docs.map { movie ->
                 movie.copy(
-                    poster = movie.poster?.copy(url = movie.poster.url ?: "https://raw.githubusercontent.com/RustamKZ/recfi_ap/refs/heads/master/poster.jpg")
+                    poster = movie.poster?.copy(url = movie.poster.url)
                         ?: Poster("https://raw.githubusercontent.com/RustamKZ/recfi_ap/refs/heads/master/poster.jpg"),
+                    backdrop = when {
+                        // Проверяем наличие backdrop и что его url не null
+                        movie.backdrop != null && movie.backdrop.url != null ->
+                            movie.backdrop.copy(url = movie.backdrop.url)
+                        // Если есть постер и его url не null, создаем Backdrop
+                        movie.poster != null && movie.poster.url != null ->
+                            Backdrop(movie.poster.url)
+                        // Иначе используем дефолтную ссылку
+                        else ->
+                            Backdrop("https://raw.githubusercontent.com/RustamKZ/recfi_ap/refs/heads/master/poster.jpg")
+                    },
                     persons = movie.persons?.filter { it.profession == "режиссеры" } ?: emptyList()
                 )
             }

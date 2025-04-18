@@ -47,11 +47,12 @@ class MainActivity : ComponentActivity() {
         val currentUser = auth.currentUser
         val startDestination = if (currentUser != null) MainScreenDataObject(
             currentUser.uid,
-            currentUser.email ?: ""
+            currentUser.email ?: "",
+            showLoadingAnimation = true
         ) else LoginScreenObject
         //val startDestination = TestScreenObject
         setContent {
-            BookShopTheme {
+            BookShopTheme() {
                 val navController = rememberNavController()
                 val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(
                     state = rememberTopAppBarState()

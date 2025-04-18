@@ -3,8 +3,6 @@ package com.example.films_shop.main_screen.top_bar
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Menu
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -15,12 +13,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.sp
 import androidx.compose.material3.Icon
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.example.films_shop.R
+import com.example.films_shop.ui.theme.AppColor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,7 +32,7 @@ fun TopBarMenu(
             .clip(RoundedCornerShape(100.dp)),
         scrollBehavior = scrollBehavior,
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = Color.Transparent,
+            containerColor = AppColor,
             scrolledContainerColor = Color.Transparent,
             titleContentColor = Color.Gray
         ),
@@ -47,7 +45,7 @@ fun TopBarMenu(
         },
         navigationIcon = {
             Icon(
-                painter = painterResource(R.drawable.menu_top_bar),
+                painter = painterResource(R.drawable.baseline_search_24),
                 contentDescription = "menu_top_bar",
                 modifier = Modifier
                     .padding(start = 16.dp, end = 8.dp)

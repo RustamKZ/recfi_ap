@@ -12,6 +12,7 @@ data class DetailsNavMovieObject (
     val year: String = "",
     val description: String = "",
     val imageUrl: String = "",
+    val backdropUrl: String = "",
     val persons: String = "",
     val rating: Double = 0.0,
     val isFavorite: Boolean = false

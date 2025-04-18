@@ -118,6 +118,7 @@ fun FavMovieScreen(
                                     year = movie.year ?: "Неизвестно",
                                     description = movie.description ?: "Описание отсутствует",
                                     imageUrl = movie.poster?.url ?: "",
+                                    backdropUrl = movie.backdrop?.url ?: "",
                                     persons = movie.persons?.joinToString(", ") { it.name }
                                         ?: "Неизвестно",
                                     rating = movie.rating?.kp ?: 0.0,

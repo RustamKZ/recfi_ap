@@ -1,5 +1,6 @@
 package com.example.films_shop.main_screen.screens
 
+import ContentType
 import MovieViewModel
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -69,8 +70,14 @@ import com.example.films_shop.ui.theme.ButtonColor
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import androidx.compose.material.icons.outlined.StarOutline
+import androidx.compose.material3.FabPosition
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.LaunchedEffect
+import com.example.films_shop.main_screen.api.Backdrop
 import com.example.films_shop.main_screen.screens.custom_ui.CutCornerLeftShape
+import com.example.films_shop.ui.theme.TransparentTheme
 
 
 @Composable
@@ -95,11 +102,14 @@ fun DetailsMovieScreen(
     val isLoading by recViewModel.isLoading
     val error by recViewModel.error
     val id = navObject.tmdbId
-    if (id != 0) {
-        when (navObject.type) {
-            "movie" -> recViewModel.fetchRecommendations(id, navObject.type)
-            "tv-series" -> recViewModel.fetchRecommendations(id, navObject.type)
-            "cartoon" -> recViewModel.fetchRecommendations(id, navObject.type)
+    LaunchedEffect(id)
+    {
+        if (id != 0) {
+            when (navObject.type) {
+                "movie" -> recViewModel.fetchRecommendations(id, navObject.type)
+                "tv-series" -> recViewModel.fetchRecommendations(id, navObject.type)
+                "cartoon" -> recViewModel.fetchRecommendations(id, navObject.type)
+            }
         }
     }
 
@@ -109,16 +119,55 @@ fun DetailsMovieScreen(
     val emptyStars = 5 - filledStars - if (hasHalfStar) 1 else 0
     // ui stars
     Scaffold(
+        containerColor = Color.Transparent,
+        contentColor = LocalContentColor.current,
         topBar = {
 
         },
-        bottomBar = {
+        bottomBar = {},
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = {
+                    navData?.let { data ->
+                        val movie = Movie(
+                            id = navObject.id,
+                            externalId = ExternalId(tmdb = navObject.tmdbId),
+                            name = navObject.title,
+                            type = navObject.type,
+                            description = navObject.description,
+                            poster = Poster(url = navObject.imageUrl),
+                            backdrop = Backdrop(url = navObject.backdropUrl),
+                            genres = navObject.genre.split(", ").map { Genre(name = it) },
+                            year = navObject.year.toIntOrNull().toString(),
+                            persons = navObject.persons.split(", ")
+                                .map { Persons(name = it) },
+                            rating = Rating(navObject.rating),
+                            isFavorite = isFavorite
+                        )
+                        onFavsMovies(db, data.uid, movie, !movie.isFavorite)
+                    }
+                },
+                contentColor = Color.Black,
+                containerColor = Color.White,
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier.padding(bottom = 12.dp)
+            ) {
+                Text(
+                    text = if (!isFavorite) "Добавить в избранное" else "Удалить из избранных",
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = custom_font,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                )
+            }
+        },
+        floatingActionButtonPosition = FabPosition.Center
 
-        }
     ) { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .background(Color.Transparent)
                 .padding(innerPadding),
         )
         {
@@ -130,7 +179,7 @@ fun DetailsMovieScreen(
             {
                 Box {
                     AsyncImage(
-                        model = navObject.imageUrl,
+                        model = navObject.backdropUrl,
                         contentDescription = "Постер фильма",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
@@ -278,13 +327,26 @@ fun DetailsMovieScreen(
                             fontSize = 16.sp
                         )
                     }
+                    when (navObject.type) {
+                        "movie" -> Text(
+                            text = "Похожие фильмы",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold
+                        )
 
-                    Text(
-                        text = "Похожие фильмы",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
+                        "tv-series" -> Text(
+                            text = "Похожие сериалы",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+
+                        "cartoon" -> Text(
+                            text = "Похожие мультфильмы",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
                     LazyRow(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -330,10 +392,13 @@ fun DetailsMovieScreen(
                                                     description = movie.description
                                                         ?: "Описание отсутствует",
                                                     imageUrl = movie.poster?.url ?: "",
+                                                    backdropUrl = movie.backdrop?.url ?: "",
                                                     rating = movie.rating?.kp ?: 0.0,
                                                     persons = movie.persons?.joinToString(", ") { it.name }
                                                         ?: "Неизвестно",
-                                                    isFavorite = movieViewModel.isInFavorites(movie.id)
+                                                    isFavorite = movieViewModel.isInFavorites(
+                                                        movie.id
+                                                    )
                                                 )
                                                 navController.navigate(detailsNavObject)
                                             }
@@ -384,54 +449,9 @@ fun DetailsMovieScreen(
                                 }
                             }
                         }
+
                     }
-                }
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize(),
-                    verticalArrangement = Arrangement.Bottom, // Размещаем кнопку внизу
-                    horizontalAlignment = Alignment.CenterHorizontally
-                )
-                {
-                    Button(
-                        onClick = {
-                            // Используем переданный navData для получения uid пользователя
-                            // и добавления фильма в избранное
-                            navData?.let { data ->
-                                // Здесь нужно создать объект Movie из navObject
-                                val movie = Movie(
-                                    id = navObject.id,
-                                    externalId = ExternalId(tmdb = navObject.tmdbId),
-                                    name = navObject.title,
-                                    type = navObject.type,
-                                    description = navObject.description,
-                                    poster = Poster(url = navObject.imageUrl),
-                                    genres = navObject.genre.split(", ")
-                                        .map { Genre(name = it) },
-                                    year = navObject.year.toIntOrNull().toString(),
-                                    persons = navObject.persons.split(", ")
-                                        .map { Persons(name = it) },
-                                    rating = Rating(navObject.rating),
-                                    isFavorite = isFavorite
-                                )
-                                // Вызываем функцию onFavsMovies
-                                onFavsMovies(db, data.uid, movie, !movie.isFavorite)
-                            }
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth(0.5f)
-                            .padding(bottom = 16.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = ButtonColor)
-                    )
-                    {
-                        Text(
-                            text = if (!isFavorite) "Добавить в избранное" else "Удалить из избранных",
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold,
-                            fontFamily = custom_font,
-                            color = Color.Black
-                        )
-                    }
+                    Spacer(modifier = Modifier.height(40.dp))
                 }
             }
         }
