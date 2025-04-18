@@ -30,9 +30,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.films_shop.main_screen.api.BookApi.Book
 import com.example.films_shop.main_screen.api.BookApi.BookViewModel
+import com.example.films_shop.main_screen.api.recomendations.RecommendationViewModel
 import com.example.films_shop.main_screen.business_logic.onFavsBooks
 import com.example.films_shop.main_screen.objects.BookScreenDataObject
 import com.example.films_shop.main_screen.objects.DetailsNavBookObject
@@ -44,13 +46,21 @@ import com.google.firebase.ktx.Firebase
 fun DetailsBookScreen(
     navObject: DetailsNavBookObject = DetailsNavBookObject(),
     navData: BookScreenDataObject? = null,
-    bookViewModel: BookViewModel
+    bookViewModel: BookViewModel,
+    recViewModel: RecommendationViewModel,
+    navController: NavController
 ) {
     var expanded by remember { mutableStateOf(false) }
     val favoriteBooks = bookViewModel.favoriteBooksState.value
     val isFavorite = favoriteBooks.any { it.id == navObject.id }
     val scrollState = rememberScrollState()
     val db = Firebase.firestore
+
+    //val recommendationMovies by recViewModel.recommendationMovies
+    //val isLoading by recViewModel.isLoading
+    //val error by recViewModel.error
+    //val id = navObject.isbn10
+    //recViewModel.fetchRecommendationsBooks(id)
     Scaffold(
         topBar = {
 

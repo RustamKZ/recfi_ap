@@ -216,7 +216,7 @@ class MainActivity : ComponentActivity() {
                                 navData = MovieScreenDataObject(uid = currentUser?.uid ?: "", email = currentUser?.email ?: ""),
                                 movieViewModel,
                                 recViewModel,
-                                navController = navController,
+                                navController = navController
                             )
                         }
                         composable< DetailsNavBookObject>
@@ -226,7 +226,9 @@ class MainActivity : ComponentActivity() {
                             DetailsBookScreen(
                                 navObject = navData,
                                 navData = BookScreenDataObject(uid = currentUser?.uid ?: "", email = currentUser?.email ?: ""),
-                                bookViewModel
+                                bookViewModel,
+                                recViewModel,
+                                navController = navController
                             )
                         }
                     }

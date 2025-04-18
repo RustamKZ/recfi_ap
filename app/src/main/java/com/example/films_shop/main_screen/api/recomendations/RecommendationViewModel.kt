@@ -28,7 +28,7 @@ class RecommendationViewModel : ViewModel() {
     val error: State<String?> = _error
 
     // Получение рекомендаций (TMDB ID) по ID фильма
-    fun fetchRecommendations(filmId: Int) {
+    fun fetchRecommendations(filmId: Int, type: String) {
         if (filmId == 0) {
             _error.value = "Некорректный ID фильма"
             return
@@ -39,8 +39,20 @@ class RecommendationViewModel : ViewModel() {
 
             try {
                 // Получаем рекомендации (ID фильмов из TMDB)
-                Log.d("RecommendationVM", "Получены ID фильма: $filmId")
-                val response = ApiClient.api.getRecommendations(filmId)
+                Log.d("RecommendationVM", "Получены ID: $filmId")
+                val response = when (type) {
+                    "cartoon" -> {
+                        ApiClient.api.getRecommendationsContentFilms(filmId)
+                    }
+                    "movie" -> {
+                        ApiClient.api.getRecommendationsContentFilms(filmId)
+                    }
+                    "tv-series" -> {
+                        ApiClient.api.getRecommendationsContentSeries(filmId)
+                    }
+
+                    else -> {ApiClient.api.getRecommendationsContentFilms(filmId)}
+                }
                 val tmdbIds = response.map { it.tmdbId }
                 _tmdbRecommendationIds.value = tmdbIds
 

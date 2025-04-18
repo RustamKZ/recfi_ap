@@ -8,12 +8,28 @@ data class RecommendationItem(
     val tmdbId: Int
 )
 
+data class RecommendationItemBooks(
+    val isbn10: String
+)
+
 
 interface RecommendationApi {
     @GET("recommend/content/{film_id}")
-    suspend fun getRecommendations(
+    suspend fun getRecommendationsContentFilms(
         @Path("film_id") filmId: Int,
         @Query("top_n") topN: Int = 10
     ): List<RecommendationItem>
+
+    @GET("recommend/content_series/{film_id}")
+    suspend fun getRecommendationsContentSeries(
+        @Path("film_id") filmId: Int,
+        @Query("top_n") topN: Int = 10
+    ): List<RecommendationItem>
+
+    @GET("recommend/content_books/{isbn10}")
+    suspend fun getRecommendationsContentBooks(
+        @Path("isbn10") isbn10: Int,
+        @Query("top_n") topN: Int = 10
+    ): List<RecommendationItemBooks>
 }
 
