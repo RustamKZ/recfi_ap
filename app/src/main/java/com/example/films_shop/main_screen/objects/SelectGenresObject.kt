@@ -3,8 +3,7 @@ package com.example.films_shop.main_screen.objects
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class MainScreenDataObject(
+class SelectGenresObject (
     val uid: String = "",
     val email: String = "",
-    val showLoadingAnimation: Boolean = false
 )

@@ -1,9 +1,11 @@
 package com.example.films_shop.main_screen.screens
 
 import MovieViewModel
-import android.util.Log
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -20,6 +22,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import com.example.films_shop.main_screen.Genres.saveSelectedGenres
+
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
@@ -28,6 +35,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -35,8 +44,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -47,6 +59,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -56,8 +69,10 @@ import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.films_shop.R
+import com.example.films_shop.main_screen.Genres.GenreKP
+import com.example.films_shop.main_screen.Genres.genres
+import com.example.films_shop.main_screen.Genres.loadUserGenres
 import com.example.films_shop.main_screen.api.BookApi.BookViewModel
-import com.example.films_shop.main_screen.api.Movie
 import com.example.films_shop.main_screen.bottom_menu.BottomMenu
 import com.example.films_shop.main_screen.objects.BookScreenDataObject
 import com.example.films_shop.main_screen.objects.CartoonScreenDataObject
@@ -87,13 +102,14 @@ fun MainScreen(
     showBottomBar: Boolean = true,
     scrollBehavior: TopAppBarScrollBehavior,
 ) {
+    var showOverlay by remember { mutableStateOf(false) }
+    val selectedGenres = remember { mutableStateListOf<GenreKP>() }
     // Инициализируем состояние анимации
     val showLoadingAnimation = remember { mutableStateOf(navData.showLoadingAnimation) }
     val composition =
         rememberLottieComposition(spec = LottieCompositionSpec.Asset("start_anim.json"))
     val alpha = remember { Animatable(1f) }
     val dataLoaded = remember { mutableStateOf(false) }
-    val favoriteMoviesState = remember { movieViewModel.favoriteMoviesState }
     val movies = movieViewModel.moviesPagingFlow.collectAsLazyPagingItems()
     val series = movieViewModel.tvSeriesPagingFlow.collectAsLazyPagingItems()
     val cartoons = movieViewModel.cartoonsPagingFlow.collectAsLazyPagingItems()
@@ -101,11 +117,23 @@ fun MainScreen(
     val db = remember {
         Firebase.firestore
     }
+    LaunchedEffect(navData.uid) {
+        loadUserGenres(db, navData.uid) { loadedGenres ->
+            if (loadedGenres.isEmpty()) {
+                showOverlay = true
+            } else {
+                selectedGenres.addAll(loadedGenres)
+                showOverlay = false
+            }
+        }
+    }
     LaunchedEffect(movies.itemSnapshotList) {
         if (movies.itemCount > 0) {
             dataLoaded.value = true
         }
         movieViewModel.loadFavoriteMovies(db, navData.uid)
+        movieViewModel.loadBookmarkMovies(db, navData.uid)
+        movieViewModel.loadRatedMovies(db, navData.uid)
     }
     // Управляем анимацией и её завершением
     LaunchedEffect(key1 = showLoadingAnimation.value, key2 = dataLoaded.value) {
@@ -130,133 +158,39 @@ fun MainScreen(
             showLoadingAnimation.value = false
         }
     }
-    if (favoriteMoviesState.value.isNotEmpty()) {
-        Log.d(
-            "MyLog",
-            "favoriteMoviesState обновлено, избранных: ${favoriteMoviesState.value.size}"
-        )
-    }
     val pagerState = rememberPagerState(
         pageCount = { minOf(5, movies.itemCount) }
     )
     val scrollState = rememberScrollState()
-    Scaffold(
-        topBar = {
-            if (showTopBar) {
-                TopBarMenu(scrollBehavior = scrollBehavior)
-            }
-        },
-        bottomBar = {
-            if (showBottomBar) {
-                BottomMenu(
-                    navController = navController,
-                    uid = navData.uid,
-                    email = navData.email
-                )
-            }
-        }
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .nestedScroll(scrollBehavior.nestedScrollConnection)
-                .verticalScroll(scrollState)
-                .padding(
-                    top = innerPadding.calculateTopPadding(),
-                    bottom = innerPadding.calculateBottomPadding()
-                )
-        ) {
-            Column(
-
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Фильмы",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(start = 24.dp)
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            topBar = {
+                if (showTopBar) {
+                    TopBarMenu(scrollBehavior = scrollBehavior)
+                }
+            },
+            bottomBar = {
+                if (showBottomBar) {
+                    BottomMenu(
+                        navController = navController,
+                        uid = navData.uid,
+                        email = navData.email
                     )
-                    Button(
-                        onClick = {
-                            navController.navigate(
-                                MovieScreenDataObject(
-                                    navData.uid,
-                                    navData.email
-                                )
-                            )
-                        },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.Transparent, // Прозрачный фон
-                            contentColor = Color.Black // Цвет текста
-                        ),
-                        contentPadding = PaddingValues(0.dp), // Убираем отступы внутри кнопки
-                        modifier = Modifier
-                            .padding(end = 24.dp)
-                            .wrapContentSize()
-                    ) {
-                        Text(
-                            text = "Посмотреть",
-                            fontSize = 10.sp,
-                            color = MaterialTheme.colorScheme.onBackground.copy(0.7f),
-                        )
-                    }
-
                 }
-                LazyRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(minOf(10, movies.itemCount)) { index ->
-                        movies[index]?.let { movie ->
-                            Box(
-                                modifier = Modifier
-                                    .padding(start = 8.dp)
-                                    .width(120.dp)
-                                    .height(200.dp)
-                                    .clip(RoundedCornerShape(15.dp))
-                                    .background(Color.Gray)
-                                    .clickable {
-                                        navController.navigate(
-                                            DetailsNavMovieObject(
-                                                id = movie.id ?: "",
-                                                tmdbId = movie.externalId?.tmdb ?: 0,
-                                                title = movie.name ?: "Неизвестно",
-                                                type = movie.type ?: "Неизвестно",
-                                                genre = movie.genres?.joinToString(", ") { it.name }
-                                                    ?: "Неизвестно",
-                                                year = movie.year ?: "Неизвестно",
-                                                description = movie.description
-                                                    ?: "Описание отсутствует",
-                                                imageUrl = movie.poster?.url ?: "",
-                                                backdropUrl = movie.backdrop?.url ?: "",
-                                                rating = movie.rating?.kp ?: 0.0,
-                                                persons = movie.persons?.joinToString(", ") { it.name }
-                                                    ?: "Неизвестно",
-                                                isFavorite = movie.isFavorite
-                                            )
-                                        )
-                                    },
-                                contentAlignment = Alignment.Center
-                            ) {
-                                AsyncImage(
-                                    model = movie.poster?.url,
-                                    contentDescription = "Постер фильма",
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(250.dp)
-                                        .clip(RoundedCornerShape(15.dp)),
-                                    contentScale = ContentScale.Crop
-                                )
-                            }
-                        }
-                    }
-                }
+            }
+        ) { innerPadding ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .nestedScroll(scrollBehavior.nestedScrollConnection)
+                    .verticalScroll(scrollState)
+                    .padding(
+                        top = innerPadding.calculateTopPadding(),
+                        bottom = innerPadding.calculateBottomPadding()
+                    )
+            ) {
                 Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
+
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -264,16 +198,18 @@ fun MainScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Рекомендуем",
+                            text = "Фильмы",
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(start = 24.dp)
                         )
                         Button(
                             onClick = {
-                                MovieScreenDataObject(
-                                    navData.uid,
-                                    navData.email
+                                navController.navigate(
+                                    MovieScreenDataObject(
+                                        navData.uid,
+                                        navData.email
+                                    )
                                 )
                             },
                             colors = ButtonDefaults.buttonColors(
@@ -293,142 +229,60 @@ fun MainScreen(
                         }
 
                     }
-                    HorizontalPager(
-                        state = pagerState,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp)
-                            .padding(start = 8.dp, end = 8.dp)
-                    ) { index ->
-                        movies[index]?.let { movie ->
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .fillMaxHeight()
-                                    .clip(RoundedCornerShape(50.dp)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                AsyncImage(
-                                    model = movie.backdrop?.url,
-                                    contentDescription = "Постер фильма",
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(250.dp)
-                                        .clip(RoundedCornerShape(15.dp)),
-                                    contentScale = ContentScale.Crop
-                                )
-                            }
-                        }
-
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier
-                                .padding(16.dp)
-                        ) {
-                            repeat(minOf(5, movies.itemCount)) { index ->
+                    LazyRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(minOf(10, movies.itemCount)) { index ->
+                            movies[index]?.let { movie ->
                                 Box(
                                     modifier = Modifier
-                                        .size(if (pagerState.currentPage == index) 10.dp else 8.dp) // Активная точка больше
-                                        .background(
-                                            if (pagerState.currentPage == index) Color.DarkGray else Color.LightGray,
-                                            shape = CircleShape
-                                        )
-                                )
-                            }
-                        }
-                    }
-                    Column(
-
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "Сериалы",
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.padding(start = 24.dp)
-                            )
-                            Button(
-                                onClick = {
-                                    navController.navigate(
-                                        SeriesScreenDataObject(
-                                            navData.uid,
-                                            navData.email
-                                        )
-                                    )
-                                },
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color.Transparent,
-                                    contentColor = Color.Black
-                                ),
-                                contentPadding = PaddingValues(0.dp),
-                                modifier = Modifier
-                                    .padding(end = 24.dp)
-                                    .wrapContentSize()
-                            ) {
-                                Text(
-                                    text = "Посмотреть",
-                                    fontSize = 10.sp,
-                                    color = MaterialTheme.colorScheme.onBackground.copy(0.7f),
-                                )
-                            }
-
-                        }
-                        LazyRow(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            items(minOf(10, series.itemCount)) { index ->
-                                series[index]?.let { movie ->
-                                    Box(
-                                        modifier = Modifier
-                                            .padding(start = 8.dp)
-                                            .width(120.dp)
-                                            .height(200.dp)
-                                            .clip(RoundedCornerShape(15.dp))
-                                            .background(Color.Gray)
-                                            .clickable {
-                                                navController.navigate(
-                                                    DetailsNavMovieObject(
-                                                        id = movie.id ?: "",
-                                                        tmdbId = movie.externalId?.tmdb ?: 0,
-                                                        title = movie.name ?: "Неизвестно",
-                                                        type = movie.type ?: "Неизвестно",
-                                                        genre = movie.genres?.joinToString(", ") { it.name }
-                                                            ?: "Неизвестно",
-                                                        year = movie.year ?: "Неизвестно",
-                                                        description = movie.description
-                                                            ?: "Описание отсутствует",
-                                                        imageUrl = movie.poster?.url ?: "",
-                                                        backdropUrl = movie.backdrop?.url ?: "",
-                                                        rating = movie.rating?.kp ?: 0.0,
-                                                        persons = movie.persons?.joinToString(", ") { it.name }
-                                                            ?: "Неизвестно",
-                                                        isFavorite = movie.isFavorite
-                                                    )
+                                        .padding(start = 8.dp)
+                                        .width(120.dp)
+                                        .height(200.dp)
+                                        .clip(RoundedCornerShape(15.dp))
+                                        .background(Color.Gray)
+                                        .clickable {
+                                            navController.navigate(
+                                                DetailsNavMovieObject(
+                                                    id = movie.id ?: "",
+                                                    tmdbId = movie.externalId?.tmdb ?: 0,
+                                                    title = movie.name ?: "Неизвестно",
+                                                    type = movie.type ?: "Неизвестно",
+                                                    genre = movie.genres?.joinToString(", ") { it.name }
+                                                        ?: "Неизвестно",
+                                                    year = movie.year ?: "Неизвестно",
+                                                    description = movie.description
+                                                        ?: "Описание отсутствует",
+                                                    imageUrl = movie.poster?.url ?: "",
+                                                    backdropUrl = movie.backdrop?.url ?: "",
+                                                    rating = movie.rating?.kp ?: 0.0,
+                                                    persons = movie.persons?.joinToString(", ") { it.name }
+                                                        ?: "Неизвестно",
+                                                    isFavorite = movie.isFavorite,
+                                                    isBookMark = movie.isBookMark,
+                                                    isRated = movie.isRated,
+                                                    userRating = movie.userRating ?: 0
                                                 )
-                                            },
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        AsyncImage(
-                                            model = movie.poster?.url,
-                                            contentDescription = "Постер сериала",
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .height(250.dp)
-                                                .clip(RoundedCornerShape(15.dp)),
-                                            contentScale = ContentScale.Crop
-                                        )
-                                    }
+                                            )
+                                        },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    AsyncImage(
+                                        model = movie.poster?.url,
+                                        contentDescription = "Постер фильма",
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(250.dp)
+                                            .clip(RoundedCornerShape(15.dp)),
+                                        contentScale = ContentScale.Crop
+                                    )
                                 }
                             }
                         }
                     }
                     Column(
-
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -436,18 +290,16 @@ fun MainScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "Мультфильмы",
+                                text = "Рекомендуем",
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.Bold,
                                 modifier = Modifier.padding(start = 24.dp)
                             )
                             Button(
                                 onClick = {
-                                    navController.navigate(
-                                        CartoonScreenDataObject(
-                                            navData.uid,
-                                            navData.email
-                                        )
+                                    MovieScreenDataObject(
+                                        navData.uid,
+                                        navData.email
                                     )
                                 },
                                 colors = ButtonDefaults.buttonColors(
@@ -467,137 +319,321 @@ fun MainScreen(
                             }
 
                         }
-                        LazyRow(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            items(minOf(10, cartoons.itemCount)) { index ->
-                                cartoons[index]?.let { movie ->
+                        HorizontalPager(
+                            state = pagerState,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp)
+                                .padding(start = 8.dp, end = 8.dp)
+                        ) { index ->
+                            movies[index]?.let { movie ->
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .fillMaxHeight()
+                                        .clip(RoundedCornerShape(50.dp)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    AsyncImage(
+                                        model = movie.backdrop?.url,
+                                        contentDescription = "Постер фильма",
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(250.dp)
+                                            .clip(RoundedCornerShape(15.dp)),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                }
+                            }
+
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                modifier = Modifier
+                                    .padding(16.dp)
+                            ) {
+                                repeat(minOf(5, movies.itemCount)) { index ->
                                     Box(
                                         modifier = Modifier
-                                            .padding(start = 8.dp)
-                                            .width(120.dp)
-                                            .height(200.dp)
-                                            .clip(RoundedCornerShape(15.dp))
-                                            .background(Color.Gray)
-                                            .clickable {
-                                                navController.navigate(
-                                                    DetailsNavMovieObject(
-                                                        id = movie.id ?: "",
-                                                        tmdbId = movie.externalId?.tmdb ?: 0,
-                                                        title = movie.name ?: "Неизвестно",
-                                                        type = movie.type ?: "Неизвестно",
-                                                        genre = movie.genres?.joinToString(", ") { it.name }
-                                                            ?: "Неизвестно",
-                                                        year = movie.year ?: "Неизвестно",
-                                                        description = movie.description
-                                                            ?: "Описание отсутствует",
-                                                        imageUrl = movie.poster?.url ?: "",
-                                                        backdropUrl = movie.backdrop?.url ?: "",
-                                                        rating = movie.rating?.kp ?: 0.0,
-                                                        persons = movie.persons?.joinToString(", ") { it.name }
-                                                            ?: "Неизвестно",
-                                                        isFavorite = movie.isFavorite
-                                                    )
-                                                )
-                                            },
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        AsyncImage(
-                                            model = movie.poster?.url,
-                                            contentDescription = "Постер фильма",
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .height(250.dp)
-                                                .clip(RoundedCornerShape(15.dp)),
-                                            contentScale = ContentScale.Crop
+                                            .size(if (pagerState.currentPage == index) 10.dp else 8.dp) // Активная точка больше
+                                            .background(
+                                                if (pagerState.currentPage == index) Color.DarkGray else Color.LightGray,
+                                                shape = CircleShape
+                                            )
+                                    )
+                                }
+                            }
+                        }
+                        Column(
+
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "Сериалы",
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(start = 24.dp)
+                                )
+                                Button(
+                                    onClick = {
+                                        navController.navigate(
+                                            SeriesScreenDataObject(
+                                                navData.uid,
+                                                navData.email
+                                            )
                                         )
+                                    },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color.Transparent,
+                                        contentColor = Color.Black
+                                    ),
+                                    contentPadding = PaddingValues(0.dp),
+                                    modifier = Modifier
+                                        .padding(end = 24.dp)
+                                        .wrapContentSize()
+                                ) {
+                                    Text(
+                                        text = "Посмотреть",
+                                        fontSize = 10.sp,
+                                        color = MaterialTheme.colorScheme.onBackground.copy(0.7f),
+                                    )
+                                }
+
+                            }
+                            LazyRow(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                items(minOf(10, series.itemCount)) { index ->
+                                    series[index]?.let { movie ->
+                                        Box(
+                                            modifier = Modifier
+                                                .padding(start = 8.dp)
+                                                .width(120.dp)
+                                                .height(200.dp)
+                                                .clip(RoundedCornerShape(15.dp))
+                                                .background(Color.Gray)
+                                                .clickable {
+                                                    navController.navigate(
+                                                        DetailsNavMovieObject(
+                                                            id = movie.id ?: "",
+                                                            tmdbId = movie.externalId?.tmdb ?: 0,
+                                                            title = movie.name ?: "Неизвестно",
+                                                            type = movie.type ?: "Неизвестно",
+                                                            genre = movie.genres?.joinToString(", ") { it.name }
+                                                                ?: "Неизвестно",
+                                                            year = movie.year ?: "Неизвестно",
+                                                            description = movie.description
+                                                                ?: "Описание отсутствует",
+                                                            imageUrl = movie.poster?.url ?: "",
+                                                            backdropUrl = movie.backdrop?.url ?: "",
+                                                            rating = movie.rating?.kp ?: 0.0,
+                                                            persons = movie.persons?.joinToString(", ") { it.name }
+                                                                ?: "Неизвестно",
+                                                            isFavorite = movie.isFavorite,
+                                                            isBookMark = movie.isBookMark,
+                                                            isRated = movie.isRated,
+                                                            userRating = movie.userRating ?: 0
+                                                        )
+                                                    )
+                                                },
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            AsyncImage(
+                                                model = movie.poster?.url,
+                                                contentDescription = "Постер сериала",
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .height(250.dp)
+                                                    .clip(RoundedCornerShape(15.dp)),
+                                                contentScale = ContentScale.Crop
+                                            )
+                                        }
                                     }
                                 }
                             }
                         }
-                    }
-                    Column(
+                        Column(
 
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(
-                                text = "Книги",
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.padding(start = 24.dp)
-                            )
-                            Button(
-                                onClick = {
-                                    navController.navigate(
-                                        BookScreenDataObject(
-                                            navData.uid,
-                                            navData.email
-                                        )
-                                    )
-                                },
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color.Transparent, // Прозрачный фон
-                                    contentColor = Color.Black // Цвет текста
-                                ),
-                                contentPadding = PaddingValues(0.dp), // Убираем отступы внутри кнопки
-                                modifier = Modifier
-                                    .padding(end = 24.dp)
-                                    .wrapContentSize()
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = "Посмотреть",
-                                    fontSize = 10.sp,
-                                    color = MaterialTheme.colorScheme.onBackground.copy(0.7f),
+                                    text = "Мультфильмы",
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(start = 24.dp)
                                 )
-                            }
-
-                        }
-                        LazyRow(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            items(minOf(10, books.itemCount)) { index ->
-                                books[index]?.let { book ->
-                                    Box(
-                                        modifier = Modifier
-                                            .padding(start = 8.dp)
-                                            .width(120.dp)
-                                            .height(200.dp)
-                                            .clip(RoundedCornerShape(15.dp))
-                                            .background(Color.Gray)
-                                            .clickable {
-                                                navController.navigate(
-                                                    DetailsNavBookObject(
-                                                        id = book.id,
-                                                        isbn10 = book.isbn10,
-                                                        title = book.title,
-                                                        authors = book.authors?.joinToString(", ")
-                                                            ?: "Неизвестно",
-                                                        description = book.description
-                                                            ?: "Описание отсутствует",
-                                                        thumbnail = book.thumbnail ?: "",
-                                                        publishedDate = book.publishedDate
-                                                            ?: "Неизвестно",
-                                                        isFavorite = book.isFavorite
-                                                    )
-                                                )
-                                            },
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        AsyncImage(
-                                            model = book.thumbnail?.replace("http://", "https://"),
-                                            contentDescription = "Обложка книги",
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .height(250.dp)
-                                                .clip(RoundedCornerShape(15.dp)),
-                                            contentScale = ContentScale.Crop
+                                Button(
+                                    onClick = {
+                                        navController.navigate(
+                                            CartoonScreenDataObject(
+                                                navData.uid,
+                                                navData.email
+                                            )
                                         )
+                                    },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color.Transparent, // Прозрачный фон
+                                        contentColor = Color.Black // Цвет текста
+                                    ),
+                                    contentPadding = PaddingValues(0.dp), // Убираем отступы внутри кнопки
+                                    modifier = Modifier
+                                        .padding(end = 24.dp)
+                                        .wrapContentSize()
+                                ) {
+                                    Text(
+                                        text = "Посмотреть",
+                                        fontSize = 10.sp,
+                                        color = MaterialTheme.colorScheme.onBackground.copy(0.7f),
+                                    )
+                                }
+
+                            }
+                            LazyRow(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                items(minOf(10, cartoons.itemCount)) { index ->
+                                    cartoons[index]?.let { movie ->
+                                        Box(
+                                            modifier = Modifier
+                                                .padding(start = 8.dp)
+                                                .width(120.dp)
+                                                .height(200.dp)
+                                                .clip(RoundedCornerShape(15.dp))
+                                                .background(Color.Gray)
+                                                .clickable {
+                                                    navController.navigate(
+                                                        DetailsNavMovieObject(
+                                                            id = movie.id ?: "",
+                                                            tmdbId = movie.externalId?.tmdb ?: 0,
+                                                            title = movie.name ?: "Неизвестно",
+                                                            type = movie.type ?: "Неизвестно",
+                                                            genre = movie.genres?.joinToString(", ") { it.name }
+                                                                ?: "Неизвестно",
+                                                            year = movie.year ?: "Неизвестно",
+                                                            description = movie.description
+                                                                ?: "Описание отсутствует",
+                                                            imageUrl = movie.poster?.url ?: "",
+                                                            backdropUrl = movie.backdrop?.url ?: "",
+                                                            rating = movie.rating?.kp ?: 0.0,
+                                                            persons = movie.persons?.joinToString(", ") { it.name }
+                                                                ?: "Неизвестно",
+                                                            isFavorite = movie.isFavorite,
+                                                            isBookMark = movie.isBookMark,
+                                                            isRated = movie.isRated,
+                                                            userRating = movie.userRating ?: 0
+                                                        )
+                                                    )
+                                                },
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            AsyncImage(
+                                                model = movie.poster?.url,
+                                                contentDescription = "Постер фильма",
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .height(250.dp)
+                                                    .clip(RoundedCornerShape(15.dp)),
+                                                contentScale = ContentScale.Crop
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        Column(
+
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "Книги",
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(start = 24.dp)
+                                )
+                                Button(
+                                    onClick = {
+                                        navController.navigate(
+                                            BookScreenDataObject(
+                                                navData.uid,
+                                                navData.email
+                                            )
+                                        )
+                                    },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color.Transparent, // Прозрачный фон
+                                        contentColor = Color.Black // Цвет текста
+                                    ),
+                                    contentPadding = PaddingValues(0.dp), // Убираем отступы внутри кнопки
+                                    modifier = Modifier
+                                        .padding(end = 24.dp)
+                                        .wrapContentSize()
+                                ) {
+                                    Text(
+                                        text = "Посмотреть",
+                                        fontSize = 10.sp,
+                                        color = MaterialTheme.colorScheme.onBackground.copy(0.7f),
+                                    )
+                                }
+
+                            }
+                            LazyRow(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                items(minOf(10, books.itemCount)) { index ->
+                                    books[index]?.let { book ->
+                                        Box(
+                                            modifier = Modifier
+                                                .padding(start = 8.dp)
+                                                .width(120.dp)
+                                                .height(200.dp)
+                                                .clip(RoundedCornerShape(15.dp))
+                                                .background(Color.Gray)
+                                                .clickable {
+                                                    navController.navigate(
+                                                        DetailsNavBookObject(
+                                                            id = book.id,
+                                                            isbn10 = book.isbn10,
+                                                            title = book.title,
+                                                            authors = book.authors?.joinToString(", ")
+                                                                ?: "Неизвестно",
+                                                            description = book.description
+                                                                ?: "Описание отсутствует",
+                                                            thumbnail = book.thumbnail ?: "",
+                                                            publishedDate = book.publishedDate
+                                                                ?: "Неизвестно",
+                                                            isFavorite = book.isFavorite
+                                                        )
+                                                    )
+                                                },
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            AsyncImage(
+                                                model = book.thumbnail?.replace(
+                                                    "http://",
+                                                    "https://"
+                                                ),
+                                                contentDescription = "Обложка книги",
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .height(250.dp)
+                                                    .clip(RoundedCornerShape(15.dp)),
+                                                contentScale = ContentScale.Crop
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -606,20 +642,71 @@ fun MainScreen(
                 }
             }
         }
-    }
-    if (showLoadingAnimation.value) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-                .alpha(alpha.value),
-            contentAlignment = Alignment.Center
+        // Экран поверх
+        AnimatedVisibility(
+            visible = showOverlay,
+            enter = fadeIn(),
+            exit = fadeOut()
         ) {
-            LottieAnimation(
-                composition = composition.value,
-                iterations = 1,
-                modifier = Modifier.size(250.dp)
-            )
+            Column(modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)) {
+
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    modifier = Modifier.weight(1f),
+                    contentPadding = PaddingValues(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(genres) { genre ->
+                        val isSelected = selectedGenres.contains(genre)
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    if (isSelected) selectedGenres.remove(genre)
+                                    else selectedGenres.add(genre)
+                                },
+                            colors = CardDefaults.cardColors(
+                                containerColor = if (isSelected) Color.Gray else Color.White
+                            ),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                        ) {
+                            Box(modifier = Modifier.padding(16.dp)) {
+                                Text(genre.name, textAlign = TextAlign.Center)
+                            }
+                        }
+                    }
+                }
+
+                Button(
+                    onClick = {
+                        showOverlay = false
+                        saveSelectedGenres(db, navData.uid, selectedGenres)
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp)
+                ) {
+                    Text("Сохранить")
+                }
+            }
+        }
+        if (showLoadingAnimation.value) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background)
+                    .alpha(alpha.value),
+                contentAlignment = Alignment.Center
+            ) {
+                LottieAnimation(
+                    composition = composition.value,
+                    iterations = 1,
+                    modifier = Modifier.size(250.dp)
+                )
+            }
         }
     }
 }

@@ -28,7 +28,7 @@ interface RecommendationApi {
 
     @GET("recommend/content_books/{isbn10}")
     suspend fun getRecommendationsContentBooks(
-        @Path("isbn10") isbn10: Int,
+        @Path("isbn10") isbn10: String,
         @Query("top_n") topN: Int = 10
     ): List<RecommendationItemBooks>
 }

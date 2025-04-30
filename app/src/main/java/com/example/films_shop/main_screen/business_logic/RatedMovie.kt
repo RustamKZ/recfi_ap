@@ -2,7 +2,7 @@ package com.example.films_shop.main_screen.business_logic
 
 import com.example.films_shop.main_screen.api.Movie
 
-data class FavoriteMovie(
+data class RatedMovie(
     val key: String = "",
     val tmdbId: Int? = null,
     val name: String? = "",
@@ -15,7 +15,7 @@ data class FavoriteMovie(
     val persons: List<String>? = emptyList(),
     val rating: Double? = null,
     val isBookMark: Boolean = false,
-    val isRated: Boolean = false,
+    val isFavorite: Boolean = false,
     val userRating: Int? = 0
 ) {
     constructor(movie: Movie) : this(
@@ -31,7 +31,7 @@ data class FavoriteMovie(
         persons = movie.persons?.map {it.name},
         rating = movie.rating?.kp,
         isBookMark = movie.isBookMark,
-        isRated = movie.isRated,
+        isFavorite = movie.isFavorite,
         userRating = movie.userRating
     )
 }

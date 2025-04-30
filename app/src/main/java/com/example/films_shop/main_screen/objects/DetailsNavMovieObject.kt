@@ -15,5 +15,8 @@ data class DetailsNavMovieObject (
     val backdropUrl: String = "",
     val persons: String = "",
     val rating: Double = 0.0,
-    val isFavorite: Boolean = false
+    val isFavorite: Boolean = false,
+    val isBookMark: Boolean = false,
+    val isRated: Boolean = false,
+    val userRating: Int = 0
 )

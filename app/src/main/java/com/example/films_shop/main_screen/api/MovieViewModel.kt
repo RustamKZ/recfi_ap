@@ -20,6 +20,8 @@ import com.example.films_shop.main_screen.api.Rating
 import com.example.films_shop.main_screen.api.RetrofitInstance
 import com.example.films_shop.main_screen.api.apiKey
 import com.example.films_shop.main_screen.business_logic.FavoriteMovie
+import com.example.films_shop.main_screen.business_logic.BookmarkMovie
+import com.example.films_shop.main_screen.business_logic.RatedMovie
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -38,7 +40,7 @@ enum class ContentType(val apiValue: String) {
 class MoviePagingSource(
     private val apiService: MovieApiService,
     private val apiKey: String,
-    private val contentType: ContentType
+    private val contentType: ContentType,
 ) : PagingSource<Int, Movie>() {
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Movie> {
@@ -46,8 +48,17 @@ class MoviePagingSource(
         return try {
             val response = when (contentType) {
                 ContentType.MOVIES -> apiService.getTop250Movies(apiKey, page = page, limit = 10)
-                ContentType.TV_SERIES -> apiService.getTop250TvSeries(apiKey, page = page, limit = 10)
-                ContentType.CARTOONS -> apiService.getTop250Cartoons(apiKey, page = page, limit = 10)
+                ContentType.TV_SERIES -> apiService.getTop250TvSeries(
+                    apiKey,
+                    page = page,
+                    limit = 10
+                )
+
+                ContentType.CARTOONS -> apiService.getTop250Cartoons(
+                    apiKey,
+                    page = page,
+                    limit = 10
+                )
             }
             // ЛОГ: выводим все поля каждого фильма
 //            response.docs.forEach { movie ->
@@ -55,7 +66,10 @@ class MoviePagingSource(
 //            }
             val updatedMovies = response.docs.map { movie ->
                 movie.copy(
-                    poster = movie.poster?.copy(url = movie.poster.url ?: "https://raw.githubusercontent.com/RustamKZ/recfi_ap/refs/heads/master/poster.jpg")
+                    poster = movie.poster?.copy(
+                        url = movie.poster.url
+                            ?: "https://raw.githubusercontent.com/RustamKZ/recfi_ap/refs/heads/master/poster.jpg"
+                    )
                         ?: Poster("https://raw.githubusercontent.com/RustamKZ/recfi_ap/refs/heads/master/poster.jpg"),
                     backdrop = when {
                         // Проверяем наличие backdrop и что его url не null
@@ -95,25 +109,31 @@ class MovieViewModel : ViewModel() {
     val favoriteMoviesState = mutableStateOf<List<Movie>>(emptyList())
     val favoriteTvSeriesState = mutableStateOf<List<Movie>>(emptyList())
     val favoriteCartoonsState = mutableStateOf<List<Movie>>(emptyList())
+
+    val bookmarkMoviesState = mutableStateOf<List<Movie>>(emptyList())
+    val bookmarkTvSeriesState = mutableStateOf<List<Movie>>(emptyList())
+    val bookmarkCartoonsState = mutableStateOf<List<Movie>>(emptyList())
+
+    val ratedMoviesState = mutableStateOf<List<Movie>>(emptyList())
+    val ratedTvSeriesState = mutableStateOf<List<Movie>>(emptyList())
+    val ratedCartoonsState = mutableStateOf<List<Movie>>(emptyList())
+
+
     val currentContentType = MutableStateFlow(ContentType.MOVIES)
 
     val moviesPagingFlow = createPagingFlow(ContentType.MOVIES)
     val tvSeriesPagingFlow = createPagingFlow(ContentType.TV_SERIES)
     val cartoonsPagingFlow = createPagingFlow(ContentType.CARTOONS)
 
-    // Состояние для хранения результатов поиска по TMDB ID
-    val tmdbSearchResultsState = mutableStateOf<List<Movie>>(emptyList())
-    val isSearchingByTmdb = mutableStateOf(false)
-    val searchError = mutableStateOf<String?>(null)
-
     @OptIn(ExperimentalCoroutinesApi::class)
-    val currentContentFlow: Flow<PagingData<Movie>> = combine(currentContentType.asStateFlow()) { contentType ->
-        when (contentType.single()) {
-            ContentType.MOVIES -> moviesPagingFlow
-            ContentType.TV_SERIES -> tvSeriesPagingFlow
-            ContentType.CARTOONS -> cartoonsPagingFlow
-        }
-    }.flatMapLatest { it }
+    val currentContentFlow: Flow<PagingData<Movie>> =
+        combine(currentContentType.asStateFlow()) { contentType ->
+            when (contentType.single()) {
+                ContentType.MOVIES -> moviesPagingFlow
+                ContentType.TV_SERIES -> tvSeriesPagingFlow
+                ContentType.CARTOONS -> cartoonsPagingFlow
+            }
+        }.flatMapLatest { it }
 
     private fun createPagingFlow(contentType: ContentType): Flow<PagingData<Movie>> {
         return Pager(
@@ -132,6 +152,18 @@ class MovieViewModel : ViewModel() {
                 favoriteCartoonsState.value.any { it.id == id }
     }
 
+    fun isInBookmarks(id: String): Boolean {
+        return bookmarkMoviesState.value.any { it.id == id } ||
+                bookmarkTvSeriesState.value.any { it.id == id } ||
+                bookmarkCartoonsState.value.any { it.id == id }
+    }
+
+    fun isInRated(id: String): Boolean {
+        return ratedMoviesState.value.any { it.id == id } ||
+                ratedTvSeriesState.value.any { it.id == id } ||
+                ratedCartoonsState.value.any { it.id == id }
+    }
+
     fun loadFavoriteMovies(db: FirebaseFirestore, uid: String, contentType: ContentType? = null) {
         db.collection("users").document(uid).collection("favorites_movies")
             .addSnapshotListener { snapshot, error ->
@@ -140,31 +172,41 @@ class MovieViewModel : ViewModel() {
                     return@addSnapshotListener
                 }
                 snapshot?.let {
-                    val allFavorites = it.documents.mapNotNull { doc -> doc.toObject(FavoriteMovie::class.java) }
-                        .map { favorite ->
-                            Movie(
-                                id = favorite.key,
-                                externalId = ExternalId(favorite.tmdbId ?: 0),
-                                name = favorite.name,
-                                year = favorite.year,
-                                poster = favorite.posterUrl?.let { Poster(it) },
-                                backdrop = favorite.backdropUrl?.let { Backdrop(it) },
-                                genres = favorite.genres?.map { Genre(it) },
-                                rating = Rating(favorite.rating ?: 0.0),
-                                persons = favorite.persons?.map { Persons(it) },
-                                description = favorite.description,
-                                type = favorite.type,
-                                isFavorite = true
-                            )
-                        }
+                    val allFavorites =
+                        it.documents.mapNotNull { doc -> doc.toObject(FavoriteMovie::class.java) }
+                            .map { favorite ->
+                                Movie(
+                                    id = favorite.key,
+                                    externalId = ExternalId(favorite.tmdbId ?: 0),
+                                    name = favorite.name,
+                                    year = favorite.year,
+                                    poster = favorite.posterUrl?.let { Poster(it) },
+                                    backdrop = favorite.backdropUrl?.let { Backdrop(it) },
+                                    genres = favorite.genres?.map { Genre(it) },
+                                    rating = Rating(favorite.rating ?: 0.0),
+                                    persons = favorite.persons?.map { Persons(it) },
+                                    description = favorite.description,
+                                    type = favorite.type,
+                                    isFavorite = true,
+                                    isBookMark = favorite.isBookMark,
+                                    isRated = favorite.isRated,
+                                    userRating = favorite.userRating
+                                )
+                            }
 
                     // Если тип контента не указан, обновляем все состояния
                     if (contentType == null) {
-                        favoriteMoviesState.value = allFavorites.filter { it.type == ContentType.MOVIES.apiValue }
-                        favoriteTvSeriesState.value = allFavorites.filter { it.type == ContentType.TV_SERIES.apiValue }
-                        favoriteCartoonsState.value = allFavorites.filter { it.type == ContentType.CARTOONS.apiValue }
-                        Log.d("MyLog", "Все избранное обновлено: фильмы=${favoriteMoviesState.value.size}, " +
-                                "сериалы=${favoriteTvSeriesState.value.size}, мультфильмы=${favoriteCartoonsState.value.size}")
+                        favoriteMoviesState.value =
+                            allFavorites.filter { it.type == ContentType.MOVIES.apiValue }
+                        favoriteTvSeriesState.value =
+                            allFavorites.filter { it.type == ContentType.TV_SERIES.apiValue }
+                        favoriteCartoonsState.value =
+                            allFavorites.filter { it.type == ContentType.CARTOONS.apiValue }
+                        Log.d(
+                            "MyLog",
+                            "Все избранное обновлено: фильмы=${favoriteMoviesState.value.size}, " +
+                                    "сериалы=${favoriteTvSeriesState.value.size}, мультфильмы=${favoriteCartoonsState.value.size}"
+                        )
                     } else {
                         // Если тип указан, обновляем только соответствующее состояние
                         val filtered = allFavorites.filter { it.type == contentType.apiValue }
@@ -173,62 +215,132 @@ class MovieViewModel : ViewModel() {
                             ContentType.TV_SERIES -> favoriteTvSeriesState.value = filtered
                             ContentType.CARTOONS -> favoriteCartoonsState.value = filtered
                         }
-                        Log.d("MyLog", "Избранное типа ${contentType.apiValue} обновлено, всего: ${filtered.size}")
+                        Log.d(
+                            "MyLog",
+                            "Избранное типа ${contentType.apiValue} обновлено, всего: ${filtered.size}"
+                        )
                     }
                 }
             }
     }
 
-    // Функция для получения фильмов по TMDB ID
-    // Функция для получения фильмов по нескольким TMDB ID
-    suspend fun getMoviesByTmdbIds(tmdbIds: List<Int>) {
-        isSearchingByTmdb.value = true
-        searchError.value = null
+    fun loadBookmarkMovies(db: FirebaseFirestore, uid: String, contentType: ContentType? = null) {
+        db.collection("users").document(uid).collection("bookmark_movies")
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    Log.e("MyLog", "Ошибка загрузки фильмов из списка посмотреть позже", error)
+                    return@addSnapshotListener
+                }
+                snapshot?.let {
+                    val allBookmark =
+                        it.documents.mapNotNull { doc -> doc.toObject(BookmarkMovie::class.java) }
+                            .map { bookmark ->
+                                Movie(
+                                    id = bookmark.key,
+                                    externalId = ExternalId(bookmark.tmdbId ?: 0),
+                                    name = bookmark.name,
+                                    year = bookmark.year,
+                                    poster = bookmark.posterUrl?.let { Poster(it) },
+                                    backdrop = bookmark.backdropUrl?.let { Backdrop(it) },
+                                    genres = bookmark.genres?.map { Genre(it) },
+                                    rating = Rating(bookmark.rating ?: 0.0),
+                                    persons = bookmark.persons?.map { Persons(it) },
+                                    description = bookmark.description,
+                                    type = bookmark.type,
+                                    isFavorite = bookmark.isFavorite,
+                                    isBookMark = true,
+                                    isRated = bookmark.isRated,
+                                    userRating = bookmark.userRating
+                                )
+                            }
 
-        try {
-            val response = RetrofitInstance.api.getMoviesByTmdbIds(
-                apiKey = apiKey,
-                tmdbIds = tmdbIds
-            )
-
-            Log.d("MovieDebug", "Получены фильмы по TMDB IDs: ${response.docs.size}")
-
-            // Обрабатываем результаты так же, как и в MoviePagingSource
-            val updatedMovies = response.docs.map { movie ->
-                movie.copy(
-                    poster = movie.poster?.copy(url = movie.poster.url)
-                        ?: Poster("https://raw.githubusercontent.com/RustamKZ/recfi_ap/refs/heads/master/poster.jpg"),
-                    backdrop = when {
-                        // Проверяем наличие backdrop и что его url не null
-                        movie.backdrop != null && movie.backdrop.url != null ->
-                            movie.backdrop.copy(url = movie.backdrop.url)
-                        // Если есть постер и его url не null, создаем Backdrop
-                        movie.poster != null && movie.poster.url != null ->
-                            Backdrop(movie.poster.url)
-                        // Иначе используем дефолтную ссылку
-                        else ->
-                            Backdrop("https://raw.githubusercontent.com/RustamKZ/recfi_ap/refs/heads/master/poster.jpg")
-                    },
-                    persons = movie.persons?.filter { it.profession == "режиссеры" } ?: emptyList()
-                )
+                    // Если тип контента не указан, обновляем все состояния
+                    if (contentType == null) {
+                        bookmarkMoviesState.value =
+                            allBookmark.filter { it.type == ContentType.MOVIES.apiValue }
+                        bookmarkTvSeriesState.value =
+                            allBookmark.filter { it.type == ContentType.TV_SERIES.apiValue }
+                        bookmarkCartoonsState.value =
+                            allBookmark.filter { it.type == ContentType.CARTOONS.apiValue }
+                        Log.d(
+                            "MyLog",
+                            "Все посмотреть позже фильмы: фильмы=${bookmarkMoviesState.value.size}, " +
+                                    "сериалы=${bookmarkTvSeriesState.value.size}, мультфильмы=${bookmarkCartoonsState.value.size}"
+                        )
+                    } else {
+                        // Если тип указан, обновляем только соответствующее состояние
+                        val filtered = allBookmark.filter { it.type == contentType.apiValue }
+                        when (contentType) {
+                            ContentType.MOVIES -> bookmarkMoviesState.value = filtered
+                            ContentType.TV_SERIES -> bookmarkTvSeriesState.value = filtered
+                            ContentType.CARTOONS -> bookmarkCartoonsState.value = filtered
+                        }
+                        Log.d(
+                            "MyLog",
+                            "посмотреть позже типа ${contentType.apiValue} обновлено, всего: ${filtered.size}"
+                        )
+                    }
+                }
             }
+    }
 
-            // Фильтруем фильмы без названия
-            val filteredMovies = updatedMovies.filter { it.name != null }
+    fun loadRatedMovies(db: FirebaseFirestore, uid: String, contentType: ContentType? = null) {
+        db.collection("users").document(uid).collection("rated_movies")
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    Log.e("MyLog", "Ошибка загрузки оцененных фильмов", error)
+                    return@addSnapshotListener
+                }
+                snapshot?.let {
+                    val allRated =
+                        it.documents.mapNotNull { doc -> doc.toObject(RatedMovie::class.java) }
+                            .map { rated ->
+                                Movie(
+                                    id = rated.key,
+                                    externalId = ExternalId(rated.tmdbId ?: 0),
+                                    name = rated.name,
+                                    year = rated.year,
+                                    poster = rated.posterUrl?.let { Poster(it) },
+                                    backdrop = rated.backdropUrl?.let { Backdrop(it) },
+                                    genres = rated.genres?.map { Genre(it) },
+                                    rating = Rating(rated.rating ?: 0.0),
+                                    persons = rated.persons?.map { Persons(it) },
+                                    description = rated.description,
+                                    type = rated.type,
+                                    isFavorite = rated.isFavorite,
+                                    isBookMark = rated.isBookMark,
+                                    isRated = true,
+                                    userRating = rated.userRating
+                                )
+                            }
 
-            // Обновляем состояние с результатами поиска
-            tmdbSearchResultsState.value = filteredMovies
-        } catch (e: IOException) {
-            Log.e("MovieDebug", "Ошибка сети при поиске по TMDB IDs", e)
-            searchError.value = "Ошибка сети. Проверьте подключение к интернету."
-        } catch (e: HttpException) {
-            Log.e("MovieDebug", "HTTP ошибка при поиске по TMDB IDs: ${e.code()}", e)
-            searchError.value = "Ошибка сервера: ${e.code()}"
-        } catch (e: Exception) {
-            Log.e("MovieDebug", "Непредвиденная ошибка при поиске по TMDB IDs", e)
-            searchError.value = "Произошла ошибка: ${e.message}"
-        } finally {
-            isSearchingByTmdb.value = false
-        }
+                    // Если тип контента не указан, обновляем все состояния
+                    if (contentType == null) {
+                        ratedMoviesState.value =
+                            allRated.filter { it.type == ContentType.MOVIES.apiValue }
+                        ratedTvSeriesState.value =
+                            allRated.filter { it.type == ContentType.TV_SERIES.apiValue }
+                        ratedCartoonsState.value =
+                            allRated.filter { it.type == ContentType.CARTOONS.apiValue }
+                        Log.d(
+                            "MyLog",
+                            "Все оцененные обновлено: фильмы=${ratedMoviesState.value.size}, " +
+                                    "сериалы=${ratedTvSeriesState.value.size}, мультфильмы=${ratedCartoonsState.value.size}"
+                        )
+                    } else {
+                        // Если тип указан, обновляем только соответствующее состояние
+                        val filtered = allRated.filter { it.type == contentType.apiValue }
+                        when (contentType) {
+                            ContentType.MOVIES -> ratedMoviesState.value = filtered
+                            ContentType.TV_SERIES -> ratedTvSeriesState.value = filtered
+                            ContentType.CARTOONS -> ratedCartoonsState.value = filtered
+                        }
+                        Log.d(
+                            "MyLog",
+                            "Оцененные типа ${contentType.apiValue} обновлено, всего: ${filtered.size}"
+                        )
+                    }
+                }
+            }
     }
 }

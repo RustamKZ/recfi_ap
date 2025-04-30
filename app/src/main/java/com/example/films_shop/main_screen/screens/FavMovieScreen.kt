@@ -122,7 +122,10 @@ fun FavMovieScreen(
                                     persons = movie.persons?.joinToString(", ") { it.name }
                                         ?: "Неизвестно",
                                     rating = movie.rating?.kp ?: 0.0,
-                                    isFavorite = movie.isFavorite
+                                    isFavorite = movie.isFavorite,
+                                    isBookMark = movie.isBookMark,
+                                    isRated = movie.isRated,
+                                    userRating = movie.userRating ?: 0
                                 )
                             )
                         }

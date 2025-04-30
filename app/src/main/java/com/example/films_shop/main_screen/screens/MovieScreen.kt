@@ -55,6 +55,8 @@ fun MovieScreen(
 
     LaunchedEffect(movies.itemSnapshotList) {
         movieViewModel.loadFavoriteMovies(db, navData.uid, contentType)
+        movieViewModel.loadBookmarkMovies(db, navData.uid, contentType)
+        movieViewModel.loadRatedMovies(db, navData.uid, contentType)
         val movieList = movies.itemSnapshotList.items
         if (movieList.isNotEmpty()) {
             moviesListState.value = movieList
@@ -77,32 +79,6 @@ fun MovieScreen(
             }
         }
     ) { innerPadding ->
-//        Column(
-//            modifier = Modifier
-//                .fillMaxSize()
-//                .padding(top = innerPadding.calculateTopPadding())
-//                .padding(horizontal = 24.dp, vertical = 12.dp)
-//        ) {
-//            when (contentType) {
-//                ContentType.MOVIES -> Text(
-//                    text = "Фильмы",
-//                    fontSize = 20.sp,
-//                    fontWeight = FontWeight.Bold
-//                )
-//
-//                ContentType.TV_SERIES -> Text(
-//                    text = "Сериалы",
-//                    fontSize = 20.sp,
-//                    fontWeight = FontWeight.Bold
-//                )
-//
-//                ContentType.CARTOONS -> Text(
-//                    text = "Мультфильмы",
-//                    fontSize = 20.sp,
-//                    fontWeight = FontWeight.Bold
-//                )
-//            }
-//        }
         Spacer(modifier = Modifier.height(12.dp))
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
@@ -116,7 +92,6 @@ fun MovieScreen(
                     MovieitemUi(
                         movie = movie,
                         onMovieDetailsClick = {
-                            Log.d("MyLog", "movie.isFavorite ${movie.isFavorite}")
                             navController.navigate(
                                 DetailsNavMovieObject(
                                     id = movie.id ?: "",
@@ -132,7 +107,10 @@ fun MovieScreen(
                                     rating = movie.rating?.kp ?: 0.0,
                                     persons = movie.persons?.joinToString(", ") { it.name }
                                         ?: "Неизвестно",
-                                    isFavorite = movie.isFavorite
+                                    isFavorite = movie.isFavorite,
+                                    isBookMark = movie.isBookMark,
+                                    isRated = movie.isRated,
+                                    userRating = movie.userRating ?: 0
                                 )
                             )
                         }
