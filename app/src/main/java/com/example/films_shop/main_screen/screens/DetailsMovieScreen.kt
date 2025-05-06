@@ -189,7 +189,8 @@ fun DetailsMovieScreen(
                                         defaultElevation = 0.dp,
                                         pressedElevation = 0.dp,
                                         focusedElevation = 0.dp,
-                                        hoveredElevation = 0.dp)
+                                        hoveredElevation = 0.dp
+                                    )
                                 ) {
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically,
@@ -222,7 +223,8 @@ fun DetailsMovieScreen(
                                                 description = navObject.description,
                                                 poster = Poster(url = navObject.imageUrl),
                                                 backdrop = Backdrop(url = navObject.backdropUrl),
-                                                genres = navObject.genre.split(", ").map { Genre(name = it) },
+                                                genres = navObject.genre.split(", ")
+                                                    .map { Genre(name = it) },
                                                 year = navObject.year.toIntOrNull().toString(),
                                                 persons = navObject.persons.split(", ")
                                                     .map { Persons(name = it) },
@@ -243,7 +245,8 @@ fun DetailsMovieScreen(
                                         defaultElevation = 0.dp,
                                         pressedElevation = 0.dp,
                                         focusedElevation = 0.dp,
-                                        hoveredElevation = 0.dp)
+                                        hoveredElevation = 0.dp
+                                    )
                                 ) {
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically,
@@ -397,9 +400,11 @@ fun DetailsMovieScreen(
                                             description = navObject.description,
                                             poster = Poster(url = navObject.imageUrl),
                                             backdrop = Backdrop(url = navObject.backdropUrl),
-                                            genres = navObject.genre.split(", ").map { Genre(name = it) },
+                                            genres = navObject.genre.split(", ")
+                                                .map { Genre(name = it) },
                                             year = navObject.year.toIntOrNull().toString(),
-                                            persons = navObject.persons.split(", ").map { Persons(name = it) },
+                                            persons = navObject.persons.split(", ")
+                                                .map { Persons(name = it) },
                                             rating = Rating(navObject.rating),
                                             isFavorite = isFavorite,
                                             isBookMark = isBookmark,

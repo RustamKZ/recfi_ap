@@ -135,6 +135,14 @@ fun MainScreen(
         movieViewModel.loadBookmarkMovies(db, navData.uid)
         movieViewModel.loadRatedMovies(db, navData.uid)
     }
+    LaunchedEffect(books.itemSnapshotList) {
+        if (books.itemCount > 0) {
+            dataLoaded.value = true
+        }
+        bookViewModel.loadFavoriteBooks(db, navData.uid)
+        bookViewModel.loadBookmarkBooks(db, navData.uid)
+        bookViewModel.loadRatedBooks(db, navData.uid)
+    }
     // Управляем анимацией и её завершением
     LaunchedEffect(key1 = showLoadingAnimation.value, key2 = dataLoaded.value) {
         if (showLoadingAnimation.value) {
@@ -648,9 +656,11 @@ fun MainScreen(
             enter = fadeIn(),
             exit = fadeOut()
         ) {
-            Column(modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
+            ) {
 
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),

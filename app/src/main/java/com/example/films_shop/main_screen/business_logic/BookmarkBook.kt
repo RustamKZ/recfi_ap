@@ -1,9 +1,8 @@
 package com.example.films_shop.main_screen.business_logic
 
 import com.example.films_shop.main_screen.api.BookApi.Book
-import com.example.films_shop.main_screen.api.Movie
 
-data class FavoriteBook(
+data class BookmarkBook(
     val key: String = "",
     val isbn10: String = "",
     val title: String? = "",
@@ -11,7 +10,7 @@ data class FavoriteBook(
     val thumbnail: String? = "",
     val publishedDate: String? = "",
     val description: String? = "",
-    val isBookMark: Boolean = false,
+    val isFavorite: Boolean = false,
     val isRated: Boolean = false,
     val userRating: Int = 0
 ) {
@@ -23,7 +22,7 @@ data class FavoriteBook(
         thumbnail = book.thumbnail,
         publishedDate = book.publishedDate,
         description = book.description,
-        isBookMark = book.isBookMark,
+        isFavorite = book.isFavorite,
         isRated = book.isRated,
         userRating = book.userRating
     )

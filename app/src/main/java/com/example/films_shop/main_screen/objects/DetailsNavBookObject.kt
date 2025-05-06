@@ -11,5 +11,8 @@ data class DetailsNavBookObject (
     val thumbnail: String = "",
     val publishedDate: String = "",
     val description: String = "",
-    val isFavorite: Boolean = false
+    val isFavorite: Boolean = false,
+    val isBookmark: Boolean = false,
+    val isRated: Boolean = false,
+    val userRating: Int = 0
 )

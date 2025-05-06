@@ -29,3 +29,44 @@ fun onFavsBooks(
             .delete()
     }
 }
+
+fun onBookmarkBooks(
+    db: FirebaseFirestore,
+    uid: String,
+    book: Book,
+    isBookmark: Boolean
+) {
+    val bookmark = BookmarkBook(book)
+
+    if (isBookmark) {
+        Log.d("MyLog", "Adding book to BookmarkBooks: ${bookmark.key}")
+        db.collection("users")
+            .document(uid)
+            .collection("bookmark_books")
+            .document(bookmark.key)
+            .set(bookmark)
+    } else {
+        Log.d("MyLog", "Removing book from BookmarkBooks: ${bookmark.key}")
+        db.collection("users")
+            .document(uid)
+            .collection("bookmark_books")
+            .document(bookmark.key)
+            .delete()
+    }
+}
+
+fun onRatedBooks(
+    db: FirebaseFirestore,
+    uid: String,
+    book: Book
+) {
+    val ratedBook = RatedBook(book)
+
+    Log.d("MyLog", "Adding/updating movie rating: ${ratedBook.key} - ${ratedBook.userRating}")
+
+    db.collection("users")
+        .document(uid)
+        .collection("rated_books")
+        .document(ratedBook.key)
+        .set(ratedBook)
+}

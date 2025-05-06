@@ -1,4 +1,4 @@
-package com.example.films_shop.main_screen.screens
+package com.example.films_shop.main_screen.screens.favourite_screens
 
 import ContentType
 import MovieViewModel
@@ -45,7 +45,7 @@ fun FavMovieScreen(
     showTopBar: Boolean = true,
     showBottomBar: Boolean = true,
     scrollBehavior: TopAppBarScrollBehavior,
-    contentType: ContentType
+    contentType: ContentType,
 ) {
     val favoriteContentState = when (contentType) {
         ContentType.MOVIES -> remember { movieViewModel.favoriteMoviesState }
@@ -112,7 +112,7 @@ fun FavMovieScreen(
                                     id = movie.id ?: "",
                                     tmdbId = movie.externalId?.tmdb ?: 0,
                                     title = movie.name ?: "Неизвестно",
-                                    type = movie.type?: "Неизвестно",
+                                    type = movie.type ?: "Неизвестно",
                                     genre = movie.genres?.joinToString(", ") { it.name }
                                         ?: "Неизвестно",
                                     year = movie.year ?: "Неизвестно",

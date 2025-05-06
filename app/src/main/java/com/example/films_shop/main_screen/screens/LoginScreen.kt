@@ -34,13 +34,13 @@ import com.google.firebase.ktx.Firebase
 
 @Composable
 fun LoginScreen(
-    onNavigateToMainScreen: (MainScreenDataObject) -> Unit
+    onNavigateToMainScreen: (MainScreenDataObject) -> Unit,
 ) {
     val auth = remember {
         Firebase.auth
     }
-    val emailState = remember {mutableStateOf("rustamquee@gmail.com")}
-    val passwordState = remember {mutableStateOf("741963rR")}
+    val emailState = remember { mutableStateOf("rustamquee@gmail.com") }
+    val passwordState = remember { mutableStateOf("741963rR") }
     val errorState = remember { mutableStateOf("") }
     Image(
         painter = painterResource(id = R.drawable.films_background_collage),
@@ -49,23 +49,29 @@ fun LoginScreen(
         contentScale = ContentScale.Crop
     )
     Box(
-        modifier = Modifier.fillMaxSize().background(BlueForBackground)
+        modifier = Modifier
+            .fillMaxSize()
+            .background(BlueForBackground)
     )
     Column(
-        modifier = Modifier.fillMaxSize().padding(
-            start = 40.dp,
-            end = 40.dp
-        ),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(
+                start = 40.dp,
+                end = 40.dp
+            ),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Image(painter = painterResource(id = R.drawable.img), contentDescription = "LogoScreen")
         Spacer(Modifier.height(15.dp))
-        Text(text = "Films shop",
+        Text(
+            text = "Films shop",
             fontSize = 35.sp,
             fontWeight = FontWeight.Bold,
             fontFamily = custom_font,
-            color = Color.Black)
+            color = Color.Black
+        )
         Spacer(Modifier.height(15.dp))
         RoundedCornerTextField(
             text = emailState.value,

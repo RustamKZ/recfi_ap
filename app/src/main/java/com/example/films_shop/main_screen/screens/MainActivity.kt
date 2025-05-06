@@ -1,6 +1,8 @@
 package com.example.films_shop.main_screen.screens
 
 import MovieViewModel
+import UserCollectionBookScreen
+import UserCollectionMovieScreen
 import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -30,6 +32,7 @@ import com.example.films_shop.main_screen.objects.LoginScreenObject
 import com.example.films_shop.main_screen.objects.MainScreenDataObject
 import com.example.films_shop.main_screen.objects.MovieScreenDataObject
 import com.example.films_shop.main_screen.objects.SeriesScreenDataObject
+import com.example.films_shop.main_screen.screens.favourite_screens.FavScreen
 import com.example.films_shop.ui.theme.BookShopTheme
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
@@ -80,7 +83,7 @@ class MainActivity : ComponentActivity() {
                                 movieViewModel,
                                 bookViewModel,
                                 navController,
-                                showTopBar= true,
+                                showTopBar = true,
                                 showBottomBar = true,
                                 scrollBehavior
                             )
@@ -96,11 +99,11 @@ class MainActivity : ComponentActivity() {
                         composable<FavMovieScreenDataObject>
                         { navEntry ->
                             val navData = navEntry.toRoute<FavMovieScreenDataObject>()
-                            FavMovieScreen(
+                            UserCollectionMovieScreen(
                                 navData = MainScreenDataObject(navData.uid, navData.email),
                                 movieViewModel,
                                 navController = navController,
-                                true,
+                                false,
                                 true,
                                 scrollBehavior,
                                 ContentType.MOVIES
@@ -109,11 +112,11 @@ class MainActivity : ComponentActivity() {
                         composable<FavSeriesScreenDataObject>
                         { navEntry ->
                             val navData = navEntry.toRoute<FavSeriesScreenDataObject>()
-                            FavMovieScreen(
+                            UserCollectionMovieScreen(
                                 navData = MainScreenDataObject(navData.uid, navData.email),
                                 movieViewModel,
                                 navController = navController,
-                                true,
+                                false,
                                 true,
                                 scrollBehavior,
                                 ContentType.TV_SERIES
@@ -122,11 +125,11 @@ class MainActivity : ComponentActivity() {
                         composable<FavCartoonScreenDataObject>
                         { navEntry ->
                             val navData = navEntry.toRoute<FavCartoonScreenDataObject>()
-                            FavMovieScreen(
+                            UserCollectionMovieScreen(
                                 navData = MainScreenDataObject(navData.uid, navData.email),
                                 movieViewModel,
                                 navController = navController,
-                                true,
+                                false,
                                 true,
                                 scrollBehavior,
                                 ContentType.CARTOONS
@@ -135,11 +138,11 @@ class MainActivity : ComponentActivity() {
                         composable<FavBookScreenDataObject>
                         { navEntry ->
                             val navData = navEntry.toRoute<FavBookScreenDataObject>()
-                            FavBookScreen(
+                            UserCollectionBookScreen(
                                 navData = MainScreenDataObject(navData.uid, navData.email),
                                 bookViewModel,
                                 navController = navController,
-                                true,
+                                false,
                                 true,
                                 scrollBehavior
                             )
@@ -150,7 +153,7 @@ class MainActivity : ComponentActivity() {
                                 navController = navController,
                                 movieViewModel = movieViewModel,
                                 navData = navData,
-                                showTopBar= true,
+                                showTopBar = false,
                                 showBottomBar = true,
                                 scrollBehavior,
                                 ContentType.MOVIES
@@ -162,7 +165,7 @@ class MainActivity : ComponentActivity() {
                                 navController = navController,
                                 movieViewModel = movieViewModel,
                                 navData = navData,
-                                showTopBar= true,
+                                showTopBar = false,
                                 showBottomBar = true,
                                 scrollBehavior,
                                 ContentType.TV_SERIES
@@ -174,7 +177,7 @@ class MainActivity : ComponentActivity() {
                                 navController = navController,
                                 movieViewModel = movieViewModel,
                                 navData = navData,
-                                showTopBar= true,
+                                showTopBar = false,
                                 showBottomBar = true,
                                 scrollBehavior,
                                 ContentType.CARTOONS
@@ -186,7 +189,7 @@ class MainActivity : ComponentActivity() {
                                 navController = navController,
                                 bookViewModel = bookViewModel,
                                 navData = navData,
-                                showTopBar= true,
+                                showTopBar = true,
                                 showBottomBar = true,
                                 scrollBehavior
                             )
@@ -214,19 +217,24 @@ class MainActivity : ComponentActivity() {
                             val navData = navEntry.toRoute<DetailsNavMovieObject>()
                             DetailsMovieScreen(
                                 navObject = navData,
-                                navData = MovieScreenDataObject(uid = currentUser?.uid ?: "", email = currentUser?.email ?: ""),
+                                navData = MovieScreenDataObject(
+                                    uid = currentUser?.uid ?: "",
+                                    email = currentUser?.email ?: ""
+                                ),
                                 movieViewModel,
                                 recViewModel,
                                 navController = navController
                             )
                         }
-                        composable< DetailsNavBookObject>
-                        {
-                            navEntry ->
+                        composable<DetailsNavBookObject>
+                        { navEntry ->
                             val navData = navEntry.toRoute<DetailsNavBookObject>()
                             DetailsBookScreen(
                                 navObject = navData,
-                                navData = BookScreenDataObject(uid = currentUser?.uid ?: "", email = currentUser?.email ?: ""),
+                                navData = BookScreenDataObject(
+                                    uid = currentUser?.uid ?: "",
+                                    email = currentUser?.email ?: ""
+                                ),
                                 bookViewModel,
                                 recViewModel,
                                 navController = navController

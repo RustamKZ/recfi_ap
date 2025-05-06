@@ -1,4 +1,4 @@
-package com.example.films_shop.main_screen.screens
+package com.example.films_shop.main_screen.screens.favourite_screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable

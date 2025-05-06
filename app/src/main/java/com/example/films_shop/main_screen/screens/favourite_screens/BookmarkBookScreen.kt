@@ -1,6 +1,5 @@
-package com.example.films_shop.main_screen.screens
+package com.example.films_shop.main_screen.screens.favourite_screens
 
-import MovieViewModel
 import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -28,10 +27,8 @@ import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.films_shop.main_screen.api.BookApi.BookItemUi
 import com.example.films_shop.main_screen.api.BookApi.BookViewModel
-import com.example.films_shop.main_screen.api.MovieitemUi
 import com.example.films_shop.main_screen.bottom_menu.BottomMenu
 import com.example.films_shop.main_screen.objects.DetailsNavBookObject
-import com.example.films_shop.main_screen.objects.DetailsNavMovieObject
 import com.example.films_shop.main_screen.objects.MainScreenDataObject
 import com.example.films_shop.main_screen.top_bar.TopBarMenu
 import com.google.firebase.firestore.ktx.firestore
@@ -40,21 +37,21 @@ import com.google.firebase.ktx.Firebase
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("RememberReturnType")
 @Composable
-fun FavBookScreen(
+fun BookmarkBookScreen(
     navData: MainScreenDataObject,
     bookViewModel: BookViewModel,
     navController: NavController,
     showTopBar: Boolean = true,
     showBottomBar: Boolean = true,
-    scrollBehavior: TopAppBarScrollBehavior
+    scrollBehavior: TopAppBarScrollBehavior,
 ) {
-    val favoriteBooksState = remember { bookViewModel.favoriteBooksState }
+    val bookmarkBooksState = remember { bookViewModel.bookmarkBooksState }
     val db = Firebase.firestore
-    val isFavListEmptyState = remember { mutableStateOf(favoriteBooksState.value.isEmpty()) }
+    val isBookmarkListEmptyState = remember { mutableStateOf(bookmarkBooksState.value.isEmpty()) }
     val composition =
         rememberLottieComposition(spec = LottieCompositionSpec.Asset("emptyListAnim.json"))
     LaunchedEffect(Unit) {
-        bookViewModel.loadFavoriteBooks(db, navData.uid)
+        bookViewModel.loadBookmarkBooks(db, navData.uid)
     }
     Scaffold(
         topBar = {
@@ -72,7 +69,7 @@ fun FavBookScreen(
             }
         }
     ) { innerPadding ->
-        if (isFavListEmptyState.value) {
+        if (isBookmarkListEmptyState.value) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -81,7 +78,7 @@ fun FavBookScreen(
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "Список избранного пуст",
+                    text = "Список прочесть позже пуст",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Gray
@@ -98,8 +95,8 @@ fun FavBookScreen(
                     .fillMaxSize()
                     .padding(innerPadding)
             ) {
-                items(favoriteBooksState.value.size) { index ->
-                    val book = favoriteBooksState.value[index]
+                items(bookmarkBooksState.value.size) { index ->
+                    val book = bookmarkBooksState.value[index]
                     BookItemUi(
                         book = book,
                         onBookDetailsClick = {
@@ -111,9 +108,12 @@ fun FavBookScreen(
                                     authors = book.authors?.joinToString(", ")
                                         ?: "Неизвестно",
                                     description = book.description ?: "Описание отсутствует",
-                                    thumbnail = book.thumbnail?: "Неизвестно",
+                                    thumbnail = book.thumbnail ?: "Неизвестно",
                                     publishedDate = book.publishedDate ?: "",
-                                    isFavorite = book.isFavorite
+                                    isFavorite = book.isFavorite,
+                                    isBookmark = book.isBookMark,
+                                    isRated = book.isRated,
+                                    userRating = book.userRating
                                 )
                             )
                         }

@@ -8,7 +8,10 @@ data class Book(
     val thumbnail: String?,
     val publishedDate: String? = "Неизвестно",
     val description: String?,
-    val isFavorite: Boolean = false
+    val isFavorite: Boolean = false,
+    val isBookMark: Boolean = false,
+    val isRated: Boolean = false,
+    val userRating: Int = 0
 )
 
 data class VolumeInfo(
