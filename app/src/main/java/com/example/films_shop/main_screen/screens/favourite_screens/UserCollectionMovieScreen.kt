@@ -8,10 +8,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.navigation.NavController
 import com.example.films_shop.main_screen.bottom_menu.BottomMenu
-import com.example.films_shop.main_screen.objects.MainScreenDataObject
-import com.example.films_shop.main_screen.screens.favourite_screens.BookmarkMovieScreen
-import com.example.films_shop.main_screen.screens.favourite_screens.FavMovieScreen
-import com.example.films_shop.main_screen.screens.favourite_screens.RatedMovieScreen
+import com.example.films_shop.main_screen.objects.main_screens_objects.MainScreenDataObject
+import com.example.films_shop.main_screen.screens.favourite_screens.bookmark_screens.BookmarkMovieScreen
+import com.example.films_shop.main_screen.screens.favourite_screens.favourite_screens.FavMovieScreen
+import com.example.films_shop.main_screen.screens.favourite_screens.rated_screens.RatedMovieScreen
 import com.example.films_shop.main_screen.top_bar.TopBarMenu
 import kotlinx.coroutines.launch
 

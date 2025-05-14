@@ -1,5 +1,6 @@
 package com.example.films_shop.main_screen.api.recomendations
 
+import ContentType
 import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
@@ -21,13 +22,25 @@ import java.io.IOException
 class RecommendationViewModel : ViewModel() {
 
     private val _tmdbRecommendationIds = mutableStateOf<List<Int>>(emptyList())
-    val tmdbRecommendationIds: State<List<Int>> = _tmdbRecommendationIds
 
     private val _recommendationMovies = mutableStateOf<List<Movie>>(emptyList())
     val recommendationMovies: State<List<Movie>> = _recommendationMovies
 
+    //Коллаборативная фильтрация
+    private val _tmdbCollabRecommendationIdsMovies = mutableStateOf<List<Int>>(emptyList())
+    private val _recommendationCollabMovies = mutableStateOf<List<Movie>>(emptyList())
+    val recommendationCollabMovies: State<List<Movie>> = _recommendationCollabMovies
+
+    private val _tmdbCollabRecommendationIdsCartoon = mutableStateOf<List<Int>>(emptyList())
+    private val _recommendationCollabCartoon = mutableStateOf<List<Movie>>(emptyList())
+    val recommendationCollabCartoon: State<List<Movie>> = _recommendationCollabCartoon
+
+    private val _tmdbCollabRecommendationIdsTvSeries = mutableStateOf<List<Int>>(emptyList())
+    private val _recommendationCollabTvSeries = mutableStateOf<List<Movie>>(emptyList())
+    val recommendationCollabTvSeries: State<List<Movie>> = _recommendationCollabTvSeries
+    //Коллаборативная фильтрация
+
     private val _isbn10RecommendationIds = mutableStateOf<List<String>>(emptyList())
-    val isbn10RecommendationIds: State<List<String>> = _isbn10RecommendationIds
 
     private val _recommendationBooks = mutableStateOf<List<Book>>(emptyList())
     val recommendationBooks: State<List<Book>> = _recommendationBooks
@@ -80,6 +93,69 @@ class RecommendationViewModel : ViewModel() {
 
             } catch (e: Exception) {
                 Log.e("RecommendationVM", "Ошибка при получении рекомендаций", e)
+                _error.value = "Ошибка получения рекомендаций: ${e.message}"
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun fetchCollabRecommendationsFilmsCartoonSeries(
+        ratings: Map<String, Int>,
+        type: String,
+        nRecommendations: Int = 10
+    ) {
+        Log.d("Debug", "Fetching collab recommendations for type: $type, ratings: $ratings")
+        if (ratings.isEmpty()) {
+            _error.value = "Не передано ни одной оценки"
+            return
+        }
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+
+            try {
+                val response = when (type) {
+                    "cartoon", "movie" -> {
+                        ApiClient.api.getCollaborativeRecommendationsFilms(
+                            nRecommendations = nRecommendations,
+                            ratings = ratings
+                        )
+                    }
+                    "tv-series" -> {
+                        ApiClient.api.getCollaborativeRecommendationsSeries(ratings)
+                    }
+                    else -> {
+                        _error.value = "Неизвестный тип контента"
+                        _isLoading.value = false
+                        return@launch
+                    }
+                }
+                val tmdbIds = response.mapNotNull { it.toIntOrNull() }
+                when (type) {
+                    "movie" -> {
+                        _tmdbCollabRecommendationIdsMovies.value = tmdbIds
+                    }
+                    "cartoon" -> {
+                        _tmdbCollabRecommendationIdsCartoon.value = tmdbIds
+                    }
+                    "tv-series" -> {
+                        _tmdbCollabRecommendationIdsTvSeries.value = tmdbIds
+                    }
+                }
+
+                Log.d("RecommendationVM", "Коллаб рекомендованные ID: $tmdbIds")
+                // Проверяем, есть ли рекомендации
+                if (tmdbIds.isEmpty()) {
+                    _recommendationMovies.value = emptyList()
+                    _isLoading.value = false
+                    return@launch
+                }
+
+                // Теперь запрашиваем информацию о фильмах по этим TMDB ID
+                fetchMoviesByTmdbIdsCollab(tmdbIds, type)
+
+            } catch (e: Exception) {
+                Log.e("RecommendationVM", "Ошибка при получении коллаб. рекомендаций", e)
                 _error.value = "Ошибка получения рекомендаций: ${e.message}"
                 _isLoading.value = false
             }
@@ -160,6 +236,75 @@ class RecommendationViewModel : ViewModel() {
             val filteredMovies = updatedMovies.filter { it.name != null }
 
             _recommendationMovies.value = filteredMovies
+
+        } catch (e: IOException) {
+            Log.e("RecommendationVM", "Ошибка сети при получении деталей фильмов", e)
+            _error.value = "Ошибка сети. Проверьте подключение к интернету."
+        } catch (e: HttpException) {
+            Log.e("RecommendationVM", "HTTP ошибка при получении деталей фильмов: ${e.code()}", e)
+            _error.value = "Ошибка сервера: ${e.code()}"
+        } catch (e: Exception) {
+            Log.e("RecommendationVM", "Непредвиденная ошибка при получении деталей фильмов", e)
+            _error.value = "Произошла ошибка: ${e.message}"
+        } finally {
+            _isLoading.value = false
+        }
+    }
+
+    // Получение деталей фильмов по TMDB ID
+    private suspend fun fetchMoviesByTmdbIdsCollab(tmdbIds: List<Int>, type: String) {
+        try {
+            val response = RetrofitInstance.api.getMoviesByTmdbIds(
+                apiKey = apiKey,
+                tmdbIds = tmdbIds
+            )
+            when (type) {
+                "movie" -> {
+                    Log.d("RecommendationVM", "Получены детали фильмов: ${response.docs.size}")
+                }
+                "cartoon" -> {
+                    Log.d("RecommendationVM", "Получены детали мультфильмов: ${response.docs.size}")
+                }
+                "tv-series" -> {
+                    Log.d("RecommendationVM", "Получены детали сериалов: ${response.docs.size}")
+                }
+            }
+
+            val updatedMovies = response.docs.map { movie ->
+                movie.copy(
+                    poster = if (movie.poster?.url != null) {
+                        movie.poster.copy(url = movie.poster.url)
+                    } else {
+                        Poster("https://raw.githubusercontent.com/RustamKZ/recfi_ap/refs/heads/master/poster.jpg")
+                    },
+                    backdrop = when {
+                        // Проверяем наличие backdrop и что его url не null
+                        movie.backdrop != null && movie.backdrop.url != null ->
+                            movie.backdrop.copy(url = movie.backdrop.url)
+                        // Если есть постер и его url не null, создаем Backdrop
+                        movie.poster != null && movie.poster.url != null ->
+                            Backdrop(movie.poster.url)
+                        // Иначе используем дефолтную ссылку
+                        else ->
+                            Backdrop("https://raw.githubusercontent.com/RustamKZ/recfi_ap/refs/heads/master/poster.jpg")
+                    },
+                    persons = movie.persons?.filter { it.profession == "режиссеры" } ?: emptyList()
+                )
+            }
+
+            // Фильтруем фильмы без названия
+            val filteredMovies = updatedMovies.filter { it.name != null }
+            when (type) {
+                "movie" -> {
+                    _recommendationCollabMovies.value = filteredMovies
+                }
+                "cartoon" -> {
+                    _recommendationCollabCartoon.value = filteredMovies
+                }
+                "tv-series" -> {
+                    _recommendationCollabTvSeries.value = filteredMovies
+                }
+            }
 
         } catch (e: IOException) {
             Log.e("RecommendationVM", "Ошибка сети при получении деталей фильмов", e)

@@ -10,7 +10,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -20,11 +19,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.films_shop.main_screen.objects.AccountDetailsObject
-import com.example.films_shop.main_screen.objects.FavScreenDataObject
-import com.example.films_shop.main_screen.objects.MainScreenDataObject
+import com.example.films_shop.main_screen.objects.auth_screens_objects.AccountDetailsObject
+import com.example.films_shop.main_screen.objects.fav_screens_objects.FavScreenDataObject
+import com.example.films_shop.main_screen.objects.main_screens_objects.MainScreenDataObject
 import com.example.films_shop.ui.theme.AppColor
-import com.example.films_shop.ui.theme.BottomColor
 
 @Composable
 fun BottomMenu(

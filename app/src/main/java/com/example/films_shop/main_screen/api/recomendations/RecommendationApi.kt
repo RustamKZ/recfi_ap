@@ -1,6 +1,8 @@
 package com.example.films_shop.main_screen.api.recomendations
 
+import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -31,5 +33,22 @@ interface RecommendationApi {
         @Path("isbn10") isbn10: String,
         @Query("top_n") topN: Int = 10
     ): List<RecommendationItemBooks>
+
+    @POST("recommend/collaborative")
+    suspend fun getCollaborativeRecommendationsFilms(
+        @Query("n_recommendations") nRecommendations: Int = 10,
+        @Body ratings: Map<String, Int>
+    ): List<String>
+
+    @POST("recommend/collaborative_series")
+    suspend fun getCollaborativeRecommendationsSeries(
+        @Body ratings: Map<String, Int>
+    ): List<String>
+
+    @POST("recommend/collaborative_books")
+    suspend fun getCollaborativeRecommendationsBooks(
+        @Query("n_recommendations") nRecommendations: Int = 10,
+        @Body ratings: Map<String, Int>
+    ): List<String>
 }
 

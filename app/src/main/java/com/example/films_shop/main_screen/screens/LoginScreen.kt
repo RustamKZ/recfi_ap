@@ -27,7 +27,7 @@ import com.example.films_shop.main_screen.login.LoginButton
 import com.example.films_shop.main_screen.login.RoundedCornerTextField
 import com.example.films_shop.main_screen.business_logic.signIn
 import com.example.films_shop.main_screen.business_logic.signUp
-import com.example.films_shop.main_screen.objects.MainScreenDataObject
+import com.example.films_shop.main_screen.objects.main_screens_objects.MainScreenDataObject
 import com.example.films_shop.ui.theme.BlueForBackground
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase

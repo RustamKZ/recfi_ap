@@ -26,11 +26,11 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.films_shop.R
 import com.example.films_shop.main_screen.bottom_menu.BottomMenu
-import com.example.films_shop.main_screen.objects.FavBookScreenDataObject
-import com.example.films_shop.main_screen.objects.FavCartoonScreenDataObject
-import com.example.films_shop.main_screen.objects.FavMovieScreenDataObject
-import com.example.films_shop.main_screen.objects.FavSeriesScreenDataObject
-import com.example.films_shop.main_screen.objects.MainScreenDataObject
+import com.example.films_shop.main_screen.objects.fav_screens_objects.FavBookScreenDataObject
+import com.example.films_shop.main_screen.objects.fav_screens_objects.FavCartoonScreenDataObject
+import com.example.films_shop.main_screen.objects.fav_screens_objects.FavMovieScreenDataObject
+import com.example.films_shop.main_screen.objects.fav_screens_objects.FavSeriesScreenDataObject
+import com.example.films_shop.main_screen.objects.main_screens_objects.MainScreenDataObject
 
 @Composable
 fun FavScreen(

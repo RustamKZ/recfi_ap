@@ -19,9 +19,9 @@ import com.example.films_shop.main_screen.api.Poster
 import com.example.films_shop.main_screen.api.Rating
 import com.example.films_shop.main_screen.api.RetrofitInstance
 import com.example.films_shop.main_screen.api.apiKey
-import com.example.films_shop.main_screen.business_logic.FavoriteMovie
-import com.example.films_shop.main_screen.business_logic.BookmarkMovie
-import com.example.films_shop.main_screen.business_logic.RatedMovie
+import com.example.films_shop.main_screen.business_logic.data_classes.FavoriteMovie
+import com.example.films_shop.main_screen.business_logic.data_classes.BookmarkMovie
+import com.example.films_shop.main_screen.business_logic.data_classes.RatedMovie
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -117,6 +117,16 @@ class MovieViewModel : ViewModel() {
     val ratedMoviesState = mutableStateOf<List<Movie>>(emptyList())
     val ratedTvSeriesState = mutableStateOf<List<Movie>>(emptyList())
     val ratedCartoonsState = mutableStateOf<List<Movie>>(emptyList())
+
+    //Коллаборативная фильтрация
+//    val ratedMoviesMapState = mutableStateOf<Map<String, Int>>(emptyMap())
+//    val ratedTvSeriesMapState = mutableStateOf<Map<String, Int>>(emptyMap())
+//    val ratedCartoonsMapState = mutableStateOf<Map<String, Int>>(emptyMap())
+    val ratedMoviesMapState = MutableStateFlow<Map<String, Int>>(emptyMap())
+    val ratedTvSeriesMapState = MutableStateFlow<Map<String, Int>>(emptyMap())
+    val ratedCartoonsMapState = MutableStateFlow<Map<String, Int>>(emptyMap())
+
+    //Коллаборативная фильтрация
 
 
     val currentContentType = MutableStateFlow(ContentType.MOVIES)
@@ -284,7 +294,7 @@ class MovieViewModel : ViewModel() {
             }
     }
 
-    fun loadRatedMovies(db: FirebaseFirestore, uid: String, contentType: ContentType? = null) {
+    fun loadRatedMovies(db: FirebaseFirestore, uid: String, contentType: ContentType? = null, isCollab: Boolean = false) {
         db.collection("users").document(uid).collection("rated_movies")
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
@@ -314,31 +324,67 @@ class MovieViewModel : ViewModel() {
                                 )
                             }
 
-                    // Если тип контента не указан, обновляем все состояния
                     if (contentType == null) {
-                        ratedMoviesState.value =
-                            allRated.filter { it.type == ContentType.MOVIES.apiValue }
-                        ratedTvSeriesState.value =
-                            allRated.filter { it.type == ContentType.TV_SERIES.apiValue }
-                        ratedCartoonsState.value =
-                            allRated.filter { it.type == ContentType.CARTOONS.apiValue }
+                        val movies = allRated.filter { it.type == ContentType.MOVIES.apiValue }
+                        val tvSeries = allRated.filter { it.type == ContentType.TV_SERIES.apiValue }
+                        val cartoons = allRated.filter { it.type == ContentType.CARTOONS.apiValue }
+
+                        ratedMoviesState.value = movies
+                        ratedTvSeriesState.value = tvSeries
+                        ratedCartoonsState.value = cartoons
+
+                        if (isCollab) {
+                            ratedMoviesMapState.value = movies
+                                .filter { it.externalId?.tmdb != 0 && it.userRating != null }
+                                .associate { it.externalId?.tmdb.toString() to it.userRating!! }
+                            Log.d("Debug", "ratedMoviesMapState.value: ${ratedMoviesMapState.value}")
+                            ratedTvSeriesMapState.value = tvSeries
+                                .filter { it.externalId?.tmdb != 0 && it.userRating != null }
+                                .associate { it.externalId?.tmdb.toString() to it.userRating!! }
+                            Log.d("Debug", "ratedTvSeriesMapState.value: ${ratedTvSeriesMapState.value}")
+                            ratedCartoonsMapState.value = cartoons
+                                .filter { it.externalId?.tmdb != 0 && it.userRating != null }
+                                .associate { it.externalId?.tmdb.toString() to it.userRating!! }
+                            Log.d("Debug", "ratedCartoonsMapState.value: ${ratedCartoonsMapState.value}")
+                        }
+
                         Log.d(
                             "MyLog",
-                            "Все оцененные обновлено: фильмы=${ratedMoviesState.value.size}, " +
-                                    "сериалы=${ratedTvSeriesState.value.size}, мультфильмы=${ratedCartoonsState.value.size}"
+                            "Все оцененные обновлены (isCollab=$isCollab): фильмы=${movies.size}, сериалы=${tvSeries.size}, мультфильмы=${cartoons.size}"
                         )
                     } else {
-                        // Если тип указан, обновляем только соответствующее состояние
                         val filtered = allRated.filter { it.type == contentType.apiValue }
+
                         when (contentType) {
-                            ContentType.MOVIES -> ratedMoviesState.value = filtered
-                            ContentType.TV_SERIES -> ratedTvSeriesState.value = filtered
-                            ContentType.CARTOONS -> ratedCartoonsState.value = filtered
+                            ContentType.MOVIES -> {
+                                ratedMoviesState.value = filtered
+                                if (isCollab) {
+                                    ratedMoviesMapState.value = filtered
+                                        .filter { it.externalId?.tmdb != 0 && it.userRating != null }
+                                        .associate { it.externalId?.tmdb.toString() to it.userRating!! }
+                                }
+                            }
+
+                            ContentType.TV_SERIES -> {
+                                ratedTvSeriesState.value = filtered
+                                if (isCollab) {
+                                    ratedTvSeriesMapState.value = filtered
+                                        .filter { it.externalId?.tmdb != 0 && it.userRating != null }
+                                        .associate { it.externalId?.tmdb.toString() to it.userRating!! }
+                                }
+                            }
+
+                            ContentType.CARTOONS -> {
+                                ratedCartoonsState.value = filtered
+                                if (isCollab) {
+                                    ratedCartoonsMapState.value = filtered
+                                        .filter { it.externalId?.tmdb != 0 && it.userRating != null }
+                                        .associate { it.externalId?.tmdb.toString() to it.userRating!! }
+                                }
+                            }
                         }
-                        Log.d(
-                            "MyLog",
-                            "Оцененные типа ${contentType.apiValue} обновлено, всего: ${filtered.size}"
-                        )
+
+                        Log.d("MyLog", "Обновлено $contentType (isCollab=$isCollab), всего: ${filtered.size}")
                     }
                 }
             }

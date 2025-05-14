@@ -68,8 +68,8 @@ import com.example.films_shop.main_screen.api.recomendations.RecommendationViewM
 import com.example.films_shop.main_screen.business_logic.onBookmarkBooks
 import com.example.films_shop.main_screen.business_logic.onFavsBooks
 import com.example.films_shop.main_screen.business_logic.onRatedBooks
-import com.example.films_shop.main_screen.objects.BookScreenDataObject
-import com.example.films_shop.main_screen.objects.DetailsNavBookObject
+import com.example.films_shop.main_screen.objects.main_screens_objects.BookScreenDataObject
+import com.example.films_shop.main_screen.objects.details_screens_objects.DetailsNavBookObject
 import com.example.films_shop.ui.theme.ButtonColor
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase

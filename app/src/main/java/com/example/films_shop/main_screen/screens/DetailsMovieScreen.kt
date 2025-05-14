@@ -64,8 +64,8 @@ import com.example.films_shop.main_screen.api.Poster
 import com.example.films_shop.main_screen.api.Rating
 import com.example.films_shop.main_screen.api.recomendations.RecommendationViewModel
 import com.example.films_shop.main_screen.business_logic.onFavsMovies
-import com.example.films_shop.main_screen.objects.DetailsNavMovieObject
-import com.example.films_shop.main_screen.objects.MovieScreenDataObject
+import com.example.films_shop.main_screen.objects.details_screens_objects.DetailsNavMovieObject
+import com.example.films_shop.main_screen.objects.main_screens_objects.MovieScreenDataObject
 import com.example.films_shop.ui.theme.ButtonColor
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase

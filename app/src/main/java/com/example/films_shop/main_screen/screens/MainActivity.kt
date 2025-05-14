@@ -18,20 +18,23 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.example.films_shop.main_screen.api.BookApi.BookViewModel
 import com.example.films_shop.main_screen.api.recomendations.RecommendationViewModel
-import com.example.films_shop.main_screen.objects.AccountDetailsObject
-import com.example.films_shop.main_screen.objects.BookScreenDataObject
-import com.example.films_shop.main_screen.objects.CartoonScreenDataObject
-import com.example.films_shop.main_screen.objects.DetailsNavBookObject
-import com.example.films_shop.main_screen.objects.DetailsNavMovieObject
-import com.example.films_shop.main_screen.objects.FavBookScreenDataObject
-import com.example.films_shop.main_screen.objects.FavCartoonScreenDataObject
-import com.example.films_shop.main_screen.objects.FavMovieScreenDataObject
-import com.example.films_shop.main_screen.objects.FavScreenDataObject
-import com.example.films_shop.main_screen.objects.FavSeriesScreenDataObject
-import com.example.films_shop.main_screen.objects.LoginScreenObject
-import com.example.films_shop.main_screen.objects.MainScreenDataObject
-import com.example.films_shop.main_screen.objects.MovieScreenDataObject
-import com.example.films_shop.main_screen.objects.SeriesScreenDataObject
+import com.example.films_shop.main_screen.objects.auth_screens_objects.AccountDetailsObject
+import com.example.films_shop.main_screen.objects.main_screens_objects.BookScreenDataObject
+import com.example.films_shop.main_screen.objects.main_screens_objects.CartoonScreenDataObject
+import com.example.films_shop.main_screen.objects.details_screens_objects.DetailsNavBookObject
+import com.example.films_shop.main_screen.objects.details_screens_objects.DetailsNavMovieObject
+import com.example.films_shop.main_screen.objects.fav_screens_objects.FavBookScreenDataObject
+import com.example.films_shop.main_screen.objects.fav_screens_objects.FavCartoonScreenDataObject
+import com.example.films_shop.main_screen.objects.fav_screens_objects.FavMovieScreenDataObject
+import com.example.films_shop.main_screen.objects.fav_screens_objects.FavScreenDataObject
+import com.example.films_shop.main_screen.objects.fav_screens_objects.FavSeriesScreenDataObject
+import com.example.films_shop.main_screen.objects.auth_screens_objects.LoginScreenObject
+import com.example.films_shop.main_screen.objects.main_screens_objects.MainScreenDataObject
+import com.example.films_shop.main_screen.objects.main_screens_objects.MovieScreenDataObject
+import com.example.films_shop.main_screen.objects.main_screens_objects.SeriesScreenDataObject
+import com.example.films_shop.main_screen.objects.rec_objects.RecCartoonScreenDataObject
+import com.example.films_shop.main_screen.objects.rec_objects.RecMovieScreenDataObject
+import com.example.films_shop.main_screen.objects.rec_objects.RecTvSeriesScreenDataObject
 import com.example.films_shop.main_screen.screens.favourite_screens.FavScreen
 import com.example.films_shop.ui.theme.BookShopTheme
 import com.google.firebase.auth.ktx.auth
@@ -82,6 +85,7 @@ class MainActivity : ComponentActivity() {
                                 navData,
                                 movieViewModel,
                                 bookViewModel,
+                                recViewModel,
                                 navController,
                                 showTopBar = true,
                                 showBottomBar = true,
@@ -159,6 +163,19 @@ class MainActivity : ComponentActivity() {
                                 ContentType.MOVIES
                             )
                         }
+                        composable<RecMovieScreenDataObject> { navEntry ->
+                            val navData = navEntry.toRoute<RecMovieScreenDataObject>()
+                            RecMovieScreen(
+                                navController = navController,
+                                movieViewModel = movieViewModel,
+                                recViewModel = recViewModel,
+                                navData = navData,
+                                showTopBar = false,
+                                showBottomBar = true,
+                                scrollBehavior,
+                                ContentType.MOVIES
+                            )
+                        }
                         composable<SeriesScreenDataObject> { navEntry ->
                             val navData = navEntry.toRoute<MovieScreenDataObject>()
                             MovieScreen(
@@ -171,11 +188,37 @@ class MainActivity : ComponentActivity() {
                                 ContentType.TV_SERIES
                             )
                         }
+                        composable<RecTvSeriesScreenDataObject> { navEntry ->
+                            val navData = navEntry.toRoute<RecMovieScreenDataObject>()
+                            RecMovieScreen(
+                                navController = navController,
+                                movieViewModel = movieViewModel,
+                                recViewModel = recViewModel,
+                                navData = navData,
+                                showTopBar = false,
+                                showBottomBar = true,
+                                scrollBehavior,
+                                ContentType.TV_SERIES
+                            )
+                        }
                         composable<CartoonScreenDataObject> { navEntry ->
                             val navData = navEntry.toRoute<MovieScreenDataObject>()
                             MovieScreen(
                                 navController = navController,
                                 movieViewModel = movieViewModel,
+                                navData = navData,
+                                showTopBar = false,
+                                showBottomBar = true,
+                                scrollBehavior,
+                                ContentType.CARTOONS
+                            )
+                        }
+                        composable<RecCartoonScreenDataObject> { navEntry ->
+                            val navData = navEntry.toRoute<RecMovieScreenDataObject>()
+                            RecMovieScreen(
+                                navController = navController,
+                                movieViewModel = movieViewModel,
+                                recViewModel = recViewModel,
                                 navData = navData,
                                 showTopBar = false,
                                 showBottomBar = true,

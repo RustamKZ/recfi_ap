@@ -2,6 +2,9 @@ package com.example.films_shop.main_screen.business_logic
 
 import android.util.Log
 import com.example.films_shop.main_screen.api.Movie
+import com.example.films_shop.main_screen.business_logic.data_classes.BookmarkMovie
+import com.example.films_shop.main_screen.business_logic.data_classes.FavoriteMovie
+import com.example.films_shop.main_screen.business_logic.data_classes.RatedMovie
 import com.google.firebase.firestore.FirebaseFirestore
 
 fun onFavsMovies(

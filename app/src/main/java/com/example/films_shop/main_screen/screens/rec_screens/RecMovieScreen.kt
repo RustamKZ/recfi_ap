@@ -9,11 +9,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -23,19 +25,21 @@ import androidx.navigation.NavController
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.films_shop.main_screen.api.Movie
 import com.example.films_shop.main_screen.api.MovieitemUi
+import com.example.films_shop.main_screen.api.recomendations.RecommendationViewModel
 import com.example.films_shop.main_screen.bottom_menu.BottomMenu
 import com.example.films_shop.main_screen.objects.details_screens_objects.DetailsNavMovieObject
-import com.example.films_shop.main_screen.objects.main_screens_objects.MovieScreenDataObject
+import com.example.films_shop.main_screen.objects.rec_objects.RecMovieScreenDataObject
 import com.example.films_shop.main_screen.top_bar.TopBarMenu
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MovieScreen(
+fun RecMovieScreen(
     navController: NavController,
     movieViewModel: MovieViewModel,
-    navData: MovieScreenDataObject,
+    recViewModel: RecommendationViewModel,
+    navData: RecMovieScreenDataObject,
     showTopBar: Boolean = true,
     showBottomBar: Boolean = true,
     scrollBehavior: TopAppBarScrollBehavior,
@@ -45,6 +49,15 @@ fun MovieScreen(
         movieViewModel.setContentType(contentType)
     }
     val movies = movieViewModel.currentContentFlow.collectAsLazyPagingItems()
+    val recMovies by recViewModel.recommendationCollabMovies
+    val recTvSeries by recViewModel.recommendationCollabTvSeries
+    val recCartoons by recViewModel.recommendationCollabCartoon
+
+    val recommendationContent = when (contentType) {
+        ContentType.MOVIES -> recMovies
+        ContentType.TV_SERIES -> recTvSeries
+        ContentType.CARTOONS -> recCartoons
+    }
 
     val db = Firebase.firestore
     val moviesListState = remember { mutableStateOf(emptyList<Movie>()) }
@@ -83,8 +96,7 @@ fun MovieScreen(
                 .padding(top = innerPadding.calculateTopPadding())
                 .nestedScroll(scrollBehavior.nestedScrollConnection)
         ) {
-            items(movies.itemCount) { index ->
-                movies[index]?.let { movie ->
+            items(recommendationContent.take(10)) { movie ->
                     MovieitemUi(
                         movie = movie,
                         onMovieDetailsClick = {
@@ -112,7 +124,6 @@ fun MovieScreen(
                         }
                     )
                 }
-            }
         }
     }
 }

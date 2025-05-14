@@ -8,9 +8,9 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import com.example.films_shop.main_screen.business_logic.BookmarkBook
-import com.example.films_shop.main_screen.business_logic.FavoriteBook
-import com.example.films_shop.main_screen.business_logic.RatedBook
+import com.example.films_shop.main_screen.business_logic.data_classes.BookmarkBook
+import com.example.films_shop.main_screen.business_logic.data_classes.FavoriteBook
+import com.example.films_shop.main_screen.business_logic.data_classes.RatedBook
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow

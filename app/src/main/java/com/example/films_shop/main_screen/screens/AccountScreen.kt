@@ -12,7 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import com.example.films_shop.main_screen.bottom_menu.BottomMenu
-import com.example.films_shop.main_screen.objects.AccountDetailsObject
+import com.example.films_shop.main_screen.objects.auth_screens_objects.AccountDetailsObject
 
 
 @Composable
