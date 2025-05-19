@@ -16,15 +16,19 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.StarHalf
+import androidx.compose.material.icons.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.ExpandLess
@@ -36,6 +40,7 @@ import androidx.compose.material.icons.filled.StarOutline
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -74,12 +79,15 @@ import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.window.Dialog
 import com.example.films_shop.R
 import com.example.films_shop.main_screen.api.Backdrop
@@ -87,10 +95,139 @@ import com.example.films_shop.main_screen.api.Votes
 import com.example.films_shop.main_screen.business_logic.onBookmarkMovies
 import com.example.films_shop.main_screen.business_logic.onRatedMovies
 import com.example.films_shop.main_screen.screens.custom_ui.CutCornerLeftShape
+import com.example.films_shop.ui.theme.BackGroundColor
+import com.example.films_shop.ui.theme.BackGroundColorButton
+import com.example.films_shop.ui.theme.BackGroundColorButtonLightGray
+
+@Composable
+fun RatingCard(
+    navObject: DetailsNavMovieObject,
+    isDark: Boolean,
+    imageGradColor: Color,
+    buttonBackgroundColor: Color,
+    buttonTextColor: Color
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    color = buttonBackgroundColor,
+                    shape = RoundedCornerShape(16.dp)
+                ),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            val formattedRatingKp = String.format("%.1f", navObject.ratingKp)
+            val formattedRatingImdb = String.format("%.1f", navObject.ratingImdb)
+            RatingItem(title = "Кинопоиск", rating = formattedRatingKp, votes = navObject.votesKp.toString(), buttonTextColor)
+            Divider(
+                color = Color.LightGray,
+                modifier = Modifier
+                    .height(150.dp)
+                    .width(1.dp)
+            )
+            RatingItem(title = "IMDb", rating = formattedRatingImdb, votes = navObject.votesImdb.toString(), buttonTextColor)
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp)
+                .clip(RoundedCornerShape(24.dp))
+                .background(buttonBackgroundColor)
+                .clickable { /* пустышка */ },
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "Оценить",
+                color = buttonTextColor,
+                style = MaterialTheme.typography.labelLarge
+            )
+        }
+    }
+}
+
+@Composable
+fun RatingItem(title: String, rating: String, votes: String,  buttonTextColor: Color) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(text = title, style = MaterialTheme.typography.labelMedium, color = buttonTextColor, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+        Text(
+            text = rating,
+            style = MaterialTheme.typography.displayLarge.copy(fontWeight = FontWeight.Bold, color = buttonTextColor, fontSize = 35.sp,),
+            modifier = Modifier.padding(vertical = 4.dp)
+        )
+        Text(text = votes, style = MaterialTheme.typography.bodySmall, color = Color.Gray, fontSize = 15.sp,)
+    }
+}
+
+@Composable
+fun CastAndCrewSection() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+    ) {
+        LazyRow {
+            items(dummyCastList) { cast ->
+                CastItem(cast)
+            }
+        }
+    }
+}
+
+data class Cast(val name: String, val role: String)
+
+val dummyCastList = listOf(
+    Cast("Demi Moore", "Elisabeth"),
+    Cast("Margaret Qualley", "Sue"),
+    Cast("Dennis Quaid", "Harvey"),
+    Cast("Oscar Lee", "Troy"),
+    Cast("Jane Doe", "Anna")
+)
+
+@Composable
+fun CastItem(cast: Cast) {
+    Column(
+        modifier = Modifier
+            .padding(end = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // Круглая заглушка изображения
+        Box(
+            modifier = Modifier
+                .size(72.dp)
+                .clip(CircleShape)
+                .background(Color.Gray)
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = cast.name,
+            style = MaterialTheme.typography.labelMedium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+        Text(
+            text = cast.role,
+            style = MaterialTheme.typography.bodySmall,
+            color = Color.Gray,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
+}
+
 
 
 @Composable
-fun DetailsMovieScreen(
+fun TestDetailsMovieScreen(
     navObject: DetailsNavMovieObject = DetailsNavMovieObject(),
     navData: MovieScreenDataObject? = null,
     movieViewModel: MovieViewModel,
@@ -98,8 +235,10 @@ fun DetailsMovieScreen(
     navController: NavController,
 ) {
     val isDark = isSystemInDarkTheme()
-    val iconColor = if (isDark) Color.White else Color.Black
+    val imageGradColor = if (isDark) BackGroundColor else Color.White
     val textColor = if (isDark) Color.White else Color.Black
+    val buttonBackgroundColor = if (isDark) BackGroundColorButton else BackGroundColorButtonLightGray
+    val buttonTextColor = if (isDark) Color.White else Color.Black
     var expanded by remember { mutableStateOf(false) }
     val isFavorite = remember(
         movieViewModel.favoriteMoviesState.value,
@@ -446,318 +585,296 @@ fun DetailsMovieScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(scrollState)
+                    .align(Alignment.Center)
             )
             {
-                Box {
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(500.dp)
+                ) {
                     AsyncImage(
                         model = navObject.backdropUrl,
                         contentDescription = "Постер фильма",
                         contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+
+                    // Затемнение снизу выбранным цветом
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(250.dp)
+                            .height(150.dp)
+                            .align(Alignment.BottomCenter)
+                            .background(
+                                brush = Brush.verticalGradient(
+                                    colors = listOf(Color.Transparent, imageGradColor) // здесь можно указать любой цвет
+                                )
+                            )
                     )
                 }
-                Row(
-                    modifier = Modifier
-                        .offset(y = (-50).dp)
-                        .padding(start = 16.dp, end = 16.dp),
-                    //verticalAlignment = Alignment.Bottom
-                )
-                {
-                    AsyncImage(
-                        model = navObject.imageUrl,
-                        contentDescription = "Постер фильма",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .width(190.dp)
-                            .height(280.dp)
-                            .clip(RoundedCornerShape(12.dp)),
+
+
+                Spacer(modifier = Modifier.height(10.dp))
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        text = navObject.title,
+                        color = textColor,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 70.sp,
+                        modifier = Modifier.align(Alignment.Center),
+                        fontFamily = test_font
                     )
-                    Spacer(modifier = Modifier.width(16.dp))
+                }
+                Spacer(modifier = Modifier.height(20.dp))
+                val genresFormatted = navObject.genre.split(",")
+                    .map { it.trim().replaceFirstChar { c -> c.uppercaseChar() } }
+                    .take(3)
+                    .joinToString("   ")
+                Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = genresFormatted,
+                        color = Color.Gray,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = custom_font
+                    )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Text(
+                            text = navObject.year,
+                            color = Color.Gray,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = custom_font
+                        )
+
+                        Text(
+                            text = navObject.persons,
+                            color = Color.Gray,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = custom_font
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(20.dp))
+                Box(modifier = Modifier.fillMaxWidth()) {
                     Column(
-                        modifier = Modifier.padding(top = 70.dp)
-                        //modifier = Modifier
-                        //.offset(y = (40).dp)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 16.dp, end = 16.dp),
                     )
                     {
                         Text(
-                            text = navObject.title,
+                            text = navObject.description,
                             color = textColor,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 30.sp,
-                            //fontFamily = custom_font
+                            fontSize = 16.sp,
+                            fontFamily = custom_font,
+                            maxLines = if (expanded) Int.MAX_VALUE else 4, // Ограничение строк
+                            overflow = TextOverflow.Ellipsis
                         )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Row() {
-                            repeat(filledStars) {
-                                Icon(
-                                    imageVector = Icons.Default.Star,
-                                    contentDescription = null,
-                                    tint = Color(0xFFE16B04)
-                                )
-                            }
-                            if (hasHalfStar) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.StarHalf,
-                                    contentDescription = null,
-                                    tint = Color(0xFFE16B04)
-                                )
-                            }
-                            repeat(emptyStars) {
-                                Icon(
-                                    imageVector = Icons.Default.StarOutline,
-                                    contentDescription = null,
-                                    tint = Color(0xFFE16B04)
-                                )
-                            }
-                        }
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Row()
-                        {
+
+                        // Кнопка "Читать далее"
+                        TextButton(onClick = { expanded = !expanded }) {
                             Text(
-                                text = navObject.year,
-                                color = textColor,
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                                fontFamily = custom_font
+                                text = if (expanded) "Скрыть" else "Читать далее",
+                                color = Color.Gray,
+                                fontSize = 16.sp
                             )
-                            Surface(
-                                shape = CutCornerLeftShape(cutSize = 20.dp),
-                                color = Color.Transparent,
-                                border = BorderStroke(1.dp, textColor),
-                                modifier = Modifier
-                                    .height(24.dp)
-                                    .wrapContentWidth()
-                                    .padding(start = 4.dp)
-                            ) {
-                                Box(modifier = Modifier.padding(start = 10.dp, bottom = 4.dp)) {
-                                    Text(
-                                        text = String.format("%.1f", navObject.ratingKp),
-                                        modifier = Modifier
-                                            .padding(horizontal = 8.dp, vertical = 2.dp),
-                                        fontSize = 14.sp,
-                                        color = textColor,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                }
-                            }
                         }
-                        Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = navObject.genre,
-                            color = textColor,
-                            fontSize = 16.sp,
-                            fontFamily = custom_font
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "Режиссер: ",
-                            color = textColor,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 18.sp,
-                            fontFamily = custom_font
-                        )
-                        Text(
-                            text = navObject.persons,
-                            color = textColor,
-                            fontSize = 16.sp,
-                            fontFamily = custom_font
-                        )
-                    }
-                }
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .offset(y = (-50).dp)
-                        .padding(start = 16.dp, end = 16.dp),
-                )
-                {
-                    Text(
-                        text = "Описание",
-                        color = textColor,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp,
-                        fontFamily = custom_font,
-                        textAlign = TextAlign.Left
-                    )
-                    Text(
-                        text = navObject.description,
-                        color = textColor,
-                        fontSize = 16.sp,
-                        fontFamily = custom_font,
-                        maxLines = if (expanded) Int.MAX_VALUE else 4, // Ограничение строк
-                        overflow = TextOverflow.Ellipsis
-                    )
-
-                    // Кнопка "Читать далее"
-                    TextButton(onClick = { expanded = !expanded }) {
-                        Text(
-                            text = if (expanded) "Скрыть" else "Читать далее",
-                            color = Color.Gray,
-                            fontSize = 16.sp
-                        )
-                    }
-                    when (navObject.type) {
-                        "movie" -> Text(
-                            text = "Похожие фильмы",
-                            fontSize = 20.sp,
+                            text = "Рейтинг",
+                            fontSize = 25.sp,
+                            style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold
                         )
-
-                        "tv-series" -> Text(
-                            text = "Похожие сериалы",
-                            fontSize = 20.sp,
+                        Spacer(modifier = Modifier.height(12.dp))
+                        RatingCard(
+                            navObject,
+                            isDark,
+                            imageGradColor,
+                            buttonBackgroundColor,
+                            buttonTextColor
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = "Актёры",
+                            fontSize = 25.sp,
+                            style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold
                         )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        CastAndCrewSection()
+                        Spacer(modifier = Modifier.height(12.dp))
+                        when (navObject.type) {
+                            "movie" -> Text(
+                                text = "Похожие фильмы",
+                                fontSize = 25.sp,
+                                style = MaterialTheme.typography.headlineMedium,
+                                fontWeight = FontWeight.Bold
+                            )
 
-                        "cartoon" -> Text(
-                            text = "Похожие мультфильмы",
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(12.dp))
-                    LazyRow(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        if (isLoading) {
-                            // Показать индикатор загрузки
-                            items(3) {
-                                Box(
-                                    modifier = Modifier
-                                        .width(120.dp)
-                                        .height(220.dp)
-                                        .clip(RoundedCornerShape(15.dp))
-                                        .background(Color.LightGray),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    CircularProgressIndicator(
-                                        modifier = Modifier.height(30.dp),
-                                        color = ButtonColor
-                                    )
-                                }
-                            }
-                        } else if (recommendationMovies.isNotEmpty()) {
-                            items(recommendationMovies.size) { index ->
-                                val movie = recommendationMovies[index]
-                                Box(
-                                    modifier = Modifier
-                                        .padding(start = 8.dp)
-                                        .width(120.dp)
-                                        .height(200.dp)
-                                        .clip(RoundedCornerShape(15.dp))
-                                        .background(Color.Gray)
-                                        .clickable {
-                                            // Навигация к деталям рекомендуемого фильма
-                                            navData?.let { data ->
-                                                val detailsNavObject = DetailsNavMovieObject(
-                                                    id = movie.id,
-                                                    tmdbId = movie.externalId?.tmdb ?: 0,
-                                                    title = movie.name ?: "Неизвестно",
-                                                    type = movie.type ?: "Неизвестно",
-                                                    genre = movie.genres?.joinToString(", ") { it.name }
-                                                        ?: "Неизвестно",
-                                                    year = movie.year ?: "Неизвестно",
-                                                    description = movie.description
-                                                        ?: "Описание отсутствует",
-                                                    imageUrl = movie.poster?.url ?: "",
-                                                    backdropUrl = movie.backdrop?.url ?: "",
-                                                    ratingKp = movie.rating?.kp ?: 0.0,
-                                                    ratingImdb = movie.rating?.imdb ?: 0.0,
-                                                    votesKp = movie.votes?.kp ?: 0,
-                                                    votesImdb = movie.votes?.imdb ?: 0,
-                                                    persons = movie.persons?.joinToString(", ") { it.name }
-                                                        ?: "Неизвестно",
-                                                    isFavorite = movieViewModel.isInFavorites(
-                                                        movie.id
-                                                    ),
-                                                    isBookMark = movieViewModel.isInBookmarks(
-                                                        movie.id
-                                                    ),
-                                                    isRated = movieViewModel.isInRated(
-                                                        movie.id
-                                                    ),
-                                                    userRating = movie.userRating ?: 0
-                                                )
-                                                navController.navigate(detailsNavObject)
-                                            }
-                                        },
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Box {
-                                        AsyncImage(
-                                            model = movie.poster?.url,
-                                            contentDescription = "Постер фильма",
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .height(250.dp)
-                                                .clip(RoundedCornerShape(15.dp)),
-                                            contentScale = ContentScale.Crop
+                            "tv-series" -> Text(
+                                text = "Похожие сериалы",
+                                fontSize = 25.sp,
+                                style = MaterialTheme.typography.headlineMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+
+                            "cartoon" -> Text(
+                                text = "Похожие мультфильмы",
+                                fontSize = 25.sp,
+                                style = MaterialTheme.typography.headlineMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(12.dp))
+                        LazyRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            if (isLoading) {
+                                // Показать индикатор загрузки
+                                items(3) {
+                                    Box(
+                                        modifier = Modifier
+                                            .width(120.dp)
+                                            .height(220.dp)
+                                            .clip(RoundedCornerShape(15.dp))
+                                            .background(Color.LightGray),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        CircularProgressIndicator(
+                                            modifier = Modifier.height(30.dp),
+                                            color = ButtonColor
                                         )
+                                    }
+                                }
+                            } else if (recommendationMovies.isNotEmpty()) {
+                                items(recommendationMovies.size) { index ->
+                                    val movie = recommendationMovies[index]
+                                    Box(
+                                        modifier = Modifier
+                                            .width(170.dp)
+                                            .height(250.dp)
+                                            .clip(RoundedCornerShape(15.dp))
+                                            .background(Color.Gray)
+                                            .clickable {
+                                                // Навигация к деталям рекомендуемого фильма
+                                                navData?.let { data ->
+                                                    val detailsNavObject = DetailsNavMovieObject(
+                                                        id = movie.id,
+                                                        tmdbId = movie.externalId?.tmdb ?: 0,
+                                                        title = movie.name ?: "Неизвестно",
+                                                        type = movie.type ?: "Неизвестно",
+                                                        genre = movie.genres?.joinToString(", ") { it.name }
+                                                            ?: "Неизвестно",
+                                                        year = movie.year ?: "Неизвестно",
+                                                        description = movie.description
+                                                            ?: "Описание отсутствует",
+                                                        imageUrl = movie.poster?.url ?: "",
+                                                        backdropUrl = movie.backdrop?.url ?: "",
+                                                        ratingKp = movie.rating?.kp ?: 0.0,
+                                                        ratingImdb = movie.rating?.imdb ?: 0.0,
+                                                        votesKp = movie.votes?.kp ?: 0,
+                                                        votesImdb = movie.votes?.imdb ?: 0,
+                                                        persons = movie.persons?.joinToString(", ") { it.name }
+                                                            ?: "Неизвестно",
+                                                        isFavorite = movieViewModel.isInFavorites(
+                                                            movie.id
+                                                        ),
+                                                        isBookMark = movieViewModel.isInBookmarks(
+                                                            movie.id
+                                                        ),
+                                                        isRated = movieViewModel.isInRated(
+                                                            movie.id
+                                                        ),
+                                                        userRating = movie.userRating ?: 0
+                                                    )
+                                                    navController.navigate(detailsNavObject)
+                                                }
+                                            },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Box {
+                                            AsyncImage(
+                                                model = movie.poster?.url,
+                                                contentDescription = "Постер фильма",
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .height(250.dp)
+                                                    .clip(RoundedCornerShape(15.dp)),
+                                                contentScale = ContentScale.Crop
+                                            )
 
-                                        // Оценка
-                                        val rating = movie.rating?.kp ?: 0.0
-                                        val backgroundColor = when {
-                                            rating > 7 -> colorResource(id = R.color.kp_rating)
-                                            rating >= 5 -> Color(0xFFFF9800)
-                                            else -> Color(0xFFF44336)
+                                            // Оценка
+                                            val rating = movie.rating?.kp ?: 0.0
+                                            val backgroundColor = when {
+                                                rating > 7 -> colorResource(id = R.color.kp_rating)
+                                                rating >= 5 -> Color(0xFFFF9800)
+                                                else -> Color(0xFFF44336)
+                                            }
+
+                                            Text(
+                                                text = String.format("%.1f", rating),
+                                                color = Color.White,
+                                                fontSize = 14.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                modifier = Modifier
+                                                    .padding(8.dp)
+                                                    .background(
+                                                        color = backgroundColor,
+                                                        shape = RoundedCornerShape(6.dp)
+                                                    )
+                                                    .padding(horizontal = 10.dp, vertical = 2.dp)
+                                                    .align(Alignment.TopStart)
+                                            )
                                         }
-
+                                    }
+                                }
+                            } else if (error != null) {
+                                // Показать сообщение об ошибке
+                                item {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(200.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
                                         Text(
-                                            text = String.format("%.1f", rating),
-                                            color = Color.White,
-                                            fontSize = 14.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            modifier = Modifier
-                                                .padding(8.dp)
-                                                .background(
-                                                    color = backgroundColor,
-                                                    shape = RoundedCornerShape(6.dp)
-                                                )
-                                                .padding(horizontal = 10.dp, vertical = 2.dp)
-                                                .align(Alignment.TopStart)
+                                            text = "Не удалось загрузить рекомендации",
+                                            color = Color.Red,
+                                            fontSize = 16.sp
+                                        )
+                                    }
+                                }
+                            } else {
+                                // Показать сообщение, если рекомендаций нет
+                                item {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(200.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = "Нет рекомендаций для этого фильма",
+                                            color = Color.Gray,
+                                            fontSize = 16.sp
                                         )
                                     }
                                 }
                             }
-                        } else if (error != null) {
-                            // Показать сообщение об ошибке
-                            item {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(200.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = "Не удалось загрузить рекомендации",
-                                        color = Color.Red,
-                                        fontSize = 16.sp
-                                    )
-                                }
-                            }
-                        } else {
-                            // Показать сообщение, если рекомендаций нет
-                            item {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(200.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = "Нет рекомендаций для этого фильма",
-                                        color = Color.Gray,
-                                        fontSize = 16.sp
-                                    )
-                                }
-                            }
-                        }
 
+                        }
+                        Spacer(modifier = Modifier.height(40.dp))
                     }
-                    Spacer(modifier = Modifier.height(40.dp))
                 }
             }
         }

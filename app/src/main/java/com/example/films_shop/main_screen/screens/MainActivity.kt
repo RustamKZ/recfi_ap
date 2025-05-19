@@ -8,10 +8,16 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
+import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.core.view.WindowCompat
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -32,10 +38,12 @@ import com.example.films_shop.main_screen.objects.auth_screens_objects.LoginScre
 import com.example.films_shop.main_screen.objects.main_screens_objects.MainScreenDataObject
 import com.example.films_shop.main_screen.objects.main_screens_objects.MovieScreenDataObject
 import com.example.films_shop.main_screen.objects.main_screens_objects.SeriesScreenDataObject
+import com.example.films_shop.main_screen.objects.rec_objects.RecBookScreenDataObject
 import com.example.films_shop.main_screen.objects.rec_objects.RecCartoonScreenDataObject
 import com.example.films_shop.main_screen.objects.rec_objects.RecMovieScreenDataObject
 import com.example.films_shop.main_screen.objects.rec_objects.RecTvSeriesScreenDataObject
 import com.example.films_shop.main_screen.screens.favourite_screens.FavScreen
+import com.example.films_shop.ui.theme.BackGroundColor
 import com.example.films_shop.ui.theme.BookShopTheme
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
@@ -46,6 +54,7 @@ class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val noOpNestedScrollConnection = object : NestedScrollConnection {}
         val recViewModel: RecommendationViewModel by viewModels()
         val movieViewModel: MovieViewModel by viewModels()
         val bookViewModel: BookViewModel by viewModels()
@@ -58,6 +67,14 @@ class MainActivity : ComponentActivity() {
         ) else LoginScreenObject
         //val startDestination = TestScreenObject
         setContent {
+            val window = (this@MainActivity).window
+            val isDarkTheme = isSystemInDarkTheme()
+            SideEffect {
+                window.statusBarColor = if (isDarkTheme) BackGroundColor.toArgb() else Color.White.toArgb()
+                WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightStatusBars = !isDarkTheme
+                window.navigationBarColor = if (isDarkTheme) BackGroundColor.toArgb() else Color.White.toArgb()
+                WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightNavigationBars = !isDarkTheme
+            }
             BookShopTheme() {
                 val navController = rememberNavController()
                 val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(
@@ -87,9 +104,10 @@ class MainActivity : ComponentActivity() {
                                 bookViewModel,
                                 recViewModel,
                                 navController,
-                                showTopBar = true,
+                                showTopBar = false,
                                 showBottomBar = true,
-                                scrollBehavior
+                                scrollBehavior,
+                                noOpNestedScrollConnection
                             )
                         }
                         composable<FavScreenDataObject>
@@ -110,6 +128,7 @@ class MainActivity : ComponentActivity() {
                                 false,
                                 true,
                                 scrollBehavior,
+                                noOpNestedScrollConnection,
                                 ContentType.MOVIES
                             )
                         }
@@ -123,6 +142,7 @@ class MainActivity : ComponentActivity() {
                                 false,
                                 true,
                                 scrollBehavior,
+                                noOpNestedScrollConnection,
                                 ContentType.TV_SERIES
                             )
                         }
@@ -136,6 +156,7 @@ class MainActivity : ComponentActivity() {
                                 false,
                                 true,
                                 scrollBehavior,
+                                noOpNestedScrollConnection,
                                 ContentType.CARTOONS
                             )
                         }
@@ -160,6 +181,7 @@ class MainActivity : ComponentActivity() {
                                 showTopBar = false,
                                 showBottomBar = true,
                                 scrollBehavior,
+                                noOpNestedScrollConnection,
                                 ContentType.MOVIES
                             )
                         }
@@ -173,6 +195,7 @@ class MainActivity : ComponentActivity() {
                                 showTopBar = false,
                                 showBottomBar = true,
                                 scrollBehavior,
+                                noOpNestedScrollConnection,
                                 ContentType.MOVIES
                             )
                         }
@@ -185,6 +208,7 @@ class MainActivity : ComponentActivity() {
                                 showTopBar = false,
                                 showBottomBar = true,
                                 scrollBehavior,
+                                noOpNestedScrollConnection,
                                 ContentType.TV_SERIES
                             )
                         }
@@ -198,6 +222,7 @@ class MainActivity : ComponentActivity() {
                                 showTopBar = false,
                                 showBottomBar = true,
                                 scrollBehavior,
+                                noOpNestedScrollConnection,
                                 ContentType.TV_SERIES
                             )
                         }
@@ -210,6 +235,7 @@ class MainActivity : ComponentActivity() {
                                 showTopBar = false,
                                 showBottomBar = true,
                                 scrollBehavior,
+                                noOpNestedScrollConnection,
                                 ContentType.CARTOONS
                             )
                         }
@@ -223,6 +249,7 @@ class MainActivity : ComponentActivity() {
                                 showTopBar = false,
                                 showBottomBar = true,
                                 scrollBehavior,
+                                noOpNestedScrollConnection,
                                 ContentType.CARTOONS
                             )
                         }
@@ -232,9 +259,23 @@ class MainActivity : ComponentActivity() {
                                 navController = navController,
                                 bookViewModel = bookViewModel,
                                 navData = navData,
-                                showTopBar = true,
+                                showTopBar = false,
                                 showBottomBar = true,
-                                scrollBehavior
+                                scrollBehavior,
+                                noOpNestedScrollConnection
+                            )
+                        }
+                        composable<RecBookScreenDataObject> { navEntry ->
+                            val navData = navEntry.toRoute<RecBookScreenDataObject>()
+                            RecBookScreen(
+                                navController = navController,
+                                bookViewModel = bookViewModel,
+                                recViewModel = recViewModel,
+                                navData = navData,
+                                showTopBar = false,
+                                showBottomBar = true,
+                                scrollBehavior,
+                                noOpNestedScrollConnection
                             )
                         }
                         // Экран аккаунта
@@ -258,7 +299,7 @@ class MainActivity : ComponentActivity() {
                         composable<DetailsNavMovieObject>
                         { navEntry ->
                             val navData = navEntry.toRoute<DetailsNavMovieObject>()
-                            DetailsMovieScreen(
+                            TestDetailsMovieScreen(
                                 navObject = navData,
                                 navData = MovieScreenDataObject(
                                     uid = currentUser?.uid ?: "",

@@ -19,24 +19,24 @@ interface RecommendationApi {
     @GET("recommend/content/{film_id}")
     suspend fun getRecommendationsContentFilms(
         @Path("film_id") filmId: Int,
-        @Query("top_n") topN: Int = 10
+        @Query("top_n") topN: Int = 20
     ): List<RecommendationItem>
 
     @GET("recommend/content_series/{film_id}")
     suspend fun getRecommendationsContentSeries(
         @Path("film_id") filmId: Int,
-        @Query("top_n") topN: Int = 10
+        @Query("top_n") topN: Int = 20
     ): List<RecommendationItem>
 
     @GET("recommend/content_books/{isbn10}")
     suspend fun getRecommendationsContentBooks(
         @Path("isbn10") isbn10: String,
-        @Query("top_n") topN: Int = 10
+        @Query("top_n") topN: Int = 20
     ): List<RecommendationItemBooks>
 
     @POST("recommend/collaborative")
     suspend fun getCollaborativeRecommendationsFilms(
-        @Query("n_recommendations") nRecommendations: Int = 10,
+        @Query("n_recommendations") nRecommendations: Int = 20,
         @Body ratings: Map<String, Int>
     ): List<String>
 
@@ -47,7 +47,7 @@ interface RecommendationApi {
 
     @POST("recommend/collaborative_books")
     suspend fun getCollaborativeRecommendationsBooks(
-        @Query("n_recommendations") nRecommendations: Int = 10,
+        @Query("n_recommendations") nRecommendations: Int = 20,
         @Body ratings: Map<String, Int>
     ): List<String>
 }

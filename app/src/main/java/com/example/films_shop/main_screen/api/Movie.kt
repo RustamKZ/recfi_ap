@@ -12,6 +12,7 @@ data class Movie(
     val persons: List<Persons>?= emptyList(),
     val genres: List<Genre>?= emptyList(),
     val rating: Rating?,
+    val votes: Votes?,
     val isFavorite: Boolean = false,
     val isBookMark: Boolean = false,
     val isRated: Boolean = false,
@@ -31,7 +32,13 @@ data class Backdrop(
 )
 
 data class Rating(
-    val kp: Double?
+    val kp: Double?,
+    val imdb: Double?
+)
+
+data class Votes(
+    val kp: Int?,
+    val imdb: Int?
 )
 
 data class Genre(
@@ -44,7 +51,7 @@ data class Persons(
 )
 
 
-//const val apiKey = "CS3QP35-CCE4F8D-N7APS7G-VAN76RX"
-const val apiKey = "MQ3ZZZE-KQT4R67-P2MFJBZ-JD20K49"
+const val apiKey = "CS3QP35-CCE4F8D-N7APS7G-VAN76RX"
+//const val apiKey = "MQ3ZZZE-KQT4R67-P2MFJBZ-JD20K49"
 //const val apiKey = "WP6PH1H-X084H8Z-P8MZHP5-AXQ8A45"
 //const val apiKey = "GDY53QV-B224Y8D-PGSDM5F-X3H8EKE"

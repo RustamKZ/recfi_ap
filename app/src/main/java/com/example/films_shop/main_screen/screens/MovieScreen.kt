@@ -17,6 +17,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -39,6 +40,7 @@ fun MovieScreen(
     showTopBar: Boolean = true,
     showBottomBar: Boolean = true,
     scrollBehavior: TopAppBarScrollBehavior,
+    noOpNestedScrollConnection: NestedScrollConnection,
     contentType: ContentType,
 ) {
     LaunchedEffect(contentType) {
@@ -81,7 +83,7 @@ fun MovieScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(top = innerPadding.calculateTopPadding())
-                .nestedScroll(scrollBehavior.nestedScrollConnection)
+                .nestedScroll(noOpNestedScrollConnection)
         ) {
             items(movies.itemCount) { index ->
                 movies[index]?.let { movie ->
@@ -100,7 +102,10 @@ fun MovieScreen(
                                     description = movie.description ?: "Описание отсутствует",
                                     imageUrl = movie.poster?.url ?: "",
                                     backdropUrl = movie.backdrop?.url ?: "",
-                                    rating = movie.rating?.kp ?: 0.0,
+                                    ratingKp = movie.rating?.kp ?: 0.0,
+                                    ratingImdb = movie.rating?.imdb ?: 0.0,
+                                    votesKp = movie.votes?.kp ?: 0,
+                                    votesImdb = movie.votes?.imdb ?: 0,
                                     persons = movie.persons?.joinToString(", ") { it.name }
                                         ?: "Неизвестно",
                                     isFavorite = movie.isFavorite,

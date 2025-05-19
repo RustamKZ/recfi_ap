@@ -13,7 +13,10 @@ data class BookmarkMovie(
     val description: String? = "",
     val genres: List<String>? = emptyList(),
     val persons: List<String>? = emptyList(),
-    val rating: Double? = null,
+    val ratingKp: Double? = null,
+    val ratingImdb: Double? = null,
+    val votesKp: Int? = null,
+    val votesImdb: Int? = null,
     val isFavorite: Boolean = false,
     val isRated: Boolean = false,
     val userRating: Int? = 0
@@ -29,7 +32,10 @@ data class BookmarkMovie(
         description = movie.description,
         genres = movie.genres?.map { it.name },
         persons = movie.persons?.map {it.name},
-        rating = movie.rating?.kp,
+        ratingKp = movie.rating?.kp,
+        ratingImdb = movie.rating?.imdb,
+        votesKp = movie.votes?.kp,
+        votesImdb = movie.votes?.imdb,
         isFavorite = movie.isFavorite,
         isRated = movie.isRated,
         userRating = movie.userRating

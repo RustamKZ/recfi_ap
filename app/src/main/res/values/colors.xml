@@ -9,4 +9,5 @@
     <color name="white">#FFFFFFFF</color>
     <color name="custom_blue">#21A19D</color>
     <color name="custom_black">#282F2A</color>
+    <color name="kp_rating">#36A071</color>
 </resources>

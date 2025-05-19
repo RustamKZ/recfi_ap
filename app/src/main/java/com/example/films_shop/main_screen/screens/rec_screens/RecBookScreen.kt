@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBarScrollBehavior
@@ -21,32 +22,31 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.films_shop.main_screen.api.BookApi.Book
 import com.example.films_shop.main_screen.api.BookApi.BookItemUi
 import com.example.films_shop.main_screen.api.BookApi.BookViewModel
+import com.example.films_shop.main_screen.api.recomendations.RecommendationViewModel
 import com.example.films_shop.main_screen.bottom_menu.BottomMenu
 import com.example.films_shop.main_screen.objects.main_screens_objects.BookScreenDataObject
 import com.example.films_shop.main_screen.objects.details_screens_objects.DetailsNavBookObject
+import com.example.films_shop.main_screen.objects.rec_objects.RecBookScreenDataObject
 import com.example.films_shop.main_screen.top_bar.TopBarMenu
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BookScreen(
+fun RecBookScreen(
     navController: NavController,
     bookViewModel: BookViewModel,
-    navData: BookScreenDataObject,
+    recViewModel: RecommendationViewModel,
+    navData: RecBookScreenDataObject,
     showTopBar: Boolean = true,
     showBottomBar: Boolean = true,
     scrollBehavior: TopAppBarScrollBehavior,
-    noOpNestedScrollConnection: NestedScrollConnection
+    noOpNestedScrollConnection: NestedScrollConnection,
 ) {
-    val authors = listOf("Пушкин", "Ремарк")
-    val booksFlow = remember(authors) {
-        bookViewModel.getBooksByAuthors(authors)
-    }
-    val books = booksFlow.collectAsLazyPagingItems()
-
+    val books = bookViewModel.bookPagingFlow.collectAsLazyPagingItems()
     val db = Firebase.firestore
     val booksListState = remember { mutableStateOf(emptyList<Book>()) }
+    val recBooks by recViewModel.recommendationCollabBooks
     LaunchedEffect(books.itemSnapshotList) {
         bookViewModel.loadBookmarkBooks(db, navData.uid)
         bookViewModel.loadFavoriteBooks(db, navData.uid)
@@ -80,8 +80,7 @@ fun BookScreen(
                 .nestedScroll(noOpNestedScrollConnection)
                 .padding(top = innerPadding.calculateTopPadding())
         ) {
-            items(books.itemCount) { index ->
-                books[index]?.let { book ->
+            items(recBooks.take(20)) { book ->
                     BookItemUi(
                         book = book,
                         onBookDetailsClick = {
@@ -107,4 +106,3 @@ fun BookScreen(
             }
         }
     }
-}

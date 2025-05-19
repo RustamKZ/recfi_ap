@@ -18,6 +18,7 @@ import com.example.films_shop.main_screen.api.Persons
 import com.example.films_shop.main_screen.api.Poster
 import com.example.films_shop.main_screen.api.Rating
 import com.example.films_shop.main_screen.api.RetrofitInstance
+import com.example.films_shop.main_screen.api.Votes
 import com.example.films_shop.main_screen.api.apiKey
 import com.example.films_shop.main_screen.business_logic.data_classes.FavoriteMovie
 import com.example.films_shop.main_screen.business_logic.data_classes.BookmarkMovie
@@ -193,7 +194,8 @@ class MovieViewModel : ViewModel() {
                                     poster = favorite.posterUrl?.let { Poster(it) },
                                     backdrop = favorite.backdropUrl?.let { Backdrop(it) },
                                     genres = favorite.genres?.map { Genre(it) },
-                                    rating = Rating(favorite.rating ?: 0.0),
+                                    rating = Rating(favorite.ratingKp ?: 0.0, favorite.ratingImdb ?: 0.0),
+                                    votes = Votes(favorite.votesKp ?: 0, favorite.votesImdb ?: 0),
                                     persons = favorite.persons?.map { Persons(it) },
                                     description = favorite.description,
                                     type = favorite.type,
@@ -253,7 +255,8 @@ class MovieViewModel : ViewModel() {
                                     poster = bookmark.posterUrl?.let { Poster(it) },
                                     backdrop = bookmark.backdropUrl?.let { Backdrop(it) },
                                     genres = bookmark.genres?.map { Genre(it) },
-                                    rating = Rating(bookmark.rating ?: 0.0),
+                                    rating = Rating(bookmark.ratingKp ?: 0.0,bookmark.ratingImdb ?: 0.0),
+                                    votes = Votes(bookmark.votesKp ?: 0, bookmark.votesImdb ?: 0),
                                     persons = bookmark.persons?.map { Persons(it) },
                                     description = bookmark.description,
                                     type = bookmark.type,
@@ -313,7 +316,8 @@ class MovieViewModel : ViewModel() {
                                     poster = rated.posterUrl?.let { Poster(it) },
                                     backdrop = rated.backdropUrl?.let { Backdrop(it) },
                                     genres = rated.genres?.map { Genre(it) },
-                                    rating = Rating(rated.rating ?: 0.0),
+                                    rating = Rating(rated.ratingKp ?: 0.0, rated.ratingImdb ?: 0.0),
+                                    votes = Votes(rated.votesKp ?: 0, rated.votesImdb ?: 0),
                                     persons = rated.persons?.map { Persons(it) },
                                     description = rated.description,
                                     type = rated.type,

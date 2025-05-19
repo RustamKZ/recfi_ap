@@ -18,19 +18,27 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 
+data class RatedBookTriple(
+    val isbn10: String,
+    val author: String,
+    val userRating: Int
+)
+
+
 class BookViewModel : ViewModel() {
     private val _query = MutableStateFlow("роман") // По умолчанию ищем "python"
-    val query: StateFlow<String> = _query
+    val authors = listOf("Ремарк", "Булгаков", "Достоевский")
     val favoriteBooksState = mutableStateOf<List<Book>>(emptyList())
     val bookmarkBooksState = mutableStateOf<List<Book>>(emptyList())
     val ratedBooksState = mutableStateOf<List<Book>>(emptyList())
-
+    val ratedBooksMapState = MutableStateFlow<Map<String, Int>>(emptyMap())
+    val ratedBooksTripleState = MutableStateFlow<List<RatedBookTriple>>(emptyList())
     @OptIn(ExperimentalCoroutinesApi::class)
     val bookPagingFlow: Flow<PagingData<Book>> = _query
         .flatMapLatest { query ->
             Pager(
                 config = PagingConfig(pageSize = 10, prefetchDistance = 2),
-                pagingSourceFactory = { BookPagingSource(RetrofitInstanceBooks.api, query) }
+                pagingSourceFactory = { BookPagingSource(RetrofitInstanceBooks.api,authors ) }
             ).flow.cachedIn(viewModelScope)
         }
     fun isInFavorites(id: String): Boolean {
@@ -39,6 +47,11 @@ class BookViewModel : ViewModel() {
 
     fun isInBookmarks(id: String): Boolean {
         return bookmarkBooksState.value.any { it.id == id }
+    }
+    fun getBooksByAuthors(authors: List<String>): Flow<PagingData<Book>> {
+        return Pager(PagingConfig(pageSize = 30)) {
+            BookPagingSource(RetrofitInstanceBooks.api, authors)
+        }.flow.cachedIn(viewModelScope)
     }
 
     fun isInRated(id: String): Boolean {
@@ -102,7 +115,7 @@ class BookViewModel : ViewModel() {
                 }
             }
     }
-    fun loadRatedBooks(db: FirebaseFirestore, uid: String) {
+    fun loadRatedBooks(db: FirebaseFirestore, uid: String, isCollab: Boolean = false) {
         db.collection("users").document(uid).collection("rated_books")
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
@@ -127,6 +140,21 @@ class BookViewModel : ViewModel() {
                             )
                         }
                     ratedBooksState.value = books
+                    if (isCollab) {
+                        ratedBooksMapState.value = books
+                            .filter { it.isbn10.isNotEmpty() && it.userRating != null }
+                            .associate { it.isbn10 to it.userRating }
+                        ratedBooksTripleState.value = books
+                            .filter { it.isbn10.isNotEmpty() && it.userRating != null && it.authors?.isNotEmpty() == true }
+                            .map {
+                                RatedBookTriple(
+                                    isbn10 = it.isbn10,
+                                    author = it.authors.toString(),
+                                    userRating = it.userRating!!
+                                )
+                            }
+                    }
+                    Log.d("MyLog", "Триплет книг: ${ratedBooksTripleState.value}")
                     Log.d("MyLog", "Список оценок книг обновлено, всего: ${books.size}")
                 }
             }

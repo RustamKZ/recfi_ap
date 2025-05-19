@@ -48,11 +48,5 @@ fun BookItemUi(
             maxLines = 2,
             overflow = TextOverflow.Ellipsis
         )
-        Spacer(modifier = Modifier.height(5.dp))
-        Text(
-            text = "Дата публикации: ${book.publishedDate ?: "Неизвестно"}",
-            fontSize = 14.sp,
-            color = Color.Gray
-        )
     }
 }

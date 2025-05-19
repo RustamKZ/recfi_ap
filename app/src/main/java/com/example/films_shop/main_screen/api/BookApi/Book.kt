@@ -11,7 +11,7 @@ data class Book(
     val isFavorite: Boolean = false,
     val isBookMark: Boolean = false,
     val isRated: Boolean = false,
-    val userRating: Int = 0
+    val userRating: Int = -1
 )
 
 data class VolumeInfo(

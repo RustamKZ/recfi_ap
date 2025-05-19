@@ -9,6 +9,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,7 +27,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import com.example.films_shop.main_screen.Genres.saveSelectedGenres
-
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
@@ -35,11 +35,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -56,8 +59,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -84,6 +89,7 @@ import com.example.films_shop.main_screen.objects.details_screens_objects.Detail
 import com.example.films_shop.main_screen.objects.main_screens_objects.MainScreenDataObject
 import com.example.films_shop.main_screen.objects.main_screens_objects.MovieScreenDataObject
 import com.example.films_shop.main_screen.objects.main_screens_objects.SeriesScreenDataObject
+import com.example.films_shop.main_screen.objects.rec_objects.RecBookScreenDataObject
 import com.example.films_shop.main_screen.objects.rec_objects.RecCartoonScreenDataObject
 import com.example.films_shop.main_screen.objects.rec_objects.RecMovieScreenDataObject
 import com.example.films_shop.main_screen.objects.rec_objects.RecTvSeriesScreenDataObject
@@ -99,6 +105,9 @@ import kotlinx.coroutines.withTimeoutOrNull
 val custom_font = FontFamily(
     Font(R.font.custom_font, FontWeight.Normal),
 )
+val test_font = FontFamily(
+    Font(R.font.lumiosmarker_0, FontWeight.Normal),
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -111,7 +120,12 @@ fun MainScreen(
     showTopBar: Boolean = true,
     showBottomBar: Boolean = true,
     scrollBehavior: TopAppBarScrollBehavior,
+    noOpNestedScrollConnection:  NestedScrollConnection
 ) {
+    // ui theme
+    val isDark = isSystemInDarkTheme()
+    val iconColor = if (isDark) Color.White else Color.Gray
+    // ui theme
     var showOverlay by remember { mutableStateOf(false) }
     val selectedGenres = remember { mutableStateListOf<GenreKP>() }
     // Инициализируем состояние анимации
@@ -123,13 +137,18 @@ fun MainScreen(
     val movies = movieViewModel.moviesPagingFlow.collectAsLazyPagingItems()
     val series = movieViewModel.tvSeriesPagingFlow.collectAsLazyPagingItems()
     val cartoons = movieViewModel.cartoonsPagingFlow.collectAsLazyPagingItems()
-    val books = bookViewModel.bookPagingFlow.collectAsLazyPagingItems()
+    val authors = listOf("Пушкин", "Ремарк")
+    val booksFlow = remember(authors) {
+        bookViewModel.getBooksByAuthors(authors)
+    }
+    val books = booksFlow.collectAsLazyPagingItems()
     val db = remember {
         Firebase.firestore
     }
     // Коллаборативная фильтрация рекомендации
     LaunchedEffect(Unit) {
         movieViewModel.loadRatedMovies(db, navData.uid, isCollab = true)
+        bookViewModel.loadRatedBooks(db, navData.uid, isCollab = true)
 
         launch {
             movieViewModel.ratedMoviesMapState
@@ -153,8 +172,17 @@ fun MainScreen(
             movieViewModel.ratedTvSeriesMapState
                 .filter { it.isNotEmpty() }
                 .collectLatest {
-                    Log.d("Debug", "TV Series map collected: $it")
+                    Log.d("Debug", "TV SERIES map collected: $it")
                     recViewModel.fetchCollabRecommendationsFilmsCartoonSeries(it, "tv-series")
+                }
+        }
+
+        launch {
+            bookViewModel.ratedBooksMapState
+                .filter { it.isNotEmpty() }
+                .collectLatest {
+                    Log.d("Debug", "Books collected: $it")
+                    recViewModel.fetchCollabRecommendationsBooks(it, bookViewModel)
                 }
         }
     }
@@ -162,6 +190,7 @@ fun MainScreen(
     val recommendationMovies by recViewModel.recommendationCollabMovies
     val recommendationCartoon by recViewModel.recommendationCollabCartoon
     val recommendationTvSeries by recViewModel.recommendationCollabTvSeries
+    val recommendationBooks by recViewModel.recommendationCollabBooks
     // Коллаборативная фильтрация рекомендации
     LaunchedEffect(navData.uid) {
         loadUserGenres(db, navData.uid) { loadedGenres ->
@@ -236,7 +265,7 @@ fun MainScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .nestedScroll(scrollBehavior.nestedScrollConnection)
+                    .nestedScroll(if (showTopBar) scrollBehavior.nestedScrollConnection else remember { noOpNestedScrollConnection })
                     .verticalScroll(scrollState)
                     .padding(
                         top = innerPadding.calculateTopPadding(),
@@ -275,10 +304,10 @@ fun MainScreen(
                                 .padding(end = 24.dp)
                                 .wrapContentSize()
                         ) {
-                            Text(
-                                text = "Посмотреть",
-                                fontSize = 10.sp,
-                                color = MaterialTheme.colorScheme.onBackground.copy(0.7f),
+                            Icon(
+                                imageVector = Icons.Outlined.ChevronRight,
+                                contentDescription = "Посмотреть",
+                                tint = iconColor
                             )
                         }
 
@@ -292,8 +321,8 @@ fun MainScreen(
                                 Box(
                                     modifier = Modifier
                                         .padding(start = 8.dp)
-                                        .width(120.dp)
-                                        .height(200.dp)
+                                        .width(170.dp)
+                                        .height(250.dp)
                                         .clip(RoundedCornerShape(15.dp))
                                         .background(Color.Gray)
                                         .clickable {
@@ -310,7 +339,10 @@ fun MainScreen(
                                                         ?: "Описание отсутствует",
                                                     imageUrl = movie.poster?.url ?: "",
                                                     backdropUrl = movie.backdrop?.url ?: "",
-                                                    rating = movie.rating?.kp ?: 0.0,
+                                                    ratingKp = movie.rating?.kp ?: 0.0,
+                                                    ratingImdb = movie.rating?.imdb ?: 0.0,
+                                                    votesKp = movie.votes?.kp ?: 0,
+                                                    votesImdb = movie.votes?.imdb ?: 0,
                                                     persons = movie.persons?.joinToString(", ") { it.name }
                                                         ?: "Неизвестно",
                                                     isFavorite = movie.isFavorite,
@@ -322,15 +354,40 @@ fun MainScreen(
                                         },
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    AsyncImage(
-                                        model = movie.poster?.url,
-                                        contentDescription = "Постер фильма",
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .height(250.dp)
-                                            .clip(RoundedCornerShape(15.dp)),
-                                        contentScale = ContentScale.Crop
-                                    )
+                                    Box {
+                                        AsyncImage(
+                                            model = movie.poster?.url,
+                                            contentDescription = "Постер фильма",
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(250.dp)
+                                                .clip(RoundedCornerShape(15.dp)),
+                                            contentScale = ContentScale.Crop
+                                        )
+
+                                        // Оценка
+                                        val rating = movie.rating?.kp ?: 0.0
+                                        val backgroundColor = when {
+                                            rating > 7 -> colorResource(id = R.color.kp_rating)
+                                            rating >= 5 -> Color(0xFFFF9800)
+                                            else -> Color(0xFFF44336)
+                                        }
+
+                                        Text(
+                                            text = String.format("%.1f", rating),
+                                            color = Color.White,
+                                            fontSize = 14.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            modifier = Modifier
+                                                .padding(8.dp)
+                                                .background(
+                                                    color = backgroundColor,
+                                                    shape = RoundedCornerShape(6.dp)
+                                                )
+                                                .padding(horizontal = 10.dp, vertical = 2.dp)
+                                                .align(Alignment.TopStart)
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -365,10 +422,10 @@ fun MainScreen(
                                     .padding(end = 24.dp)
                                     .wrapContentSize()
                             ) {
-                                Text(
-                                    text = "Посмотреть",
-                                    fontSize = 10.sp,
-                                    color = MaterialTheme.colorScheme.onBackground.copy(0.7f),
+                                Icon(
+                                    imageVector = Icons.Outlined.ChevronRight,
+                                    contentDescription = "Посмотреть",
+                                    tint = iconColor
                                 )
                             }
 
@@ -423,7 +480,7 @@ fun MainScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "Рекомендованные фильмы",
+                                text = "Фильмы для вас",
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.Bold,
                                 modifier = Modifier.padding(start = 24.dp)
@@ -446,10 +503,10 @@ fun MainScreen(
                                     .padding(end = 24.dp)
                                     .wrapContentSize()
                             ) {
-                                Text(
-                                    text = "Посмотреть",
-                                    fontSize = 10.sp,
-                                    color = MaterialTheme.colorScheme.onBackground.copy(0.7f),
+                                Icon(
+                                    imageVector = Icons.Outlined.ChevronRight,
+                                    contentDescription = "Посмотреть",
+                                    tint = iconColor
                                 )
                             }
 
@@ -472,8 +529,8 @@ fun MainScreen(
                                     Box(
                                         modifier = Modifier
                                             .padding(start = 8.dp)
-                                            .width(120.dp)
-                                            .height(200.dp)
+                                            .width(170.dp)
+                                            .height(250.dp)
                                             .clip(RoundedCornerShape(15.dp))
                                             .background(Color.Gray)
                                             .clickable {
@@ -483,13 +540,19 @@ fun MainScreen(
                                                         tmdbId = movie.externalId?.tmdb ?: 0,
                                                         title = movie.name ?: "Неизвестно",
                                                         type = movie.type ?: "Неизвестно",
-                                                        genre = movie.genres?.joinToString(", ") { it.name } ?: "Неизвестно",
+                                                        genre = movie.genres?.joinToString(", ") { it.name }
+                                                            ?: "Неизвестно",
                                                         year = movie.year ?: "Неизвестно",
-                                                        description = movie.description ?: "Описание отсутствует",
+                                                        description = movie.description
+                                                            ?: "Описание отсутствует",
                                                         imageUrl = movie.poster?.url ?: "",
                                                         backdropUrl = movie.backdrop?.url ?: "",
-                                                        rating = movie.rating?.kp ?: 0.0,
-                                                        persons = movie.persons?.joinToString(", ") { it.name } ?: "Неизвестно",
+                                                        ratingKp = movie.rating?.kp ?: 0.0,
+                                                        ratingImdb = movie.rating?.imdb ?: 0.0,
+                                                        votesKp = movie.votes?.kp ?: 0,
+                                                        votesImdb = movie.votes?.imdb ?: 0,
+                                                        persons = movie.persons?.joinToString(", ") { it.name }
+                                                            ?: "Неизвестно",
                                                         isFavorite = movie.isFavorite,
                                                         isBookMark = movie.isBookMark,
                                                         isRated = movie.isRated,
@@ -499,15 +562,40 @@ fun MainScreen(
                                             },
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        AsyncImage(
-                                            model = movie.poster?.url,
-                                            contentDescription = "Постер фильма",
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .height(250.dp)
-                                                .clip(RoundedCornerShape(15.dp)),
-                                            contentScale = ContentScale.Crop
-                                        )
+                                        Box {
+                                            AsyncImage(
+                                                model = movie.poster?.url,
+                                                contentDescription = "Постер фильма",
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .height(250.dp)
+                                                    .clip(RoundedCornerShape(15.dp)),
+                                                contentScale = ContentScale.Crop
+                                            )
+
+                                            // Оценка
+                                            val rating = movie.rating?.kp ?: 0.0
+                                            val backgroundColor = when {
+                                                rating > 7 -> colorResource(id = R.color.kp_rating)
+                                                rating >= 5 -> Color(0xFFFF9800)
+                                                else -> Color(0xFFF44336)
+                                            }
+
+                                            Text(
+                                                text = String.format("%.1f", rating),
+                                                color = Color.White,
+                                                fontSize = 14.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                modifier = Modifier
+                                                    .padding(8.dp)
+                                                    .background(
+                                                        color = backgroundColor,
+                                                        shape = RoundedCornerShape(6.dp)
+                                                    )
+                                                    .padding(horizontal = 10.dp, vertical = 2.dp)
+                                                    .align(Alignment.TopStart)
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -544,10 +632,10 @@ fun MainScreen(
                                         .padding(end = 24.dp)
                                         .wrapContentSize()
                                 ) {
-                                    Text(
-                                        text = "Посмотреть",
-                                        fontSize = 10.sp,
-                                        color = MaterialTheme.colorScheme.onBackground.copy(0.7f),
+                                    Icon(
+                                        imageVector = Icons.Outlined.ChevronRight,
+                                        contentDescription = "Посмотреть",
+                                        tint = iconColor
                                     )
                                 }
 
@@ -561,8 +649,8 @@ fun MainScreen(
                                         Box(
                                             modifier = Modifier
                                                 .padding(start = 8.dp)
-                                                .width(120.dp)
-                                                .height(200.dp)
+                                                .width(170.dp)
+                                                .height(250.dp)
                                                 .clip(RoundedCornerShape(15.dp))
                                                 .background(Color.Gray)
                                                 .clickable {
@@ -579,7 +667,10 @@ fun MainScreen(
                                                                 ?: "Описание отсутствует",
                                                             imageUrl = movie.poster?.url ?: "",
                                                             backdropUrl = movie.backdrop?.url ?: "",
-                                                            rating = movie.rating?.kp ?: 0.0,
+                                                            ratingKp = movie.rating?.kp ?: 0.0,
+                                                            ratingImdb = movie.rating?.imdb ?: 0.0,
+                                                            votesKp = movie.votes?.kp ?: 0,
+                                                            votesImdb = movie.votes?.imdb ?: 0,
                                                             persons = movie.persons?.joinToString(", ") { it.name }
                                                                 ?: "Неизвестно",
                                                             isFavorite = movie.isFavorite,
@@ -591,15 +682,40 @@ fun MainScreen(
                                                 },
                                             contentAlignment = Alignment.Center
                                         ) {
-                                            AsyncImage(
-                                                model = movie.poster?.url,
-                                                contentDescription = "Постер сериала",
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .height(250.dp)
-                                                    .clip(RoundedCornerShape(15.dp)),
-                                                contentScale = ContentScale.Crop
-                                            )
+                                            Box {
+                                                AsyncImage(
+                                                    model = movie.poster?.url,
+                                                    contentDescription = "Постер фильма",
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .height(250.dp)
+                                                        .clip(RoundedCornerShape(15.dp)),
+                                                    contentScale = ContentScale.Crop
+                                                )
+
+                                                // Оценка
+                                                val rating = movie.rating?.kp ?: 0.0
+                                                val backgroundColor = when {
+                                                    rating > 6.5 -> colorResource(id = R.color.kp_rating)
+                                                    rating >= 4 -> Color(0xFFFF9800)
+                                                    else -> Color(0xFFF44336)
+                                                }
+
+                                                Text(
+                                                    text = String.format("%.1f", rating),
+                                                    color = Color.White,
+                                                    fontSize = 14.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    modifier = Modifier
+                                                        .padding(8.dp)
+                                                        .background(
+                                                            color = backgroundColor,
+                                                            shape = RoundedCornerShape(6.dp)
+                                                        )
+                                                        .padding(horizontal = 10.dp, vertical = 2.dp)
+                                                        .align(Alignment.TopStart)
+                                                )
+                                            }
                                         }
                                     }
                                 }
@@ -611,7 +727,7 @@ fun MainScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "Рекомендуемые сериалы",
+                                text = "Сериалы для вас",
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.Bold,
                                 modifier = Modifier.padding(start = 24.dp)
@@ -634,10 +750,10 @@ fun MainScreen(
                                     .padding(end = 24.dp)
                                     .wrapContentSize()
                             ) {
-                                Text(
-                                    text = "Посмотреть",
-                                    fontSize = 10.sp,
-                                    color = MaterialTheme.colorScheme.onBackground.copy(0.7f),
+                                Icon(
+                                    imageVector = Icons.Outlined.ChevronRight,
+                                    contentDescription = "Посмотреть",
+                                    tint = iconColor
                                 )
                             }
 
@@ -660,8 +776,8 @@ fun MainScreen(
                                     Box(
                                         modifier = Modifier
                                             .padding(start = 8.dp)
-                                            .width(120.dp)
-                                            .height(200.dp)
+                                            .width(170.dp)
+                                            .height(250.dp)
                                             .clip(RoundedCornerShape(15.dp))
                                             .background(Color.Gray)
                                             .clickable {
@@ -671,13 +787,19 @@ fun MainScreen(
                                                         tmdbId = movie.externalId?.tmdb ?: 0,
                                                         title = movie.name ?: "Неизвестно",
                                                         type = movie.type ?: "Неизвестно",
-                                                        genre = movie.genres?.joinToString(", ") { it.name } ?: "Неизвестно",
+                                                        genre = movie.genres?.joinToString(", ") { it.name }
+                                                            ?: "Неизвестно",
                                                         year = movie.year ?: "Неизвестно",
-                                                        description = movie.description ?: "Описание отсутствует",
+                                                        description = movie.description
+                                                            ?: "Описание отсутствует",
                                                         imageUrl = movie.poster?.url ?: "",
                                                         backdropUrl = movie.backdrop?.url ?: "",
-                                                        rating = movie.rating?.kp ?: 0.0,
-                                                        persons = movie.persons?.joinToString(", ") { it.name } ?: "Неизвестно",
+                                                        ratingKp = movie.rating?.kp ?: 0.0,
+                                                        ratingImdb = movie.rating?.imdb ?: 0.0,
+                                                        votesKp = movie.votes?.kp ?: 0,
+                                                        votesImdb = movie.votes?.imdb ?: 0,
+                                                        persons = movie.persons?.joinToString(", ") { it.name }
+                                                            ?: "Неизвестно",
                                                         isFavorite = movie.isFavorite,
                                                         isBookMark = movie.isBookMark,
                                                         isRated = movie.isRated,
@@ -687,15 +809,40 @@ fun MainScreen(
                                             },
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        AsyncImage(
-                                            model = movie.poster?.url,
-                                            contentDescription = "Постер фильма",
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .height(250.dp)
-                                                .clip(RoundedCornerShape(15.dp)),
-                                            contentScale = ContentScale.Crop
-                                        )
+                                        Box {
+                                            AsyncImage(
+                                                model = movie.poster?.url,
+                                                contentDescription = "Постер фильма",
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .height(250.dp)
+                                                    .clip(RoundedCornerShape(15.dp)),
+                                                contentScale = ContentScale.Crop
+                                            )
+
+                                            // Оценка
+                                            val rating = movie.rating?.kp ?: 0.0
+                                            val backgroundColor = when {
+                                                rating > 7 -> colorResource(id = R.color.kp_rating)
+                                                rating >= 5 -> Color(0xFFFF9800)
+                                                else -> Color(0xFFF44336)
+                                            }
+
+                                            Text(
+                                                text = String.format("%.1f", rating),
+                                                color = Color.White,
+                                                fontSize = 14.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                modifier = Modifier
+                                                    .padding(8.dp)
+                                                    .background(
+                                                        color = backgroundColor,
+                                                        shape = RoundedCornerShape(6.dp)
+                                                    )
+                                                    .padding(horizontal = 10.dp, vertical = 2.dp)
+                                                    .align(Alignment.TopStart)
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -733,10 +880,10 @@ fun MainScreen(
                                         .padding(end = 24.dp)
                                         .wrapContentSize()
                                 ) {
-                                    Text(
-                                        text = "Посмотреть",
-                                        fontSize = 10.sp,
-                                        color = MaterialTheme.colorScheme.onBackground.copy(0.7f),
+                                    Icon(
+                                        imageVector = Icons.Outlined.ChevronRight,
+                                        contentDescription = "Посмотреть",
+                                        tint = iconColor
                                     )
                                 }
 
@@ -750,8 +897,8 @@ fun MainScreen(
                                         Box(
                                             modifier = Modifier
                                                 .padding(start = 8.dp)
-                                                .width(120.dp)
-                                                .height(200.dp)
+                                                .width(170.dp)
+                                                .height(250.dp)
                                                 .clip(RoundedCornerShape(15.dp))
                                                 .background(Color.Gray)
                                                 .clickable {
@@ -768,7 +915,10 @@ fun MainScreen(
                                                                 ?: "Описание отсутствует",
                                                             imageUrl = movie.poster?.url ?: "",
                                                             backdropUrl = movie.backdrop?.url ?: "",
-                                                            rating = movie.rating?.kp ?: 0.0,
+                                                            ratingKp = movie.rating?.kp ?: 0.0,
+                                                            ratingImdb = movie.rating?.imdb ?: 0.0,
+                                                            votesKp = movie.votes?.kp ?: 0,
+                                                            votesImdb = movie.votes?.imdb ?: 0,
                                                             persons = movie.persons?.joinToString(", ") { it.name }
                                                                 ?: "Неизвестно",
                                                             isFavorite = movie.isFavorite,
@@ -780,15 +930,40 @@ fun MainScreen(
                                                 },
                                             contentAlignment = Alignment.Center
                                         ) {
-                                            AsyncImage(
-                                                model = movie.poster?.url,
-                                                contentDescription = "Постер фильма",
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .height(250.dp)
-                                                    .clip(RoundedCornerShape(15.dp)),
-                                                contentScale = ContentScale.Crop
-                                            )
+                                            Box {
+                                                AsyncImage(
+                                                    model = movie.poster?.url,
+                                                    contentDescription = "Постер фильма",
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .height(250.dp)
+                                                        .clip(RoundedCornerShape(15.dp)),
+                                                    contentScale = ContentScale.Crop
+                                                )
+
+                                                // Оценка
+                                                val rating = movie.rating?.kp ?: 0.0
+                                                val backgroundColor = when {
+                                                    rating > 7 -> colorResource(id = R.color.kp_rating)
+                                                    rating >= 5 -> Color(0xFFFF9800)
+                                                    else -> Color(0xFFF44336)
+                                                }
+
+                                                Text(
+                                                    text = String.format("%.1f", rating),
+                                                    color = Color.White,
+                                                    fontSize = 14.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    modifier = Modifier
+                                                        .padding(8.dp)
+                                                        .background(
+                                                            color = backgroundColor,
+                                                            shape = RoundedCornerShape(6.dp)
+                                                        )
+                                                        .padding(horizontal = 10.dp, vertical = 2.dp)
+                                                        .align(Alignment.TopStart)
+                                                )
+                                            }
                                         }
                                     }
                                 }
@@ -800,7 +975,7 @@ fun MainScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "Рекомендуемые мультфильмы",
+                                text = "Мультфильмы для вас",
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.Bold,
                                 modifier = Modifier.padding(start = 24.dp)
@@ -823,10 +998,10 @@ fun MainScreen(
                                     .padding(end = 24.dp)
                                     .wrapContentSize()
                             ) {
-                                Text(
-                                    text = "Посмотреть",
-                                    fontSize = 10.sp,
-                                    color = MaterialTheme.colorScheme.onBackground.copy(0.7f),
+                                Icon(
+                                    imageVector = Icons.Outlined.ChevronRight,
+                                    contentDescription = "Посмотреть",
+                                    tint = iconColor
                                 )
                             }
 
@@ -849,8 +1024,8 @@ fun MainScreen(
                                     Box(
                                         modifier = Modifier
                                             .padding(start = 8.dp)
-                                            .width(120.dp)
-                                            .height(200.dp)
+                                            .width(170.dp)
+                                            .height(250.dp)
                                             .clip(RoundedCornerShape(15.dp))
                                             .background(Color.Gray)
                                             .clickable {
@@ -860,13 +1035,19 @@ fun MainScreen(
                                                         tmdbId = movie.externalId?.tmdb ?: 0,
                                                         title = movie.name ?: "Неизвестно",
                                                         type = movie.type ?: "Неизвестно",
-                                                        genre = movie.genres?.joinToString(", ") { it.name } ?: "Неизвестно",
+                                                        genre = movie.genres?.joinToString(", ") { it.name }
+                                                            ?: "Неизвестно",
                                                         year = movie.year ?: "Неизвестно",
-                                                        description = movie.description ?: "Описание отсутствует",
+                                                        description = movie.description
+                                                            ?: "Описание отсутствует",
                                                         imageUrl = movie.poster?.url ?: "",
                                                         backdropUrl = movie.backdrop?.url ?: "",
-                                                        rating = movie.rating?.kp ?: 0.0,
-                                                        persons = movie.persons?.joinToString(", ") { it.name } ?: "Неизвестно",
+                                                        ratingKp = movie.rating?.kp ?: 0.0,
+                                                        ratingImdb = movie.rating?.imdb ?: 0.0,
+                                                        votesKp = movie.votes?.kp ?: 0,
+                                                        votesImdb = movie.votes?.imdb ?: 0,
+                                                        persons = movie.persons?.joinToString(", ") { it.name }
+                                                            ?: "Неизвестно",
                                                         isFavorite = movie.isFavorite,
                                                         isBookMark = movie.isBookMark,
                                                         isRated = movie.isRated,
@@ -876,15 +1057,40 @@ fun MainScreen(
                                             },
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        AsyncImage(
-                                            model = movie.poster?.url,
-                                            contentDescription = "Постер фильма",
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .height(250.dp)
-                                                .clip(RoundedCornerShape(15.dp)),
-                                            contentScale = ContentScale.Crop
-                                        )
+                                        Box {
+                                            AsyncImage(
+                                                model = movie.poster?.url,
+                                                contentDescription = "Постер фильма",
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .height(250.dp)
+                                                    .clip(RoundedCornerShape(15.dp)),
+                                                contentScale = ContentScale.Crop
+                                            )
+
+                                            // Оценка
+                                            val rating = movie.rating?.kp ?: 0.0
+                                            val backgroundColor = when {
+                                                rating > 7 -> colorResource(id = R.color.kp_rating)
+                                                rating >= 5 -> Color(0xFFFF9800)
+                                                else -> Color(0xFFF44336)
+                                            }
+
+                                            Text(
+                                                text = String.format("%.1f", rating),
+                                                color = Color.White,
+                                                fontSize = 14.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                modifier = Modifier
+                                                    .padding(8.dp)
+                                                    .background(
+                                                        color = backgroundColor,
+                                                        shape = RoundedCornerShape(6.dp)
+                                                    )
+                                                    .padding(horizontal = 10.dp, vertical = 2.dp)
+                                                    .align(Alignment.TopStart)
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -921,10 +1127,10 @@ fun MainScreen(
                                         .padding(end = 24.dp)
                                         .wrapContentSize()
                                 ) {
-                                    Text(
-                                        text = "Посмотреть",
-                                        fontSize = 10.sp,
-                                        color = MaterialTheme.colorScheme.onBackground.copy(0.7f),
+                                    Icon(
+                                        imageVector = Icons.Outlined.ChevronRight,
+                                        contentDescription = "Посмотреть",
+                                        tint = iconColor
                                     )
                                 }
 
@@ -938,8 +1144,8 @@ fun MainScreen(
                                         Box(
                                             modifier = Modifier
                                                 .padding(start = 8.dp)
-                                                .width(120.dp)
-                                                .height(200.dp)
+                                                .width(170.dp)
+                                                .height(250.dp)
                                                 .clip(RoundedCornerShape(15.dp))
                                                 .background(Color.Gray)
                                                 .clickable {
@@ -961,18 +1167,44 @@ fun MainScreen(
                                                 },
                                             contentAlignment = Alignment.Center
                                         ) {
-                                            AsyncImage(
-                                                model = book.thumbnail?.replace(
-                                                    "http://",
-                                                    "https://"
-                                                ),
-                                                contentDescription = "Обложка книги",
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .height(250.dp)
-                                                    .clip(RoundedCornerShape(15.dp)),
-                                                contentScale = ContentScale.Crop
-                                            )
+                                            Box {
+                                                AsyncImage(
+                                                    model = book.thumbnail?.replace(
+                                                        "http://",
+                                                        "https://"
+                                                    ),
+                                                    contentDescription = "Обложка книги",
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .height(250.dp)
+                                                        .clip(RoundedCornerShape(15.dp)),
+                                                    contentScale = ContentScale.Crop
+                                                )
+
+                                                // Оценка
+                                                val rating = book.userRating
+                                                val backgroundColor = when {
+                                                    rating > 7 -> colorResource(id = R.color.kp_rating)
+                                                    rating >= 5 -> Color(0xFFFF9800)
+                                                    else -> Color(0xFFF44336)
+                                                }
+                                                if (rating != -1) {
+                                                    Text(
+                                                        text = String.format("%.1f", rating),
+                                                        color = Color.White,
+                                                        fontSize = 14.sp,
+                                                        fontWeight = FontWeight.Bold,
+                                                        modifier = Modifier
+                                                            .padding(8.dp)
+                                                            .background(
+                                                                color = backgroundColor,
+                                                                shape = RoundedCornerShape(6.dp)
+                                                            )
+                                                            .padding(horizontal = 10.dp, vertical = 2.dp)
+                                                            .align(Alignment.TopStart)
+                                                    )
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -987,7 +1219,7 @@ fun MainScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = "Рекомендуемые книги",
+                                    text = "Книги для вас",
                                     fontSize = 20.sp,
                                     fontWeight = FontWeight.Bold,
                                     modifier = Modifier.padding(start = 24.dp)
@@ -995,7 +1227,7 @@ fun MainScreen(
                                 Button(
                                     onClick = {
                                         navController.navigate(
-                                            BookScreenDataObject(
+                                            RecBookScreenDataObject(
                                                 navData.uid,
                                                 navData.email
                                             )
@@ -1010,25 +1242,34 @@ fun MainScreen(
                                         .padding(end = 24.dp)
                                         .wrapContentSize()
                                 ) {
-                                    Text(
-                                        text = "Посмотреть",
-                                        fontSize = 10.sp,
-                                        color = MaterialTheme.colorScheme.onBackground.copy(0.7f),
+                                    Icon(
+                                        imageVector = Icons.Outlined.ChevronRight,
+                                        contentDescription = "Посмотреть",
+                                        tint = iconColor
                                     )
                                 }
 
                             }
-                            LazyRow(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                items(minOf(10, books.itemCount)) { index ->
-                                    books[index]?.let { book ->
+                            if (recommendationBooks.isEmpty()) {
+                                Text(
+                                    text = "Пусто",
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    textAlign = TextAlign.Center
+                                )
+                            } else {
+                                LazyRow(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    items(recommendationBooks.take(10)) { book ->
                                         Box(
                                             modifier = Modifier
                                                 .padding(start = 8.dp)
-                                                .width(120.dp)
-                                                .height(200.dp)
+                                                .width(170.dp)
+                                                .height(250.dp)
                                                 .clip(RoundedCornerShape(15.dp))
                                                 .background(Color.Gray)
                                                 .clickable {
@@ -1037,7 +1278,9 @@ fun MainScreen(
                                                             id = book.id,
                                                             isbn10 = book.isbn10,
                                                             title = book.title,
-                                                            authors = book.authors?.joinToString(", ")
+                                                            authors = book.authors?.joinToString(
+                                                                ", "
+                                                            )
                                                                 ?: "Неизвестно",
                                                             description = book.description
                                                                 ?: "Описание отсутствует",
@@ -1050,18 +1293,44 @@ fun MainScreen(
                                                 },
                                             contentAlignment = Alignment.Center
                                         ) {
-                                            AsyncImage(
-                                                model = book.thumbnail?.replace(
-                                                    "http://",
-                                                    "https://"
-                                                ),
-                                                contentDescription = "Обложка книги",
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .height(250.dp)
-                                                    .clip(RoundedCornerShape(15.dp)),
-                                                contentScale = ContentScale.Crop
-                                            )
+                                            Box {
+                                                AsyncImage(
+                                                    model = book.thumbnail?.replace(
+                                                        "http://",
+                                                        "https://"
+                                                    ),
+                                                    contentDescription = "Обложка книги",
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .height(250.dp)
+                                                        .clip(RoundedCornerShape(15.dp)),
+                                                    contentScale = ContentScale.Crop
+                                                )
+
+                                                // Оценка
+                                                val rating = book.userRating
+                                                val backgroundColor = when {
+                                                    rating > 7 -> colorResource(id = R.color.kp_rating)
+                                                    rating >= 5 -> Color(0xFFFF9800)
+                                                    else -> Color(0xFFF44336)
+                                                }
+                                                if (rating != -1) {
+                                                    Text(
+                                                        text = String.format("%.1f", rating),
+                                                        color = Color.White,
+                                                        fontSize = 14.sp,
+                                                        fontWeight = FontWeight.Bold,
+                                                        modifier = Modifier
+                                                            .padding(8.dp)
+                                                            .background(
+                                                                color = backgroundColor,
+                                                                shape = RoundedCornerShape(6.dp)
+                                                            )
+                                                            .padding(horizontal = 10.dp, vertical = 2.dp)
+                                                            .align(Alignment.TopStart)
+                                                    )
+                                                }
+                                            }
                                         }
                                     }
                                 }

@@ -1,6 +1,7 @@
 package com.example.films_shop.main_screen.bottom_menu
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -36,12 +37,16 @@ fun BottomMenu(
         BottomMenuItem.Favourite
     )
     val selectedItem = remember { mutableStateOf("Home") }
+    val isDark = isSystemInDarkTheme()
+    val backgroundColor = if (isDark) Color.Black else Color.White
+    val iconColor = if (isDark) Color.White else Color.Black
+    val textColor = if (isDark) Color.White else Color.Black
     Box(
         modifier = Modifier
             .padding(horizontal = 16.dp, vertical = 8.dp) // отступы вокруг
             .height(70.dp)
             .clip(RoundedCornerShape(16.dp)) // скругляем углы
-            .background(AppColor) // фон с закруглениями
+            .background(backgroundColor) // фон с закруглениями
     ) {
         NavigationBar(
             containerColor = Color.Transparent
@@ -50,10 +55,10 @@ fun BottomMenu(
                 NavigationBarItem(
                     selected = selectedItem.value == item.title,
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Color.Black,      // цвет иконки выбранного
-                        unselectedIconColor = Color.Black,    // цвет иконки невыбранного
-                        selectedTextColor = Color.Black,      // если есть label, цвет текста выбранного
-                        unselectedTextColor = Color.Black,    // цвет текста невыбранного
+                        selectedIconColor = iconColor,      // цвет иконки выбранного
+                        unselectedIconColor = iconColor,    // цвет иконки невыбранного
+                        selectedTextColor = iconColor,      // если есть label, цвет текста выбранного
+                        unselectedTextColor = textColor,    // цвет текста невыбранного
                         indicatorColor = Color.Transparent    // цвет индикатора (подсветки) выбранного — прозрачный
                     ),
                     onClick = {

@@ -121,7 +121,10 @@ fun FavMovieScreen(
                                     backdropUrl = movie.backdrop?.url ?: "",
                                     persons = movie.persons?.joinToString(", ") { it.name }
                                         ?: "Неизвестно",
-                                    rating = movie.rating?.kp ?: 0.0,
+                                    ratingKp = movie.rating?.kp ?: 0.0,
+                                    ratingImdb = movie.rating?.imdb ?: 0.0,
+                                    votesKp = movie.votes?.kp ?: 0,
+                                    votesImdb = movie.votes?.imdb ?: 0,
                                     isFavorite = movie.isFavorite,
                                     isBookMark = movie.isBookMark,
                                     isRated = movie.isRated,

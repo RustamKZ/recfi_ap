@@ -1,11 +1,15 @@
 import android.annotation.SuppressLint
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.*
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.indicatorColor
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.navigation.NavController
 import com.example.films_shop.main_screen.bottom_menu.BottomMenu
 import com.example.films_shop.main_screen.objects.main_screens_objects.MainScreenDataObject
@@ -13,6 +17,7 @@ import com.example.films_shop.main_screen.screens.favourite_screens.bookmark_scr
 import com.example.films_shop.main_screen.screens.favourite_screens.favourite_screens.FavMovieScreen
 import com.example.films_shop.main_screen.screens.favourite_screens.rated_screens.RatedMovieScreen
 import com.example.films_shop.main_screen.top_bar.TopBarMenu
+import com.example.films_shop.ui.theme.BackGroundColor
 import kotlinx.coroutines.launch
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -25,8 +30,12 @@ fun UserCollectionMovieScreen(
     showTopBar: Boolean = true,
     showBottomBar: Boolean = true,
     scrollBehavior: TopAppBarScrollBehavior,
+    noOpNestedScrollConnection: NestedScrollConnection,
     contentType: ContentType,
 ) {
+    val isDark = isSystemInDarkTheme()
+    val tabColor = if (isDark) BackGroundColor else Color.White
+    val textColor = if (isDark) Color.White else Color.Black
     val tabs = listOf("Избранное", "Посмотреть позже", "Вы оценили")
     val pagerState = rememberPagerState(initialPage = 0, pageCount = { tabs.size })
     val coroutineScope = rememberCoroutineScope()
@@ -49,8 +58,14 @@ fun UserCollectionMovieScreen(
         Column {
             TabRow(
                 selectedTabIndex = pagerState.currentPage,
-                containerColor = Color.White,
-                contentColor = Color.Black
+                containerColor = tabColor,
+                contentColor = textColor,
+                indicator = { tabPositions ->
+                    TabRowDefaults.Indicator(
+                        Modifier.tabIndicatorOffset(tabPositions[pagerState.currentPage]),
+                        color = indicatorColor
+                    )
+                }
             ) {
                 tabs.forEachIndexed { index, title ->
                     Tab(
@@ -63,7 +78,7 @@ fun UserCollectionMovieScreen(
                         text = {
                             Text(
                                 text = title,
-                                color = if (pagerState.currentPage == index) Color.Black else Color.Gray
+                                color = if (pagerState.currentPage == index) textColor else textColor
                             )
                         }
                     )

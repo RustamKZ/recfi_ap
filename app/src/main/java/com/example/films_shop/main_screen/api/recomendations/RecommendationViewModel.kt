@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.films_shop.main_screen.api.Backdrop
 import com.example.films_shop.main_screen.api.BookApi.Book
+import com.example.films_shop.main_screen.api.BookApi.BookViewModel
 import com.example.films_shop.main_screen.api.BookApi.RetrofitInstanceBooks
 import com.example.films_shop.main_screen.api.Movie
 import com.example.films_shop.main_screen.api.Poster
@@ -38,6 +39,10 @@ class RecommendationViewModel : ViewModel() {
     private val _tmdbCollabRecommendationIdsTvSeries = mutableStateOf<List<Int>>(emptyList())
     private val _recommendationCollabTvSeries = mutableStateOf<List<Movie>>(emptyList())
     val recommendationCollabTvSeries: State<List<Movie>> = _recommendationCollabTvSeries
+
+    private val _isbn10CollabRecommendationIds = mutableStateOf<List<String>>(emptyList())
+    private val _recommendationCollabBooks = mutableStateOf<List<Book>>(emptyList())
+    val recommendationCollabBooks: State<List<Book>> = _recommendationCollabBooks
     //Коллаборативная фильтрация
 
     private val _isbn10RecommendationIds = mutableStateOf<List<String>>(emptyList())
@@ -102,7 +107,7 @@ class RecommendationViewModel : ViewModel() {
     fun fetchCollabRecommendationsFilmsCartoonSeries(
         ratings: Map<String, Int>,
         type: String,
-        nRecommendations: Int = 10
+        nRecommendations: Int = 20
     ) {
         Log.d("Debug", "Fetching collab recommendations for type: $type, ratings: $ratings")
         if (ratings.isEmpty()) {
@@ -143,12 +148,26 @@ class RecommendationViewModel : ViewModel() {
                     }
                 }
 
-                Log.d("RecommendationVM", "Коллаб рекомендованные ID: $tmdbIds")
+                Log.d("RecommendationVM", "Коллаб рекомендованные тип $type ID: $tmdbIds")
                 // Проверяем, есть ли рекомендации
                 if (tmdbIds.isEmpty()) {
-                    _recommendationMovies.value = emptyList()
-                    _isLoading.value = false
-                    return@launch
+                    when (type) {
+                        "movie" -> {
+                            _recommendationCollabMovies.value = emptyList()
+                            _isLoading.value = false
+                            return@launch
+                        }
+                        "cartoon" -> {
+                            _recommendationCollabCartoon.value = emptyList()
+                            _isLoading.value = false
+                            return@launch
+                        }
+                        "tv-series" -> {
+                            _recommendationCollabTvSeries.value = emptyList()
+                            _isLoading.value = false
+                            return@launch
+                        }
+                    }
                 }
 
                 // Теперь запрашиваем информацию о фильмах по этим TMDB ID
@@ -182,18 +201,59 @@ class RecommendationViewModel : ViewModel() {
                 Log.d("RecommendationBooks", "Получены isbn10 рекомендаций: $isbn10Ids")
                 // Проверяем, есть ли рекомендации
                 if (isbn10Ids.isEmpty()) {
-                    _recommendationMovies.value = emptyList()
+                    _recommendationBooks.value = emptyList()
                     _isLoading.value = false
                     getSameBooksFromGoogleApi(isbn10, authors)
                     return@launch
                 }
 
-                // Теперь запрашиваем информацию о фильмах по этим TMDB ID
                 fetchBooksByIsbn10(isbn10Ids)
 
             } catch (e: Exception) {
                 Log.e("RecommendationVM", "Ошибка при получении рекомендаций", e)
                 _error.value = "Ошибка получения рекомендаций: ${e.message}"
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun fetchCollabRecommendationsBooks(
+        ratings: Map<String, Int>,
+        bookViewModel: BookViewModel,
+        nRecommendations: Int = 20
+    ) {
+        Log.d("Debug", "Fetching collab recommendations for books, ratings: $ratings")
+        if (ratings.isEmpty()) {
+            _error.value = "Не передано ни одной оценки книг"
+            return
+        }
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+
+            try {
+                // Получаем рекомендации (ID фильмов из TMDB)
+                Log.d("RecommendationCollabBooks", "Получены ratings: $ratings")
+                val response = ApiClient.api.getCollaborativeRecommendationsBooks(
+                    nRecommendations = nRecommendations,
+                    ratings = ratings
+                )
+                if (response.isNotEmpty()) {
+                    _isbn10CollabRecommendationIds.value = response
+                }
+                Log.d("RecommendationVM", "Коллаб рекомендованные isn10 книги: ${_isbn10CollabRecommendationIds.value}")
+                if (response.isEmpty()) {
+                    getSameBooksFromGoogleApiColab(bookViewModel)
+                    _isLoading.value = false
+                    return@launch
+                }
+
+                // Теперь запрашиваем информацию о книгах
+                fetchBooksByIsbn10(response)
+
+            } catch (e: Exception) {
+                Log.e("RecommendationVM", "Ошибка при получении коллаб рекомендаций книг", e)
+                _error.value = "Ошибка получения коллаб рекомендаций книг: ${e.message}"
                 _isLoading.value = false
             }
         }
@@ -293,7 +353,9 @@ class RecommendationViewModel : ViewModel() {
             }
 
             // Фильтруем фильмы без названия
-            val filteredMovies = updatedMovies.filter { it.name != null }
+            val filteredMovies = updatedMovies.filterNot {
+                it.name == null || it.poster == Poster("https://raw.githubusercontent.com/RustamKZ/recfi_ap/refs/heads/master/poster.jpg")
+            }
             when (type) {
                 "movie" -> {
                     _recommendationCollabMovies.value = filteredMovies
@@ -378,7 +440,7 @@ class RecommendationViewModel : ViewModel() {
 
                 val response = RetrofitInstanceBooks.api.searchBooks(
                     query = "inauthor:$author",
-                    maxResults = 20,  // побольше результатов, вдруг автор плодовитый
+                    maxResults = 20,
                     lang = "ru",
                     orderBy = "relevance"
                 )
@@ -414,6 +476,77 @@ class RecommendationViewModel : ViewModel() {
         }
     }
 
+    private fun getSameBooksFromGoogleApiColab(bookViewModel: BookViewModel) {
+        viewModelScope.launch {
+            try {
+                _isLoading.value = true
+                _error.value = null
 
+                val ratedBooks = bookViewModel.ratedBooksTripleState.value
+
+                // Фильтруем только те книги, у которых есть автор и рейтинг > 2
+                val filteredRatedBooks = ratedBooks
+                    .filter { it.author.isNotBlank() && it.userRating > 2.0 }
+
+                val existingIsbn10s = ratedBooks.map { it.isbn10 }.toSet()
+                val collectedBooks = mutableListOf<Book>()
+                val processedAuthors = mutableSetOf<String>()
+
+                for (rated in filteredRatedBooks.sortedByDescending { it.userRating }) {
+                    val author = rated.author
+                    if (author in processedAuthors) continue
+                    processedAuthors.add(author)
+
+                    // Определяем, сколько книг брать в зависимости от userRating
+                    val booksToFetch = when {
+                        rated.userRating >= 5 -> 8
+                        rated.userRating >= 4 -> 6
+                        rated.userRating >= 3 -> 4
+                        else -> 2
+                    }
+
+                    val response = RetrofitInstanceBooks.api.searchBooks(
+                        query = "inauthor:$author",
+                        maxResults = booksToFetch,
+                        lang = "ru",
+                        orderBy = "relevance"
+                    )
+
+                    val books = response.items.orEmpty()
+                        .mapNotNull { item ->
+                            val isbn = item.volumeInfo.industryIdentifiers
+                                ?.firstOrNull { it.type == "ISBN_10" }
+                                ?.identifier ?: return@mapNotNull null
+
+                            if (isbn in existingIsbn10s) return@mapNotNull null
+
+                            Book(
+                                id = item.id,
+                                title = item.volumeInfo.title,
+                                authors = item.volumeInfo.authors ?: listOf("Неизвестный автор"),
+                                thumbnail = item.volumeInfo.imageLinks?.thumbnail,
+                                publishedDate = item.volumeInfo.publishedDate,
+                                description = item.volumeInfo.description,
+                                isbn10 = isbn
+                            )
+                        }
+
+                    collectedBooks.addAll(books)
+
+                    if (collectedBooks.size >= 30) break
+                }
+
+                _recommendationCollabBooks.value = collectedBooks.take(30)
+                _isLoading.value = false
+
+                Log.d("CollabRecommendations", "Найдено рекомендованных книг: ${collectedBooks.size}")
+
+            } catch (e: Exception) {
+                Log.e("CollabRecommendations", "Ошибка загрузки рекомендаций", e)
+                _error.value = "Ошибка загрузки рекомендаций: ${e.message}"
+                _isLoading.value = false
+            }
+        }
+    }
 
 }
