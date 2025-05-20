@@ -196,7 +196,12 @@ class MovieViewModel : ViewModel() {
                                     genres = favorite.genres?.map { Genre(it) },
                                     rating = Rating(favorite.ratingKp ?: 0.0, favorite.ratingImdb ?: 0.0),
                                     votes = Votes(favorite.votesKp ?: 0, favorite.votesImdb ?: 0),
-                                    persons = favorite.persons?.map { Persons(it) },
+                                    persons = favorite.persons?.map {
+                                        val parts = it.split("|")
+                                        val name = parts.getOrElse(0) { "" }
+                                        val photo = parts.getOrElse(1) { "" }
+                                        Persons(name = name, photo = photo)
+                                    },
                                     description = favorite.description,
                                     type = favorite.type,
                                     isFavorite = true,
@@ -257,7 +262,12 @@ class MovieViewModel : ViewModel() {
                                     genres = bookmark.genres?.map { Genre(it) },
                                     rating = Rating(bookmark.ratingKp ?: 0.0,bookmark.ratingImdb ?: 0.0),
                                     votes = Votes(bookmark.votesKp ?: 0, bookmark.votesImdb ?: 0),
-                                    persons = bookmark.persons?.map { Persons(it) },
+                                    persons = bookmark.persons?.map {
+                                        val parts = it.split("|")
+                                        val name = parts.getOrElse(0) { "" }
+                                        val photo = parts.getOrElse(1) { "" }
+                                        Persons(name = name, photo = photo)
+                                    },
                                     description = bookmark.description,
                                     type = bookmark.type,
                                     isFavorite = bookmark.isFavorite,
@@ -318,7 +328,12 @@ class MovieViewModel : ViewModel() {
                                     genres = rated.genres?.map { Genre(it) },
                                     rating = Rating(rated.ratingKp ?: 0.0, rated.ratingImdb ?: 0.0),
                                     votes = Votes(rated.votesKp ?: 0, rated.votesImdb ?: 0),
-                                    persons = rated.persons?.map { Persons(it) },
+                                    persons = rated.persons?.map {
+                                        val parts = it.split("|")
+                                        val name = parts.getOrElse(0) { "" }
+                                        val photo = parts.getOrElse(1) { "" }
+                                        Persons(name = name, photo = photo)
+                                    },
                                     description = rated.description,
                                     type = rated.type,
                                     isFavorite = rated.isFavorite,

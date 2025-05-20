@@ -1,6 +1,7 @@
 package com.example.films_shop.main_screen.screens
 
 import MovieViewModel
+import android.util.Log
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -9,6 +10,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -87,6 +89,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.window.Dialog
 import com.example.films_shop.R
@@ -122,16 +125,19 @@ fun RatingCard(
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            val itemModifier = Modifier
+                .weight(1f)
+                //.padding(vertical = 16.dp)
             val formattedRatingKp = String.format("%.1f", navObject.ratingKp)
             val formattedRatingImdb = String.format("%.1f", navObject.ratingImdb)
-            RatingItem(title = "Кинопоиск", rating = formattedRatingKp, votes = navObject.votesKp.toString(), buttonTextColor)
+            RatingItem(title = "Кинопоиск", rating = formattedRatingKp, votes = navObject.votesKp.toString(), buttonTextColor, itemModifier)
             Divider(
                 color = Color.LightGray,
                 modifier = Modifier
                     .height(150.dp)
                     .width(1.dp)
             )
-            RatingItem(title = "IMDb", rating = formattedRatingImdb, votes = navObject.votesImdb.toString(), buttonTextColor)
+            RatingItem(title = "IMDb", rating = formattedRatingImdb, votes = navObject.votesImdb.toString(), buttonTextColor, itemModifier)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -155,41 +161,52 @@ fun RatingCard(
 }
 
 @Composable
-fun RatingItem(title: String, rating: String, votes: String,  buttonTextColor: Color) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(text = title, style = MaterialTheme.typography.labelMedium, color = buttonTextColor, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+fun RatingItem(title: String, rating: String, votes: String,  buttonTextColor: Color,  modifier: Modifier = Modifier) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = modifier) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.labelMedium,
+            color = buttonTextColor,
+            fontSize = 17.sp,
+            fontWeight = FontWeight.Bold)
         Text(
             text = rating,
             style = MaterialTheme.typography.displayLarge.copy(fontWeight = FontWeight.Bold, color = buttonTextColor, fontSize = 35.sp,),
             modifier = Modifier.padding(vertical = 4.dp)
         )
-        Text(text = votes, style = MaterialTheme.typography.bodySmall, color = Color.Gray, fontSize = 15.sp,)
+        Text(
+            text = votes,
+            style = MaterialTheme.typography.bodySmall,
+            color = Color.Gray,
+            fontSize = 15.sp,)
     }
 }
 
 @Composable
-fun CastAndCrewSection() {
+fun CastAndCrewSection(navObject: DetailsNavMovieObject) {
+    val castList = remember(navObject.persons) {
+        navObject.persons.split(", ")
+            .map {
+                val (name, photo) = it.split("|", limit = 2)
+                Cast(name = name, photoUrl = photo)
+            }
+    }
+
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = Modifier.fillMaxWidth()
     ) {
-        LazyRow {
-            items(dummyCastList) { cast ->
+        LazyRow(
+            contentPadding = PaddingValues(horizontal = 16.dp)
+        ) {
+            items(castList) { cast ->
                 CastItem(cast)
             }
         }
     }
 }
 
-data class Cast(val name: String, val role: String)
 
-val dummyCastList = listOf(
-    Cast("Demi Moore", "Elisabeth"),
-    Cast("Margaret Qualley", "Sue"),
-    Cast("Dennis Quaid", "Harvey"),
-    Cast("Oscar Lee", "Troy"),
-    Cast("Jane Doe", "Anna")
-)
+data class Cast(val name: String, val photoUrl: String)
 
 @Composable
 fun CastItem(cast: Cast) {
@@ -198,12 +215,15 @@ fun CastItem(cast: Cast) {
             .padding(end = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Круглая заглушка изображения
-        Box(
+        AsyncImage(
+            model = cast.photoUrl,
+            contentDescription = cast.name,
+            error = painterResource(R.drawable.error_avatar),
+            contentScale = ContentScale.Crop,
             modifier = Modifier
                 .size(72.dp)
                 .clip(CircleShape)
-                .background(Color.Gray)
+                .background(Color.LightGray) // placeholder bg
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -211,20 +231,13 @@ fun CastItem(cast: Cast) {
         Text(
             text = cast.name,
             style = MaterialTheme.typography.labelMedium,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
-        Text(
-            text = cast.role,
-            style = MaterialTheme.typography.bodySmall,
-            color = Color.Gray,
+            fontSize = 15.sp,
+            fontWeight = FontWeight.Bold,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
     }
 }
-
-
 
 @Composable
 fun TestDetailsMovieScreen(
@@ -270,6 +283,7 @@ fun TestDetailsMovieScreen(
     var expandedButton by remember { mutableStateOf(false) }
     LaunchedEffect(id)
     {
+        Log.d("TestNav", "${navObject.persons}")
         if (id != 0) {
             when (navObject.type) {
                 "movie" -> recViewModel.fetchRecommendations(id, navObject.type)
@@ -373,7 +387,12 @@ fun TestDetailsMovieScreen(
                                                     .map { Genre(name = it) },
                                                 year = navObject.year.toIntOrNull().toString(),
                                                 persons = navObject.persons.split(", ")
-                                                    .map { Persons(name = it) },
+                                                    .map {
+                                                        val parts = it.split("|")
+                                                        val name = parts.getOrElse(0) { "" }
+                                                        val photo = parts.getOrElse(1) { "" }
+                                                        Persons(name = name, photo = photo)
+                                                    },
                                                 rating = Rating(navObject.ratingKp, navObject.ratingImdb),
                                                 votes = Votes(navObject.votesKp, navObject.votesImdb),
                                                 isFavorite = isFavorite,
@@ -381,6 +400,7 @@ fun TestDetailsMovieScreen(
                                                 isRated = isRated,
                                                 userRating = navObject.userRating
                                             )
+                                            Log.d("TestNav", "${movie.persons}")
                                             onFavsMovies(db, data.uid, movie, !movie.isFavorite)
                                         }
                                     },
@@ -449,7 +469,12 @@ fun TestDetailsMovieScreen(
                                     genres = navObject.genre.split(", ").map { Genre(name = it) },
                                     year = navObject.year.toIntOrNull().toString(),
                                     persons = navObject.persons.split(", ")
-                                        .map { Persons(name = it) },
+                                        .map {
+                                            val parts = it.split("|")
+                                            val name = parts.getOrElse(0) { "" }
+                                            val photo = parts.getOrElse(1) { "" }
+                                            Persons(name = name, photo = photo)
+                                        },
                                     rating = Rating(navObject.ratingKp, navObject.ratingImdb),
                                     votes = Votes(navObject.votesKp, navObject.votesImdb),
                                     isFavorite = isFavorite,
@@ -552,7 +577,12 @@ fun TestDetailsMovieScreen(
                                                 .map { Genre(name = it) },
                                             year = navObject.year.toIntOrNull().toString(),
                                             persons = navObject.persons.split(", ")
-                                                .map { Persons(name = it) },
+                                                .map {
+                                                    val parts = it.split("|")
+                                                    val name = parts.getOrElse(0) { "" }
+                                                    val photo = parts.getOrElse(1) { "" }
+                                                    Persons(name = name, photo = photo)
+                                                },
                                             rating = Rating(navObject.ratingKp, navObject.ratingImdb),
                                             votes = Votes(navObject.votesKp, navObject.votesImdb),
                                             isFavorite = isFavorite,
@@ -655,7 +685,8 @@ fun TestDetailsMovieScreen(
                         )
 
                         Text(
-                            text = navObject.persons,
+                            text = navObject.persons.split(", ")
+                                .map { it.substringBefore("|") }.joinToString(),
                             color = Color.Gray,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
@@ -704,13 +735,13 @@ fun TestDetailsMovieScreen(
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                         Text(
-                            text = "Актёры",
+                            text = "Cъёмочная группа",
                             fontSize = 25.sp,
                             style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold
                         )
                         Spacer(modifier = Modifier.height(12.dp))
-                        CastAndCrewSection()
+                        CastAndCrewSection(navObject)
                         Spacer(modifier = Modifier.height(12.dp))
                         when (navObject.type) {
                             "movie" -> Text(
@@ -784,7 +815,7 @@ fun TestDetailsMovieScreen(
                                                         ratingImdb = movie.rating?.imdb ?: 0.0,
                                                         votesKp = movie.votes?.kp ?: 0,
                                                         votesImdb = movie.votes?.imdb ?: 0,
-                                                        persons = movie.persons?.joinToString(", ") { it.name }
+                                                        persons = movie.persons?.joinToString(", ") { "${it.name}|${it.photo}" }
                                                             ?: "Неизвестно",
                                                         isFavorite = movieViewModel.isInFavorites(
                                                             movie.id

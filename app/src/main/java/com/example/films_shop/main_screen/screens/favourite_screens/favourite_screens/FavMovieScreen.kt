@@ -119,7 +119,7 @@ fun FavMovieScreen(
                                     description = movie.description ?: "Описание отсутствует",
                                     imageUrl = movie.poster?.url ?: "",
                                     backdropUrl = movie.backdrop?.url ?: "",
-                                    persons = movie.persons?.joinToString(", ") { it.name }
+                                    persons = movie.persons?.joinToString(", ") { "${it.name}|${it.photo}" }
                                         ?: "Неизвестно",
                                     ratingKp = movie.rating?.kp ?: 0.0,
                                     ratingImdb = movie.rating?.imdb ?: 0.0,

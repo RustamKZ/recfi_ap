@@ -343,7 +343,7 @@ fun MainScreen(
                                                     ratingImdb = movie.rating?.imdb ?: 0.0,
                                                     votesKp = movie.votes?.kp ?: 0,
                                                     votesImdb = movie.votes?.imdb ?: 0,
-                                                    persons = movie.persons?.joinToString(", ") { it.name }
+                                                    persons = movie.persons?.joinToString(", ") { "${it.name}|${it.photo}" }
                                                         ?: "Неизвестно",
                                                     isFavorite = movie.isFavorite,
                                                     isBookMark = movie.isBookMark,
@@ -551,7 +551,7 @@ fun MainScreen(
                                                         ratingImdb = movie.rating?.imdb ?: 0.0,
                                                         votesKp = movie.votes?.kp ?: 0,
                                                         votesImdb = movie.votes?.imdb ?: 0,
-                                                        persons = movie.persons?.joinToString(", ") { it.name }
+                                                        persons = movie.persons?.joinToString(", ") { "${it.name}|${it.photo}" }
                                                             ?: "Неизвестно",
                                                         isFavorite = movie.isFavorite,
                                                         isBookMark = movie.isBookMark,
@@ -671,7 +671,7 @@ fun MainScreen(
                                                             ratingImdb = movie.rating?.imdb ?: 0.0,
                                                             votesKp = movie.votes?.kp ?: 0,
                                                             votesImdb = movie.votes?.imdb ?: 0,
-                                                            persons = movie.persons?.joinToString(", ") { it.name }
+                                                            persons = movie.persons?.joinToString(", ") { "${it.name}|${it.photo}" }
                                                                 ?: "Неизвестно",
                                                             isFavorite = movie.isFavorite,
                                                             isBookMark = movie.isBookMark,
@@ -798,7 +798,7 @@ fun MainScreen(
                                                         ratingImdb = movie.rating?.imdb ?: 0.0,
                                                         votesKp = movie.votes?.kp ?: 0,
                                                         votesImdb = movie.votes?.imdb ?: 0,
-                                                        persons = movie.persons?.joinToString(", ") { it.name }
+                                                        persons = movie.persons?.joinToString(", ") { "${it.name}|${it.photo}" }
                                                             ?: "Неизвестно",
                                                         isFavorite = movie.isFavorite,
                                                         isBookMark = movie.isBookMark,
@@ -919,7 +919,7 @@ fun MainScreen(
                                                             ratingImdb = movie.rating?.imdb ?: 0.0,
                                                             votesKp = movie.votes?.kp ?: 0,
                                                             votesImdb = movie.votes?.imdb ?: 0,
-                                                            persons = movie.persons?.joinToString(", ") { it.name }
+                                                            persons = movie.persons?.joinToString(", ") { "${it.name}|${it.photo}" }
                                                                 ?: "Неизвестно",
                                                             isFavorite = movie.isFavorite,
                                                             isBookMark = movie.isBookMark,
@@ -1046,7 +1046,7 @@ fun MainScreen(
                                                         ratingImdb = movie.rating?.imdb ?: 0.0,
                                                         votesKp = movie.votes?.kp ?: 0,
                                                         votesImdb = movie.votes?.imdb ?: 0,
-                                                        persons = movie.persons?.joinToString(", ") { it.name }
+                                                        persons = movie.persons?.joinToString(", ") { "${it.name}|${it.photo}" }
                                                             ?: "Неизвестно",
                                                         isFavorite = movie.isFavorite,
                                                         isBookMark = movie.isBookMark,

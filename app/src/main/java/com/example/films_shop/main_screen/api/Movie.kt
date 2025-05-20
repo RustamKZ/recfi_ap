@@ -47,6 +47,7 @@ data class Genre(
 
 data class Persons(
     val name: String = "",
+    val photo: String = "",
     val profession: String = ""
 )
 

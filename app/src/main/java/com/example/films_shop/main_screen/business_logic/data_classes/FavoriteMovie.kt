@@ -31,7 +31,7 @@ data class FavoriteMovie(
         backdropUrl = movie.backdrop?.url,
         description = movie.description,
         genres = movie.genres?.map { it.name },
-        persons = movie.persons?.map {it.name},
+        persons = movie.persons?.map { "${it.name}|${it.photo}" },
         ratingKp = movie.rating?.kp,
         ratingImdb = movie.rating?.imdb,
         votesKp = movie.votes?.kp,
