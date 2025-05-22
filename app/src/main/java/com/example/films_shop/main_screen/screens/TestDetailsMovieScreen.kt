@@ -3,9 +3,10 @@ package com.example.films_shop.main_screen.screens
 import MovieViewModel
 import android.util.Log
 import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,12 +17,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -29,8 +28,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.StarHalf
-import androidx.compose.material.icons.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.ExpandLess
@@ -87,20 +84,66 @@ import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import coil.request.ImageRequest
 import com.example.films_shop.R
 import com.example.films_shop.main_screen.api.Backdrop
 import com.example.films_shop.main_screen.api.Votes
 import com.example.films_shop.main_screen.business_logic.onBookmarkMovies
 import com.example.films_shop.main_screen.business_logic.onRatedMovies
-import com.example.films_shop.main_screen.screens.custom_ui.CutCornerLeftShape
 import com.example.films_shop.ui.theme.BackGroundColor
 import com.example.films_shop.ui.theme.BackGroundColorButton
 import com.example.films_shop.ui.theme.BackGroundColorButtonLightGray
+import com.google.accompanist.placeholder.PlaceholderHighlight
+import com.google.accompanist.placeholder.placeholder
+import com.google.accompanist.placeholder.shimmer
+
+@Composable
+fun ShimmerImageItem(
+    imageUrl: String,
+    onClick: (String) -> Unit, // Добавляем колбэк для обработки клика
+) {
+    var isImageLoading by remember { mutableStateOf(true) }
+
+    Box( // Используем Box, чтобы позволить размещать clickable поверх, хотя Modifier.clickable работает и напрямую на AsyncImage
+        modifier = Modifier
+            .padding(end = 12.dp)
+            .height(200.dp)
+            .width(350.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .clickable { onClick(imageUrl) } // Делаем весь элемент кликабельным
+    ) {
+        AsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(imageUrl)
+                .crossfade(true)
+                .listener(
+                    onSuccess = { _, _ -> isImageLoading = false },
+                    onError = { _, _ -> isImageLoading = false }
+                )
+                .build(),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .fillMaxSize() // Делаем AsyncImage заполняющим Box
+                .placeholder(
+                    visible = isImageLoading,
+                    color = Color.LightGray,
+                    highlight = PlaceholderHighlight.shimmer(
+                        highlightColor = Color.White.copy(alpha = 0.6f)
+                    )
+                )
+        )
+    }
+}
 
 @Composable
 fun RatingCard(
@@ -108,7 +151,7 @@ fun RatingCard(
     isDark: Boolean,
     imageGradColor: Color,
     buttonBackgroundColor: Color,
-    buttonTextColor: Color
+    buttonTextColor: Color,
 ) {
     Column(
         modifier = Modifier
@@ -127,17 +170,29 @@ fun RatingCard(
         ) {
             val itemModifier = Modifier
                 .weight(1f)
-                //.padding(vertical = 16.dp)
+            //.padding(vertical = 16.dp)
             val formattedRatingKp = String.format("%.1f", navObject.ratingKp)
             val formattedRatingImdb = String.format("%.1f", navObject.ratingImdb)
-            RatingItem(title = "Кинопоиск", rating = formattedRatingKp, votes = navObject.votesKp.toString(), buttonTextColor, itemModifier)
+            RatingItem(
+                title = "Кинопоиск",
+                rating = formattedRatingKp,
+                votes = navObject.votesKp.toString(),
+                buttonTextColor,
+                itemModifier
+            )
             Divider(
                 color = Color.LightGray,
                 modifier = Modifier
                     .height(150.dp)
                     .width(1.dp)
             )
-            RatingItem(title = "IMDb", rating = formattedRatingImdb, votes = navObject.votesImdb.toString(), buttonTextColor, itemModifier)
+            RatingItem(
+                title = "IMDb",
+                rating = formattedRatingImdb,
+                votes = navObject.votesImdb.toString(),
+                buttonTextColor,
+                itemModifier
+            )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -161,24 +216,36 @@ fun RatingCard(
 }
 
 @Composable
-fun RatingItem(title: String, rating: String, votes: String,  buttonTextColor: Color,  modifier: Modifier = Modifier) {
+fun RatingItem(
+    title: String,
+    rating: String,
+    votes: String,
+    buttonTextColor: Color,
+    modifier: Modifier = Modifier,
+) {
     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = modifier) {
         Text(
             text = title,
             style = MaterialTheme.typography.labelMedium,
             color = buttonTextColor,
             fontSize = 17.sp,
-            fontWeight = FontWeight.Bold)
+            fontWeight = FontWeight.Bold
+        )
         Text(
             text = rating,
-            style = MaterialTheme.typography.displayLarge.copy(fontWeight = FontWeight.Bold, color = buttonTextColor, fontSize = 35.sp,),
+            style = MaterialTheme.typography.displayLarge.copy(
+                fontWeight = FontWeight.Bold,
+                color = buttonTextColor,
+                fontSize = 35.sp,
+            ),
             modifier = Modifier.padding(vertical = 4.dp)
         )
         Text(
             text = votes,
             style = MaterialTheme.typography.bodySmall,
             color = Color.Gray,
-            fontSize = 15.sp,)
+            fontSize = 15.sp,
+        )
     }
 }
 
@@ -250,7 +317,8 @@ fun TestDetailsMovieScreen(
     val isDark = isSystemInDarkTheme()
     val imageGradColor = if (isDark) BackGroundColor else Color.White
     val textColor = if (isDark) Color.White else Color.Black
-    val buttonBackgroundColor = if (isDark) BackGroundColorButton else BackGroundColorButtonLightGray
+    val buttonBackgroundColor =
+        if (isDark) BackGroundColorButton else BackGroundColorButtonLightGray
     val buttonTextColor = if (isDark) Color.White else Color.Black
     var expanded by remember { mutableStateOf(false) }
     val isFavorite = remember(
@@ -290,8 +358,11 @@ fun TestDetailsMovieScreen(
                 "tv-series" -> recViewModel.fetchRecommendations(id, navObject.type)
                 "cartoon" -> recViewModel.fetchRecommendations(id, navObject.type)
             }
+            movieViewModel.loadImagesForMovie(navObject.id.toInt())
         }
     }
+    val images by remember { movieViewModel.imagesState }
+    var selectedImageUrl by remember { mutableStateOf<String?>(null) }
 
     // ui stars
     val filledStars = (navObject.ratingKp / 2).toInt()
@@ -393,8 +464,14 @@ fun TestDetailsMovieScreen(
                                                         val photo = parts.getOrElse(1) { "" }
                                                         Persons(name = name, photo = photo)
                                                     },
-                                                rating = Rating(navObject.ratingKp, navObject.ratingImdb),
-                                                votes = Votes(navObject.votesKp, navObject.votesImdb),
+                                                rating = Rating(
+                                                    navObject.ratingKp,
+                                                    navObject.ratingImdb
+                                                ),
+                                                votes = Votes(
+                                                    navObject.votesKp,
+                                                    navObject.votesImdb
+                                                ),
                                                 isFavorite = isFavorite,
                                                 isBookMark = isBookmark,
                                                 isRated = isRated,
@@ -583,7 +660,10 @@ fun TestDetailsMovieScreen(
                                                     val photo = parts.getOrElse(1) { "" }
                                                     Persons(name = name, photo = photo)
                                                 },
-                                            rating = Rating(navObject.ratingKp, navObject.ratingImdb),
+                                            rating = Rating(
+                                                navObject.ratingKp,
+                                                navObject.ratingImdb
+                                            ),
                                             votes = Votes(navObject.votesKp, navObject.votesImdb),
                                             isFavorite = isFavorite,
                                             isBookMark = isBookmark,
@@ -639,7 +719,10 @@ fun TestDetailsMovieScreen(
                             .align(Alignment.BottomCenter)
                             .background(
                                 brush = Brush.verticalGradient(
-                                    colors = listOf(Color.Transparent, imageGradColor) // здесь можно указать любой цвет
+                                    colors = listOf(
+                                        Color.Transparent,
+                                        imageGradColor
+                                    ) // здесь можно указать любой цвет
                                 )
                             )
                     )
@@ -662,7 +745,10 @@ fun TestDetailsMovieScreen(
                     .map { it.trim().replaceFirstChar { c -> c.uppercaseChar() } }
                     .take(3)
                     .joinToString("   ")
-                Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
                     Text(
                         text = genresFormatted,
                         color = Color.Gray,
@@ -733,7 +819,7 @@ fun TestDetailsMovieScreen(
                             buttonBackgroundColor,
                             buttonTextColor
                         )
-                        Spacer(modifier = Modifier.height(12.dp))
+                        Spacer(modifier = Modifier.height(25.dp))
                         Text(
                             text = "Cъёмочная группа",
                             fontSize = 25.sp,
@@ -742,7 +828,87 @@ fun TestDetailsMovieScreen(
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                         CastAndCrewSection(navObject)
-                        Spacer(modifier = Modifier.height(12.dp))
+                        Spacer(modifier = Modifier.height(25.dp))
+                        if (images.isNotEmpty()) {
+                            Text(
+                                text = "Изображения",
+                                fontSize = 25.sp,
+                                fontWeight = FontWeight.Bold,
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
+                            LazyRow() {
+                                items(images) { image ->
+                                    ShimmerImageItem(
+                                        imageUrl = image.url,
+                                        onClick = { url -> selectedImageUrl = url }
+                                    )
+                                }
+                            }
+                            selectedImageUrl?.let { imageUrl ->
+                                Dialog(
+                                    onDismissRequest = { selectedImageUrl = null },
+                                    properties = DialogProperties(usePlatformDefaultWidth = false) // Отключаем стандартную ширину платформы
+                                ) {
+                                    // Состояния для зума и панорамирования
+                                    var scale by remember { mutableStateOf(1f) }
+                                    var offset by remember { mutableStateOf(Offset.Zero) }
+
+                                    // Порог для закрытия диалога при панорамировании
+                                    val dismissThreshold = 100.dp // Порог в dp
+
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .background(Color.Black.copy(alpha = 0.9f))
+                                            .clickable(
+                                                interactionSource = remember { MutableInteractionSource() },
+                                                indication = null
+                                            ) {
+                                                selectedImageUrl = null
+                                            }
+                                            .pointerInput(Unit) {
+                                                detectTransformGestures(
+                                                    onGesture = { centroid, pan, zoom, _ ->
+                                                        scale = (scale * zoom).coerceIn(
+                                                            0.5f,
+                                                            5f
+                                                        ) // Ограничиваем зум от 0.5x до 5x
+
+
+                                                        if (scale > 1.05f) {
+                                                            offset += pan
+                                                        } else {
+                                                            if (kotlin.math.abs(pan.y) > dismissThreshold.toPx()) {
+                                                                selectedImageUrl =
+                                                                    null
+                                                            }
+                                                            offset = Offset.Zero
+                                                        }
+                                                    }
+                                                )
+                                            }
+                                    ) {
+                                        AsyncImage(
+                                            model = ImageRequest.Builder(LocalContext.current)
+                                                .data(imageUrl)
+                                                .crossfade(true)
+                                                .build(),
+                                            contentDescription = null,
+                                            contentScale = ContentScale.Fit,
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .graphicsLayer(
+                                                    scaleX = scale,
+                                                    scaleY = scale,
+                                                    translationX = offset.x,
+                                                    translationY = offset.y
+                                                )
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(25.dp))
                         when (navObject.type) {
                             "movie" -> Text(
                                 text = "Похожие фильмы",

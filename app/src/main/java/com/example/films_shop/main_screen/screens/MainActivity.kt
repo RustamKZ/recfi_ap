@@ -25,6 +25,9 @@ import androidx.navigation.toRoute
 import com.example.films_shop.main_screen.api.BookApi.BookViewModel
 import com.example.films_shop.main_screen.api.recomendations.RecommendationViewModel
 import com.example.films_shop.main_screen.objects.auth_screens_objects.AccountDetailsObject
+import com.example.films_shop.main_screen.objects.auth_screens_objects.AddFriendObject
+import com.example.films_shop.main_screen.objects.auth_screens_objects.FriendsAccountObject
+import com.example.films_shop.main_screen.objects.auth_screens_objects.ImageAccountObject
 import com.example.films_shop.main_screen.objects.main_screens_objects.BookScreenDataObject
 import com.example.films_shop.main_screen.objects.main_screens_objects.CartoonScreenDataObject
 import com.example.films_shop.main_screen.objects.details_screens_objects.DetailsNavBookObject
@@ -35,6 +38,7 @@ import com.example.films_shop.main_screen.objects.fav_screens_objects.FavMovieSc
 import com.example.films_shop.main_screen.objects.fav_screens_objects.FavScreenDataObject
 import com.example.films_shop.main_screen.objects.fav_screens_objects.FavSeriesScreenDataObject
 import com.example.films_shop.main_screen.objects.auth_screens_objects.LoginScreenObject
+import com.example.films_shop.main_screen.objects.auth_screens_objects.SettingsAccountObject
 import com.example.films_shop.main_screen.objects.main_screens_objects.MainScreenDataObject
 import com.example.films_shop.main_screen.objects.main_screens_objects.MovieScreenDataObject
 import com.example.films_shop.main_screen.objects.main_screens_objects.SeriesScreenDataObject
@@ -42,6 +46,12 @@ import com.example.films_shop.main_screen.objects.rec_objects.RecBookScreenDataO
 import com.example.films_shop.main_screen.objects.rec_objects.RecCartoonScreenDataObject
 import com.example.films_shop.main_screen.objects.rec_objects.RecMovieScreenDataObject
 import com.example.films_shop.main_screen.objects.rec_objects.RecTvSeriesScreenDataObject
+import com.example.films_shop.main_screen.screens.account.AccountAddFriendScreen
+import com.example.films_shop.main_screen.screens.account.AccountFriendsScreen
+import com.example.films_shop.main_screen.screens.account.AccountImageScreen
+import com.example.films_shop.main_screen.screens.account.AccountScreen
+import com.example.films_shop.main_screen.screens.account.AccountSettingsScreen
+import com.example.films_shop.main_screen.screens.account.LoginScreen
 import com.example.films_shop.main_screen.screens.favourite_screens.FavScreen
 import com.example.films_shop.ui.theme.BackGroundColor
 import com.example.films_shop.ui.theme.BookShopTheme
@@ -282,7 +292,7 @@ class MainActivity : ComponentActivity() {
                         composable<AccountDetailsObject>
                         { navEntry ->
                             val navData = navEntry.toRoute<AccountDetailsObject>()
-                            AccountDetailsScreen(
+                            AccountScreen(
                                 navController = navController,
                                 navData,
                                 showBottomBar = true,
@@ -294,6 +304,36 @@ class MainActivity : ComponentActivity() {
                                     }
                                 }
                             }
+                        }
+                        // Экран настроек аккаунта
+                        composable<SettingsAccountObject>
+                        { navEntry ->
+                            val navData = navEntry.toRoute<SettingsAccountObject>()
+                            AccountSettingsScreen(
+                                navData
+                            )
+                        }
+                        // Выбор аватарки
+                        composable<ImageAccountObject>
+                        { navEntry ->
+                            val navData = navEntry.toRoute<ImageAccountObject>()
+                            AccountImageScreen(
+                                navData
+                            ) {
+                                navController.popBackStack()
+                            }
+                        }
+                        // Экран добавления в друзья
+                        composable<AddFriendObject>
+                        { navEntry ->
+                            val navData = navEntry.toRoute<AddFriendObject>()
+                            AccountAddFriendScreen(navData)
+                        }
+                        // Экран друзей
+                        composable<FriendsAccountObject>
+                        { navEntry ->
+                            val navData = navEntry.toRoute<FriendsAccountObject>()
+                            AccountFriendsScreen(navData)
                         }
                         // Экран деталей фильма
                         composable<DetailsNavMovieObject>

@@ -50,7 +50,7 @@ dependencies {
     implementation("androidx.compose.foundation:foundation:1.4.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
-
+    implementation(libs.accompanist.placeholder.material)
     implementation("com.airbnb.android:lottie-compose:6.1.0")
     implementation("androidx.paging:paging-compose:3.3.6")
     implementation(libs.coil.compose)

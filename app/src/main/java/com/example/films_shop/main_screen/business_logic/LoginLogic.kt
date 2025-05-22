@@ -1,7 +1,9 @@
 package com.example.films_shop.main_screen.business_logic
 
+import com.example.films_shop.main_screen.Genres.GenreKP
 import com.example.films_shop.main_screen.objects.main_screens_objects.MainScreenDataObject
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 fun signUp(
     auth: FirebaseAuth,
@@ -12,7 +14,7 @@ fun signUp(
 ) {
     if (email.isBlank() || password.isBlank())
     {
-        onSignUpFailure("Email or password cannot be empty!")
+        onSignUpFailure("Вы не указали почту или пароль!")
         return
     }
     auth.createUserWithEmailAndPassword(email, password)
@@ -28,7 +30,7 @@ fun signUp(
 
         }
         .addOnFailureListener { task ->
-            onSignUpFailure(task.message ?: "Sign Up Error!")
+            onSignUpFailure(task.message ?: "Ошибка регистрации")
         }
 
 }
@@ -42,7 +44,7 @@ fun signIn(
 ) {
     if (email.isBlank() || password.isBlank())
     {
-        onSignInFailure("Email or password cannot be empty!")
+        onSignInFailure("Вы не указали почту или пароль!")
         return
     }
     auth.signInWithEmailAndPassword(email, password)
@@ -57,7 +59,33 @@ fun signIn(
             }
         }
         .addOnFailureListener { task ->
-            onSignInFailure(task.message ?: "Sign In Error!")
+            onSignInFailure(task.message ?: "Ошибка авторизации")
         }
 
 }
+
+fun addOrChangeName(
+    db: FirebaseFirestore,
+    uid: String,
+    name: String,
+    onResult: (Boolean) -> Unit
+) {
+    db.collection("users")
+        .document(uid)
+        .update("name", name)
+        .addOnSuccessListener {
+            onResult(true)
+        }
+        .addOnFailureListener {
+            db.collection("users")
+                .document(uid)
+                .set(mapOf("name" to name))
+                .addOnSuccessListener {
+                    onResult(true)
+                }
+                .addOnFailureListener {
+                    onResult(false)
+                }
+        }
+}
+

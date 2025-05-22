@@ -11,6 +11,7 @@ import androidx.paging.cachedIn
 import com.example.films_shop.main_screen.api.Backdrop
 import com.example.films_shop.main_screen.api.ExternalId
 import com.example.films_shop.main_screen.api.Genre
+import com.example.films_shop.main_screen.api.KpImage
 import kotlinx.coroutines.flow.Flow
 import com.example.films_shop.main_screen.api.Movie
 import com.example.films_shop.main_screen.api.MovieApiService
@@ -29,6 +30,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
 
@@ -62,9 +64,9 @@ class MoviePagingSource(
                 )
             }
             // ЛОГ: выводим все поля каждого фильма
-//            response.docs.forEach { movie ->
-//                Log.d("MovieDebug", "Загружен фильм: ${movie.name}, tmdbId: ${movie.externalId}")
-//            }
+            response.docs.forEach { movie ->
+                Log.d("MovieDebug", "Загружен фильм: ${movie.name}, tmdbId: ${movie.externalId}")
+            }
             val updatedMovies = response.docs.map { movie ->
                 movie.copy(
                     poster = movie.poster?.copy(
@@ -135,6 +137,22 @@ class MovieViewModel : ViewModel() {
     val moviesPagingFlow = createPagingFlow(ContentType.MOVIES)
     val tvSeriesPagingFlow = createPagingFlow(ContentType.TV_SERIES)
     val cartoonsPagingFlow = createPagingFlow(ContentType.CARTOONS)
+
+    val imagesState = mutableStateOf<List<KpImage>>(emptyList())
+
+    fun loadImagesForMovie(movieId: Int) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.api.getMovieImages(apiKey, movieId)
+                Log.d("TestNav", "${response}")
+                imagesState.value = response.docs.filter { it.width > it.height } // только широкие
+            } catch (e: Exception) {
+                Log.e("ImageLoad", "Ошибка загрузки изображений: ${e.localizedMessage}")
+                imagesState.value = emptyList()
+            }
+        }
+    }
+
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val currentContentFlow: Flow<PagingData<Movie>> =

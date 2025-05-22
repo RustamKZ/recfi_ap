@@ -130,8 +130,8 @@ fun MainScreen(
     val selectedGenres = remember { mutableStateListOf<GenreKP>() }
     // Инициализируем состояние анимации
     val showLoadingAnimation = remember { mutableStateOf(navData.showLoadingAnimation) }
-    val composition =
-        rememberLottieComposition(spec = LottieCompositionSpec.Asset("start_anim.json"))
+    val composition = if (isDark) rememberLottieComposition(spec = LottieCompositionSpec.Asset("white_intro.json")) else
+        rememberLottieComposition(spec = LottieCompositionSpec.Asset("black_intro.json"))
     val alpha = remember { Animatable(1f) }
     val dataLoaded = remember { mutableStateOf(false) }
     val movies = movieViewModel.moviesPagingFlow.collectAsLazyPagingItems()

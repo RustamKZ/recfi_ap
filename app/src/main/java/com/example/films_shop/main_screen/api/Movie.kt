@@ -51,6 +51,12 @@ data class Persons(
     val profession: String = ""
 )
 
+data class KpImage(
+    val url: String,
+    val width: Int,
+    val height: Int
+)
+
 
 const val apiKey = "CS3QP35-CCE4F8D-N7APS7G-VAN76RX"
 //const val apiKey = "MQ3ZZZE-KQT4R67-P2MFJBZ-JD20K49"

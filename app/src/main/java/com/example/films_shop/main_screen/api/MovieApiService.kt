@@ -52,4 +52,17 @@ interface MovieApiService {
             "persons", "id", "year", "description", "rating", "votes", "genres", "poster","backdrop", "name", "type", "externalId"
         )
     ): MovieResponse
+
+    @GET("v1.4/image")
+    suspend fun getMovieImages(
+        @Header("X-API-KEY") apiKey: String,
+        @Query("movieId") movieId: Int,
+        @Query("page") page: Int = 1,
+        @Query("limit") limit: Int = 20
+    ): ImageResponse
+
+    data class ImageResponse(
+        val docs: List<KpImage>
+    )
+
 }

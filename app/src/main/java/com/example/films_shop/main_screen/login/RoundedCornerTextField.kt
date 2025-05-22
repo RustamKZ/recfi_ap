@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.films_shop.main_screen.screens.custom_font
 import com.example.films_shop.ui.theme.BorderColor
 
@@ -20,28 +21,24 @@ fun RoundedCornerTextField(
     singLine: Boolean = true,
     text: String,
     label: String,
+    backColorTextField: Color,
     onValueChange: (String) -> Unit
 ) {
     TextField(
         value = text,
-        textStyle = TextStyle(fontFamily = custom_font),
+        textStyle = TextStyle(fontFamily = custom_font, fontSize = 25.sp),
         onValueChange =  {
             onValueChange(it)
         },
-        shape = RoundedCornerShape(25.dp),
         colors = TextFieldDefaults.colors(
-            unfocusedContainerColor = Color.White,
-            focusedContainerColor = Color.White,
+            unfocusedContainerColor = backColorTextField,
+            focusedContainerColor = backColorTextField,
             unfocusedIndicatorColor = Color.Transparent,
             focusedIndicatorColor = Color.Transparent
         ),
-        modifier = Modifier.fillMaxWidth().border(
-            3.dp,
-            BorderColor,
-            RoundedCornerShape(25.dp)
-        ),
+        modifier = Modifier.fillMaxWidth(),
         label = {
-            Text(text = label, color = Color.Gray, fontFamily = custom_font)
+            Text(text = label, color = Color.Gray, fontFamily = custom_font, fontSize = 20.sp)
         },
         singleLine = singLine,
         maxLines = maxLines
