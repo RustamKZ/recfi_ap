@@ -1,0 +1,11 @@
+package com.example.films_shop.main_screen.objects.auth_screens_objects
+
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class SingleChatScreenDestination(
+    val uid: String,
+    val friendUid: String,
+    val friendName: String,
+    val photoUrl: String
+)

@@ -90,6 +90,7 @@ fun MovieScreen(
                     MovieitemUi(
                         movie = movie,
                         onMovieDetailsClick = {
+                            Log.d("TestNavData", "Before details screen: {$navData.email}")
                             navController.navigate(
                                 DetailsNavMovieObject(
                                     id = movie.id ?: "",

@@ -52,3 +52,4 @@ kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 gms = { id = "com.google.gms.google-services", version.ref = "gmsVersion" }
 plugin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "serializationVersion"}
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin"}
+kotlin-parcelize = { id = "kotlin-parcelize", version.ref = "kotlin" }

@@ -393,7 +393,7 @@ class RecommendationViewModel : ViewModel() {
                     val deferredList = isbn10Ids.map { isbn ->
                         async {
                             try {
-                                RetrofitInstanceBooks.api.searchBookByIsbn("isbn:$isbn")
+                                RetrofitInstanceBooks.api.searchBookByIsbn("isbn:$isbn", "AIzaSyAKHz0gmZ5IWWlvSGcw-ATX-8hMzm5dFJQ")
                             } catch (e: Exception) {
                                 Log.e("RecommendationVM", "Ошибка загрузки книги по ISBN $isbn", e)
                                 null
@@ -419,7 +419,7 @@ class RecommendationViewModel : ViewModel() {
                         )
                     }
 
-                _recommendationBooks.value = books  // предположим у тебя есть такое поле
+                _recommendationBooks.value = books
                 _isLoading.value = false
 
                 Log.d("RecommendationBooks", "Загружены книги: $books")

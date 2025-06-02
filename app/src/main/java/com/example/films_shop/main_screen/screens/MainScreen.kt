@@ -288,6 +288,7 @@ fun MainScreen(
                         )
                         Button(
                             onClick = {
+                                Log.d("TestNavData", "Before Movie Screen: {$navData.email}")
                                 navController.navigate(
                                     MovieScreenDataObject(
                                         navData.uid,
@@ -1161,7 +1162,10 @@ fun MainScreen(
                                                             thumbnail = book.thumbnail ?: "",
                                                             publishedDate = book.publishedDate
                                                                 ?: "Неизвестно",
-                                                            isFavorite = book.isFavorite
+                                                            isFavorite = book.isFavorite,
+                                                            isBookmark = book.isBookMark,
+                                                            isRated = book.isRated,
+                                                            userRating = book.userRating
                                                         )
                                                     )
                                                 },
@@ -1287,7 +1291,10 @@ fun MainScreen(
                                                             thumbnail = book.thumbnail ?: "",
                                                             publishedDate = book.publishedDate
                                                                 ?: "Неизвестно",
-                                                            isFavorite = book.isFavorite
+                                                            isFavorite = book.isFavorite,
+                                                            isBookmark = book.isBookMark,
+                                                            isRated = book.isRated,
+                                                            userRating = book.userRating
                                                         )
                                                     )
                                                 },

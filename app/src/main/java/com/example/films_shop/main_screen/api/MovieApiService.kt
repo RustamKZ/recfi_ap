@@ -53,6 +53,15 @@ interface MovieApiService {
         )
     ): MovieResponse
 
+    @GET("v1.4/movie")
+    suspend fun getMovieByTmdbId(
+        @Header("X-API-KEY") apiKey: String,
+        @Query("externalId.tmdb") id: String,
+        @Query("selectFields") selectFields: List<String> = listOf(
+            "persons", "id", "year", "description", "rating", "votes", "genres", "poster","backdrop", "name", "type", "externalId"
+        )
+    ): MovieResponse
+
     @GET("v1.4/image")
     suspend fun getMovieImages(
         @Header("X-API-KEY") apiKey: String,

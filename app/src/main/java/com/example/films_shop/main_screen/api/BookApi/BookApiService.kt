@@ -4,6 +4,7 @@ import kotlinx.coroutines.coroutineScope
 import retrofit2.http.GET
 import retrofit2.http.Query
 
+
 interface BookApiService {
     @GET("volumes")
     suspend fun searchBooks(
@@ -16,15 +17,23 @@ interface BookApiService {
 
     @GET("volumes")
     suspend fun searchBookByIsbn(
-        @Query("q") isbnQuery: String
+        @Query(value = "q") isbnQuery: String,
+        @Query("key") apiKey: String
     ): BookResponse
+
+//    @GET("volumes")
+//    suspend fun searchBookByTitle(
+//        @Query("q") titleQuery: String,
+//        @Query("key") apiKey: String // Здесь ключ обязателен для большинства запросов
+//    ): BookResponse
+
 }
 
 suspend fun searchBooksByIsbnList(isbnList: List<String>, bookApiService: BookApiService): List<BookResponse> = coroutineScope {
     val deferredList = isbnList.map { isbn ->
         async {
             try {
-                bookApiService.searchBookByIsbn("isbn:$isbn")
+                bookApiService.searchBookByIsbn("isbn:$isbn", "AIzaSyAKHz0gmZ5IWWlvSGcw-ATX-8hMzm5dFJQ")
             } catch (e: Exception) {
                 // Логируем ошибку или возвращаем заглушку
                 // Например, можно возвращать пустой BookResponse или null

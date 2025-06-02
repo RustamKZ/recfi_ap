@@ -671,6 +671,7 @@ fun TestDetailsMovieScreen(
                                             userRating = userRating.toInt() // <-- Ставим выбранный рейтинг
                                         )
                                         onRatedMovies(db, data.uid, movie)
+                                        Log.d("TestNavData", "User: ${navData.email}")
                                     }
                                     showRatingDialog = false // Закрыть диалог
                                 },

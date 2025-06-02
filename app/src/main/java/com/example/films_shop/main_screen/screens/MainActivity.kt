@@ -1,10 +1,13 @@
 package com.example.films_shop.main_screen.screens
 
+import AccountFriendsScreen
+import AddFriendWithRequestsScreen
 import MovieViewModel
 import UserCollectionBookScreen
 import UserCollectionMovieScreen
 import android.annotation.SuppressLint
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -18,6 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.core.view.WindowCompat
+import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -26,6 +30,7 @@ import com.example.films_shop.main_screen.api.BookApi.BookViewModel
 import com.example.films_shop.main_screen.api.recomendations.RecommendationViewModel
 import com.example.films_shop.main_screen.objects.auth_screens_objects.AccountDetailsObject
 import com.example.films_shop.main_screen.objects.auth_screens_objects.AddFriendObject
+import com.example.films_shop.main_screen.objects.auth_screens_objects.ChatFriendsObject
 import com.example.films_shop.main_screen.objects.auth_screens_objects.FriendsAccountObject
 import com.example.films_shop.main_screen.objects.auth_screens_objects.ImageAccountObject
 import com.example.films_shop.main_screen.objects.main_screens_objects.BookScreenDataObject
@@ -46,12 +51,13 @@ import com.example.films_shop.main_screen.objects.rec_objects.RecBookScreenDataO
 import com.example.films_shop.main_screen.objects.rec_objects.RecCartoonScreenDataObject
 import com.example.films_shop.main_screen.objects.rec_objects.RecMovieScreenDataObject
 import com.example.films_shop.main_screen.objects.rec_objects.RecTvSeriesScreenDataObject
-import com.example.films_shop.main_screen.screens.account.AccountAddFriendScreen
-import com.example.films_shop.main_screen.screens.account.AccountFriendsScreen
 import com.example.films_shop.main_screen.screens.account.AccountImageScreen
 import com.example.films_shop.main_screen.screens.account.AccountScreen
 import com.example.films_shop.main_screen.screens.account.AccountSettingsScreen
+import com.example.films_shop.main_screen.screens.account.ChatScreen
 import com.example.films_shop.main_screen.screens.account.LoginScreen
+import com.example.films_shop.main_screen.objects.auth_screens_objects.SingleChatScreenDestination
+import com.example.films_shop.main_screen.screens.account.SingleChatScreen
 import com.example.films_shop.main_screen.screens.favourite_screens.FavScreen
 import com.example.films_shop.ui.theme.BackGroundColor
 import com.example.films_shop.ui.theme.BookShopTheme
@@ -100,6 +106,7 @@ class MainActivity : ComponentActivity() {
                         composable<LoginScreenObject>
                         {
                             LoginScreen { navData ->
+                                Log.d("TestNavData", "LoginScreen: {$navData.email}")
                                 navController.navigate(navData) {
                                     popUpTo(LoginScreenObject) { inclusive = true }
                                 }
@@ -108,6 +115,7 @@ class MainActivity : ComponentActivity() {
                         composable<MainScreenDataObject>
                         { navEntry ->
                             val navData = navEntry.toRoute<MainScreenDataObject>()
+                            Log.d("TestNavData", "MainScreen: {$navData.email}")
                             MainScreen(
                                 navData,
                                 movieViewModel,
@@ -184,6 +192,7 @@ class MainActivity : ComponentActivity() {
                         }
                         composable<MovieScreenDataObject> { navEntry ->
                             val navData = navEntry.toRoute<MovieScreenDataObject>()
+                            Log.d("TestNavData", "Before Movie Screen 2: {$navData.email}")
                             MovieScreen(
                                 navController = navController,
                                 movieViewModel = movieViewModel,
@@ -327,7 +336,7 @@ class MainActivity : ComponentActivity() {
                         composable<AddFriendObject>
                         { navEntry ->
                             val navData = navEntry.toRoute<AddFriendObject>()
-                            AccountAddFriendScreen(navData)
+                            AddFriendWithRequestsScreen(navData)
                         }
                         // Экран друзей
                         composable<FriendsAccountObject>
@@ -335,15 +344,33 @@ class MainActivity : ComponentActivity() {
                             val navData = navEntry.toRoute<FriendsAccountObject>()
                             AccountFriendsScreen(navData)
                         }
+                        composable<ChatFriendsObject> { navEntry ->
+                            val navData = navEntry.toRoute<ChatFriendsObject>()
+                            ChatScreen(navController, navData)
+                        }
+                        composable<SingleChatScreenDestination> { navEntry ->
+                            val args = navEntry.toRoute<SingleChatScreenDestination>()
+                            SingleChatScreen(
+                                navController = navController,
+                                movieViewModel = movieViewModel,
+                                bookViewModel = bookViewModel,
+                                uid = args.uid,
+                                friendUid = args.friendUid,
+                                friendName = args.friendName,
+                                friendPhotoUrl = args.photoUrl
+                            )
+                        }
+
                         // Экран деталей фильма
                         composable<DetailsNavMovieObject>
                         { navEntry ->
                             val navData = navEntry.toRoute<DetailsNavMovieObject>()
+                            Log.d("TestNavData", "Before details movie screen 10: ${Firebase.auth.currentUser?.email}")
                             TestDetailsMovieScreen(
                                 navObject = navData,
                                 navData = MovieScreenDataObject(
-                                    uid = currentUser?.uid ?: "",
-                                    email = currentUser?.email ?: ""
+                                    uid = Firebase.auth.currentUser?.uid ?: "",
+                                    email = Firebase.auth.currentUser?.email ?: ""
                                 ),
                                 movieViewModel,
                                 recViewModel,

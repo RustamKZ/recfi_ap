@@ -1,5 +1,6 @@
 package com.example.films_shop.main_screen.screens.account
 
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -18,6 +19,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ChevronRight
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -33,8 +35,12 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -48,11 +54,13 @@ import com.example.films_shop.R
 import com.example.films_shop.main_screen.bottom_menu.BottomMenu
 import com.example.films_shop.main_screen.objects.auth_screens_objects.AccountDetailsObject
 import com.example.films_shop.main_screen.objects.auth_screens_objects.AddFriendObject
+import com.example.films_shop.main_screen.objects.auth_screens_objects.ChatFriendsObject
 import com.example.films_shop.main_screen.objects.auth_screens_objects.FriendsAccountObject
 import com.example.films_shop.main_screen.objects.auth_screens_objects.ImageAccountObject
 import com.example.films_shop.main_screen.objects.auth_screens_objects.SettingsAccountObject
 import com.example.films_shop.main_screen.screens.custom_font
 import com.example.films_shop.ui.theme.BackGroundColorButton
+import com.example.films_shop.ui.theme.CopyUid
 import com.example.films_shop.ui.theme.ExitButtonColor
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -65,6 +73,10 @@ fun AccountScreen(
     showBottomBar: Boolean = true,
     onExitClick: () -> Unit,
 ) {
+    // Добавление в друзья
+    val clipboardManager = LocalClipboardManager.current
+    val context = LocalContext.current
+    // Добавление в друзья
     val db = Firebase.firestore
     val nameState = remember { mutableStateOf<String?>(null) }
     val photoUrl = remember { mutableStateOf<String?>(null) }
@@ -161,7 +173,6 @@ fun AccountScreen(
                     )
                 }
             }
-            Spacer(Modifier.height(12.dp))
             Text(
                 text = navData.email,
                 fontFamily = custom_font
@@ -261,7 +272,7 @@ fun AccountScreen(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.baseline_face_24),
+                        painter = painterResource(R.drawable.baseline_person_add_alt_1_24),
                         contentDescription = "Добавить друга",
                         modifier = Modifier.size(30.dp),
                         tint = iconColor
@@ -319,7 +330,74 @@ fun AccountScreen(
                     )
                 }
             }
-            Spacer(Modifier.height(12.dp))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp)
+                    .clickable {
+                        navController.navigate(
+                            ChatFriendsObject(
+                                navData.uid,
+                                navData.email
+                            )
+                        )
+                    }
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.baseline_chat_24),
+                        contentDescription = "Чат",
+                        modifier = Modifier.size(30.dp),
+                        tint = iconColor
+                    )
+                    Spacer(Modifier.width(15.dp))
+                    Text(
+                        text = "Чат",
+                        fontFamily = custom_font,
+                        fontSize = 25.sp,
+                        color = iconColor,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Icon(
+                        imageVector = Icons.Outlined.ChevronRight,
+                        contentDescription = "Посмотреть",
+                        tint = iconColor
+                    )
+                }
+            }
+            Spacer(Modifier.height(24.dp))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp),
+                contentAlignment = Alignment.CenterStart // Выравнивание Row по левому краю
+            ) {
+                Row(
+                    modifier = Modifier.clickable {
+                        clipboardManager.setText(AnnotatedString(navData.uid))
+                        Toast.makeText(context, "UID скопирован", Toast.LENGTH_SHORT).show()
+                    },
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.baseline_content_copy_24),
+                        contentDescription = "Скопировать UID для добавления в друзья",
+                        modifier = Modifier.size(30.dp),
+                        tint = CopyUid
+                    )
+                    Spacer(Modifier.width(15.dp))
+                    Text(
+                        text = "Код для друзей",
+                        fontFamily = custom_font,
+                        fontSize = 25.sp,
+                        color = CopyUid
+                    )
+                }
+            }
+            Spacer(Modifier.height(24.dp))
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
