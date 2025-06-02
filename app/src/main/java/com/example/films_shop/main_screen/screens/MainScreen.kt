@@ -137,7 +137,7 @@ fun MainScreen(
     val movies = movieViewModel.moviesPagingFlow.collectAsLazyPagingItems()
     val series = movieViewModel.tvSeriesPagingFlow.collectAsLazyPagingItems()
     val cartoons = movieViewModel.cartoonsPagingFlow.collectAsLazyPagingItems()
-    val authors = listOf("Пушкин", "Ремарк")
+    val authors = listOf("Пушкин", "Достоевский")
     val booksFlow = remember(authors) {
         bookViewModel.getBooksByAuthors(authors)
     }
@@ -183,6 +183,7 @@ fun MainScreen(
                 .collectLatest {
                     Log.d("Debug", "Books collected: $it")
                     recViewModel.fetchCollabRecommendationsBooks(it, bookViewModel)
+                    Log.d("Debug", "Books done: ${recViewModel.recommendationCollabBooks}")
                 }
         }
     }
@@ -713,7 +714,10 @@ fun MainScreen(
                                                             color = backgroundColor,
                                                             shape = RoundedCornerShape(6.dp)
                                                         )
-                                                        .padding(horizontal = 10.dp, vertical = 2.dp)
+                                                        .padding(
+                                                            horizontal = 10.dp,
+                                                            vertical = 2.dp
+                                                        )
                                                         .align(Alignment.TopStart)
                                                 )
                                             }
@@ -961,7 +965,10 @@ fun MainScreen(
                                                             color = backgroundColor,
                                                             shape = RoundedCornerShape(6.dp)
                                                         )
-                                                        .padding(horizontal = 10.dp, vertical = 2.dp)
+                                                        .padding(
+                                                            horizontal = 10.dp,
+                                                            vertical = 2.dp
+                                                        )
                                                         .align(Alignment.TopStart)
                                                 )
                                             }
@@ -1165,7 +1172,14 @@ fun MainScreen(
                                                             isFavorite = book.isFavorite,
                                                             isBookmark = book.isBookMark,
                                                             isRated = book.isRated,
-                                                            userRating = book.userRating
+                                                            userRating = book.userRating,
+                                                            publisher = book.publisher,
+                                                            pageCount = book.pageCount,
+                                                            categories = book.categories?.joinToString(", ")
+                                                                ?: "Неизвестно",
+                                                            averageRating = book.averageRating,
+                                                            ratingsCount = book.ratingsCount,
+                                                            language = book.language
                                                         )
                                                     )
                                                 },
@@ -1204,7 +1218,10 @@ fun MainScreen(
                                                                 color = backgroundColor,
                                                                 shape = RoundedCornerShape(6.dp)
                                                             )
-                                                            .padding(horizontal = 10.dp, vertical = 2.dp)
+                                                            .padding(
+                                                                horizontal = 10.dp,
+                                                                vertical = 2.dp
+                                                            )
                                                             .align(Alignment.TopStart)
                                                     )
                                                 }
@@ -1294,7 +1311,16 @@ fun MainScreen(
                                                             isFavorite = book.isFavorite,
                                                             isBookmark = book.isBookMark,
                                                             isRated = book.isRated,
-                                                            userRating = book.userRating
+                                                            userRating = book.userRating,
+                                                            publisher = book.publisher,
+                                                            pageCount = book.pageCount,
+                                                            categories = book.categories?.joinToString(
+                                                                ", "
+                                                            )
+                                                                ?: "Неизвестно",
+                                                            averageRating = book.averageRating,
+                                                            ratingsCount = book.ratingsCount,
+                                                            language = book.language
                                                         )
                                                     )
                                                 },
@@ -1333,7 +1359,10 @@ fun MainScreen(
                                                                 color = backgroundColor,
                                                                 shape = RoundedCornerShape(6.dp)
                                                             )
-                                                            .padding(horizontal = 10.dp, vertical = 2.dp)
+                                                            .padding(
+                                                                horizontal = 10.dp,
+                                                                vertical = 2.dp
+                                                            )
                                                             .align(Alignment.TopStart)
                                                     )
                                                 }

@@ -1,8 +1,10 @@
 package com.example.films_shop.main_screen.screens
 
+import android.annotation.SuppressLint
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,6 +38,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
@@ -51,8 +54,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -73,6 +78,65 @@ import com.example.films_shop.main_screen.objects.details_screens_objects.Detail
 import com.example.films_shop.ui.theme.ButtonColor
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import androidx.compose.ui.graphics.RenderEffect
+import androidx.compose.ui.graphics.TileMode
+import androidx.compose.ui.graphics.Brush
+import com.example.films_shop.ui.theme.BackGroundColor
+import com.example.films_shop.ui.theme.BackGroundColorButton
+import com.example.films_shop.ui.theme.BackGroundColorButtonLightGray
+
+@SuppressLint("DefaultLocale")
+@Composable
+fun RatingCardBook(
+    averageRating: Double,
+    ratingsCount: Int,
+    buttonBackgroundColor: Color,
+    buttonTextColor: Color
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    color = buttonBackgroundColor,
+                    shape = RoundedCornerShape(16.dp)
+                ),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            RatingItem(
+                title = "Оценка",
+                rating = "Рейтинг: ${String.format("%.1f", averageRating)}",
+                votes = ratingsCount.toString(),
+                buttonTextColor = buttonTextColor,
+                modifier = Modifier.padding(vertical = 16.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp)
+                .clip(RoundedCornerShape(24.dp))
+                .background(buttonBackgroundColor)
+                .clickable { /* оценка книги */ },
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "Оценить",
+                color = buttonTextColor,
+                style = MaterialTheme.typography.labelLarge
+            )
+        }
+    }
+}
+
 
 @Composable
 fun DetailsBookScreen(
@@ -116,6 +180,15 @@ fun DetailsBookScreen(
     var showRatingDialog by remember { mutableStateOf(false) }
     var userRating by remember { mutableStateOf(5f) } // Ползунок будет от 1 до 10
     // ui userRating
+
+    // ui colors
+    val isDark = isSystemInDarkTheme()
+    val imageGradColor = if (isDark) BackGroundColor else Color.White
+    val textColor = if (isDark) Color.White else Color.Black
+    val buttonBackgroundColor =
+        if (isDark) BackGroundColorButton else BackGroundColorButtonLightGray
+    val buttonTextColor = if (isDark) Color.White else Color.Black
+    // ui colors
 
     LaunchedEffect(id)
     {
@@ -203,7 +276,13 @@ fun DetailsBookScreen(
                                                 isFavorite = isFavorite,
                                                 isBookMark = isBookmark,
                                                 isRated = isRated,
-                                                userRating = navObject.userRating
+                                                userRating = navObject.userRating,
+                                                publisher = navObject.publisher,
+                                                pageCount = navObject.pageCount,
+                                                categories = navObject.categories.split(", "),
+                                                averageRating = navObject.averageRating,
+                                                ratingsCount = navObject.ratingsCount,
+                                                language = navObject.language
                                             )
                                             //Log.d("MyLog", "$isFavorite")
                                             onFavsBooks(db, data.uid, book, !book.isFavorite)
@@ -274,7 +353,13 @@ fun DetailsBookScreen(
                                     isFavorite = isFavorite,
                                     isBookMark = isBookmark,
                                     isRated = isRated,
-                                    userRating = navObject.userRating
+                                    userRating = navObject.userRating,
+                                    publisher = navObject.publisher,
+                                    pageCount = navObject.pageCount,
+                                    categories = navObject.categories.split(", "),
+                                    averageRating = navObject.averageRating,
+                                    ratingsCount = navObject.ratingsCount,
+                                    language = navObject.language
                                 )
                                 onBookmarkBooks(db, data.uid, book, !book.isBookMark)
                             }
@@ -369,7 +454,13 @@ fun DetailsBookScreen(
                                         isFavorite = isFavorite,
                                         isBookMark = isBookmark,
                                         isRated = isRated,
-                                        userRating = userRating.toInt()
+                                        userRating = userRating.toInt(),
+                                        publisher = navObject.publisher,
+                                        pageCount = navObject.pageCount,
+                                        categories = navObject.categories.split(", "),
+                                        averageRating = navObject.averageRating,
+                                        ratingsCount = navObject.ratingsCount,
+                                        language = navObject.language
                                     )
                                     onRatedBooks(db, data.uid, book)
                                 }
@@ -398,109 +489,187 @@ fun DetailsBookScreen(
                 .verticalScroll(scrollState)
         )
         {
-            Box {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(500.dp)
+            ) {
+                // 1. Фоновое замыленное изображение
                 AsyncImage(
                     model = navObject.thumbnail.replace("http://", "https://"),
-                    contentDescription = "Обложка книги",
+                    contentDescription = "Фон книги",
                     contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .blur(20.dp)
+                )
+
+                // 2. Градиент поверх фона
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(250.dp)
+                        .height(150.dp)
+                        .align(Alignment.BottomCenter)
+                        .background(
+                            brush = Brush.verticalGradient(
+                                colors = listOf(
+                                    Color.Transparent,
+                                    Color.White
+                                )
+                            )
+                        )
                 )
-            }
-            Row(
-                modifier = Modifier
-                    .offset(y = (-50).dp)
-                    .padding(start = 16.dp, end = 16.dp),
-                //verticalAlignment = Alignment.Bottom
-            )
-            {
+
+                // 3. Четкое изображение обложки поверх всего
                 AsyncImage(
                     model = navObject.thumbnail.replace("http://", "https://"),
                     contentDescription = "Обложка книги",
-                    contentScale = ContentScale.Crop,
+                    contentScale = ContentScale.Fit,
                     modifier = Modifier
-                        .width(190.dp)
-                        .height(280.dp)
-                        .clip(RoundedCornerShape(12.dp)),
+                        .align(Alignment.BottomCenter)
+                        .width(200.dp)
+                        .height(300.dp)
+                        .clip(RoundedCornerShape(16.dp))
                 )
-                Spacer(modifier = Modifier.width(16.dp))
-                Column(
-                    modifier = Modifier.padding(top = 70.dp)
-                    //modifier = Modifier
-                    //.offset(y = (40).dp)
+            }
+            Spacer(modifier = Modifier.height(10.dp))
+            Box(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = navObject.title,
+                    color = textColor,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 30.sp,
+                    modifier = Modifier.align(Alignment.Center),
+                    fontFamily = test_font
                 )
-                {
-                    Text(
-                        text = navObject.title,
-                        color = Color.Black,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 30.sp,
-                        //fontFamily = custom_font
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Row()
-                    {
+            }
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = navObject.authors,
+                    color = Color.Gray,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = custom_font
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                navObject.publisher?.let {
+                    if (it.isNotBlank()) {
                         Text(
-                            text = navObject.publishedDate,
-                            color = Color.Black,
+                            text = "Издательство: $it",
+                            color = Color.Gray,
                             fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
                             fontFamily = custom_font
                         )
                     }
-                    Spacer(modifier = Modifier.height(4.dp))
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+                navObject.publishedDate.let {
+                    if (it.isNotBlank()) {
+                        Text(
+                            text = "Дата публикации: $it",
+                            color = Color.Gray,
+                            fontSize = 16.sp,
+                            fontFamily = custom_font
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+                navObject.pageCount?.takeIf { it > 0 }?.let {
                     Text(
-                        text = "Авторы: ",
-                        color = Color.Black,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp,
-                        fontFamily = custom_font
-                    )
-                    Text(
-                        text = navObject.authors,
-                        color = Color.Black,
+                        text = "Страниц: $it",
                         fontSize = 16.sp,
-                        fontFamily = custom_font
+                        color = Color.Gray,
+                        fontFamily = custom_font,
                     )
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+                navObject.language?.let {
+                    if (it.isNotBlank()) {
+                        val languageName = when (it.lowercase()) {
+                            "ru" -> "Русский"
+                            "en" -> "Английский"
+                            else -> "Иностранный"
+                        }
+                        Text(
+                            text = "Язык: $languageName",
+                            color = Color.Gray,
+                            fontSize = 16.sp,
+                            fontFamily = custom_font
+                        )
+                    }
                 }
             }
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .offset(y = (-50).dp)
-                    .padding(start = 16.dp, end = 16.dp),
-            )
-            {
+            Spacer(modifier = Modifier.height(4.dp))
+            if (navObject.categories.isNotBlank()) {
                 Text(
-                    text = "Описание",
-                    color = Color.Black,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp,
-                    fontFamily = custom_font,
-                    textAlign = TextAlign.Left
-                )
-                Text(
-                    text = navObject.description,
-                    color = Color.Black,
+                    text = navObject.categories,
                     fontSize = 16.sp,
-                    fontFamily = custom_font,
-                    maxLines = if (expanded) Int.MAX_VALUE else 4, // Ограничение строк
-                    overflow = TextOverflow.Ellipsis
+                    fontWeight = FontWeight.Bold,
+                    color = Color.DarkGray,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth(),
+                    fontFamily = custom_font
                 )
+            }
 
-                // Кнопка "Читать далее"
-                TextButton(onClick = { expanded = !expanded }) {
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Box(modifier = Modifier.fillMaxWidth()) {
+                Column(
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                ) {
                     Text(
-                        text = if (expanded) "Скрыть" else "Читать далее",
-                        color = Color.Gray,
-                        fontSize = 16.sp
+                        text = navObject.description,
+                        color = textColor,
+                        fontSize = 16.sp,
+                        fontFamily = custom_font,
+                        maxLines = if (expanded) Int.MAX_VALUE else 4,
+                        overflow = TextOverflow.Ellipsis
                     )
-                }
 
+                    TextButton(onClick = { expanded = !expanded }) {
+                        Text(
+                            text = if (expanded) "Скрыть" else "Читать далее",
+                            color = Color.Gray,
+                            fontSize = 16.sp
+                        )
+                    }
+
+                if (navObject.averageRating != null && navObject.ratingsCount != null) {
+                    Row(
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        navObject.averageRating?.let {
+                            navObject.ratingsCount?.let {
+                                Text(
+                                    text = "Рейтинг: ${"%.1f".format(it)}",
+                                    fontSize = 25.sp,
+                                    style = MaterialTheme.typography.headlineMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Spacer(modifier = Modifier.height(12.dp))
+                                RatingCardBook(
+                                    averageRating = navObject.averageRating,
+                                    ratingsCount = navObject.ratingsCount,
+                                    buttonBackgroundColor = buttonBackgroundColor,
+                                    buttonTextColor = buttonTextColor
+                                )
+                            }
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(25.dp))
                 Text(
                     text = "Похожие книги",
-                    fontSize = 20.sp,
+                    fontSize = 25.sp,
+                    style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(12.dp))
@@ -526,13 +695,13 @@ fun DetailsBookScreen(
                             }
                         }
                     } else if (recommendationBooks.isNotEmpty()) {
-                        items(recommendationBooks.size) { index ->
+                        val filteredRecommendations = recommendationBooks.filter { it.isbn10 != "Неизвестно" }
+                        items(filteredRecommendations.size) { index ->
                             val book = recommendationBooks[index]
                             Box(
                                 modifier = Modifier
-                                    .padding(start = 8.dp)
-                                    .width(120.dp)
-                                    .height(200.dp)
+                                    .width(170.dp)
+                                    .height(250.dp)
                                     .clip(RoundedCornerShape(15.dp))
                                     .background(Color.Gray)
                                     .clickable {
@@ -546,12 +715,23 @@ fun DetailsBookScreen(
                                                     ?: "Неизвестно",
                                                 description = book.description
                                                     ?: "Описание отсутствует",
-                                                thumbnail = book.thumbnail ?: "",
+                                                thumbnail = book.thumbnail?.replace(
+                                                    "http://",
+                                                    "https://"
+                                                )
+                                                    ?: "",
                                                 publishedDate = book.publishedDate ?: "Неизвестно",
                                                 isFavorite = book.isFavorite,
                                                 isBookmark = book.isBookMark,
                                                 isRated = book.isRated,
-                                                userRating = book.userRating
+                                                userRating = book.userRating,
+                                                publisher = book.publisher,
+                                                pageCount = book.pageCount,
+                                                categories = book.categories?.joinToString(", ")
+                                                    ?: "Неизвестно",
+                                                averageRating = book.averageRating,
+                                                ratingsCount = book.ratingsCount,
+                                                language = book.language
                                             )
                                             navController.navigate(detailsNavBookObject)
                                         }
@@ -606,6 +786,7 @@ fun DetailsBookScreen(
                 }
                 Spacer(modifier = Modifier.height(40.dp))
             }
+                }
+        }
         }
     }
-}

@@ -249,7 +249,7 @@ class RecommendationViewModel : ViewModel() {
                 }
 
                 // Теперь запрашиваем информацию о книгах
-                fetchBooksByIsbn10(response)
+                fetchBooksByIsbn10Collab(response)
 
             } catch (e: Exception) {
                 Log.e("RecommendationVM", "Ошибка при получении коллаб рекомендаций книг", e)
@@ -415,14 +415,76 @@ class RecommendationViewModel : ViewModel() {
                             thumbnail = item.volumeInfo.imageLinks?.thumbnail,
                             publishedDate = item.volumeInfo.publishedDate,
                             description = item.volumeInfo.description,
-                            isbn10 = isbn10
+                            isbn10 = isbn10,
+                            publisher = item.volumeInfo.publisher,
+                            pageCount = item.volumeInfo.pageCount,
+                            categories = item.volumeInfo.categories,
+                            averageRating = item.volumeInfo.averageRating,
+                            ratingsCount = item.volumeInfo.ratingsCount,
+                            language = item.volumeInfo.language
                         )
                     }
 
                 _recommendationBooks.value = books
                 _isLoading.value = false
 
-                Log.d("RecommendationBooks", "Загружены книги: $books")
+                Log.d("RecommendationBooks", "Загружены книги: ${_recommendationBooks.value}")
+
+            } catch (e: Exception) {
+                Log.e("RecommendationVM", "Ошибка при получении книг по ISBN", e)
+                _error.value = "Ошибка загрузки книг: ${e.message}"
+                _isLoading.value = false
+            }
+        }
+    }
+
+    private fun fetchBooksByIsbn10Collab(isbn10Ids: List<String>) {
+        viewModelScope.launch {
+            try {
+                _isLoading.value = true
+                _error.value = null
+
+                // Параллельно запрашиваем книги
+                val response = coroutineScope {
+                    val deferredList = isbn10Ids.map { isbn ->
+                        async {
+                            try {
+                                RetrofitInstanceBooks.api.searchBookByIsbn("isbn:$isbn", "AIzaSyAKHz0gmZ5IWWlvSGcw-ATX-8hMzm5dFJQ")
+                            } catch (e: Exception) {
+                                Log.e("RecommendationVM", "Ошибка загрузки книги по ISBN $isbn", e)
+                                null
+                            }
+                        }
+                    }
+                    deferredList.mapNotNull { it.await() }
+                }
+                val books = response.flatMap { it.items ?: emptyList() }  // собираем все items со всех BookResponse
+                    .map { item ->
+                        val isbn10 = item.volumeInfo.industryIdentifiers
+                            ?.firstOrNull { it.type == "ISBN_10" }
+                            ?.identifier ?: "Неизвестно"
+
+                        Book(
+                            id = item.id,
+                            title = item.volumeInfo.title,
+                            authors = item.volumeInfo.authors ?: listOf("Неизвестный автор"),
+                            thumbnail = item.volumeInfo.imageLinks?.thumbnail,
+                            publishedDate = item.volumeInfo.publishedDate,
+                            description = item.volumeInfo.description,
+                            isbn10 = isbn10,
+                            publisher = item.volumeInfo.publisher,
+                            pageCount = item.volumeInfo.pageCount,
+                            categories = item.volumeInfo.categories,
+                            averageRating = item.volumeInfo.averageRating,
+                            ratingsCount = item.volumeInfo.ratingsCount,
+                            language = item.volumeInfo.language
+                        )
+                    }
+
+                _recommendationCollabBooks.value = books
+                _isLoading.value = false
+
+                Log.d("RecommendationBooks", "Загружены коллаб книги: ${_recommendationCollabBooks.value}")
 
             } catch (e: Exception) {
                 Log.e("RecommendationVM", "Ошибка при получении книг по ISBN", e)
@@ -458,7 +520,13 @@ class RecommendationViewModel : ViewModel() {
                             thumbnail = item.volumeInfo.imageLinks?.thumbnail,
                             publishedDate = item.volumeInfo.publishedDate,
                             description = item.volumeInfo.description,
-                            isbn10 = isbn
+                            isbn10 = isbn,
+                            publisher = item.volumeInfo.publisher,
+                            pageCount = item.volumeInfo.pageCount,
+                            categories = item.volumeInfo.categories,
+                            averageRating = item.volumeInfo.averageRating,
+                            ratingsCount = item.volumeInfo.ratingsCount,
+                            language = item.volumeInfo.language
                         )
                     }
                     .filter { it.isbn10 != isbn10 } // <--- Вот здесь исключаем саму книгу по ISBN!
@@ -527,7 +595,13 @@ class RecommendationViewModel : ViewModel() {
                                 thumbnail = item.volumeInfo.imageLinks?.thumbnail,
                                 publishedDate = item.volumeInfo.publishedDate,
                                 description = item.volumeInfo.description,
-                                isbn10 = isbn
+                                isbn10 = isbn,
+                                publisher = item.volumeInfo.publisher,
+                                pageCount = item.volumeInfo.pageCount,
+                                categories = item.volumeInfo.categories,
+                                averageRating = item.volumeInfo.averageRating,
+                                ratingsCount = item.volumeInfo.ratingsCount,
+                                language = item.volumeInfo.language
                             )
                         }
 

@@ -97,7 +97,14 @@ fun RecBookScreen(
                                     isFavorite = book.isFavorite,
                                     isBookmark = book.isBookMark,
                                     isRated = book.isRated,
-                                    userRating = book.userRating
+                                    userRating = book.userRating,
+                                    publisher = book.publisher,
+                                    pageCount = book.pageCount,
+                                    categories = book.categories?.joinToString(", ")
+                                        ?: "Неизвестно",
+                                    averageRating = book.averageRating,
+                                    ratingsCount = book.ratingsCount,
+                                    language = book.language
                                 )
                             )
                         }

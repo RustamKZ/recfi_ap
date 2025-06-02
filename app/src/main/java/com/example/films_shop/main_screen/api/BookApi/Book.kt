@@ -11,7 +11,15 @@ data class Book(
     val isFavorite: Boolean = false,
     val isBookMark: Boolean = false,
     val isRated: Boolean = false,
-    val userRating: Int = -1
+    val userRating: Int = -1,
+
+    // Новые поля
+    val publisher: String?,
+    val pageCount: Int?,
+    val categories: List<String>?,
+    val averageRating: Double?,
+    val ratingsCount: Int?,
+    val language: String?
 )
 
 data class VolumeInfo(
@@ -20,7 +28,15 @@ data class VolumeInfo(
     val description: String?,
     val publishedDate: String?,
     val imageLinks: ImageLinks?,
-    val industryIdentifiers: List<IndustryIdentifier>?
+    val industryIdentifiers: List<IndustryIdentifier>?,
+
+    // Новые поля
+    val publisher: String?,
+    val pageCount: Int?,
+    val categories: List<String>?,
+    val averageRating: Double?,
+    val ratingsCount: Int?,
+    val language: String?
 )
 
 data class IndustryIdentifier(
@@ -29,7 +45,12 @@ data class IndustryIdentifier(
 )
 
 data class ImageLinks(
-    val thumbnail: String?
+    val smallThumbnail: String?,
+    val thumbnail: String?,
+    val small: String?,
+    val medium: String?,
+    val large: String?,
+    val extraLarge: String?
 )
 
 data class BookResponse(

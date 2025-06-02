@@ -8,40 +8,36 @@ class BookPagingSource(
     private val authors: List<String>
 ) : PagingSource<Int, Book>() {
 
+    private val pageSize = 5
+    private val pagesPerAuthor = 3
+
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Book> {
         val page = params.key ?: 0
-        val pageSize = 10
-        val pagesPerAuthor = 3  // сколько страниц книг подгружаем максимум на одного автора
+        val authorPageIndex = page % pagesPerAuthor
+        val startIndex = authorPageIndex * pageSize
 
+        val booksChunk = mutableListOf<Book>()
 
-        // Вычисляем индекс автора и индекс страницы внутри этого автора
-        val authorIndex = page / pagesPerAuthor
-        val authorPage = page % pagesPerAuthor
-        val startIndex = authorPage * pageSize
-
-        if (authorIndex >= authors.size) {
-            // Если авторов больше не осталось — конец данных
-            return LoadResult.Page(
-                data = emptyList(),
-                prevKey = if (page == 0) null else page - 1,
-                nextKey = null
-            )
-        }
-
-        val author = authors[authorIndex]
-
-        return try {
+        for ((index, author) in authors.withIndex()) {
             val query = "inauthor:$author"
-            val response = apiService.searchBooks(query, maxResults = pageSize, startIndex = startIndex)
+            try {
+                val response = apiService.searchBooks(
+                    query = query,
+                    maxResults = pageSize,
+                    startIndex = startIndex
+                )
 
-            val books = response.items
-                ?.mapNotNull { item ->
-                    val thumbnail = item.volumeInfo.imageLinks?.thumbnail
-                    if (thumbnail.isNullOrEmpty()) null
-                    else {
-                        val isbn10 = item.volumeInfo.industryIdentifiers
-                            ?.firstOrNull { it.type == "ISBN_10" }
-                            ?.identifier ?: "Неизвестно"
+                val books = response.items?.mapNotNull { item ->
+                    val isbn10 = item.volumeInfo.industryIdentifiers
+                        ?.firstOrNull { it.type == "ISBN_10" }
+                        ?.identifier
+
+                    if (isbn10.isNullOrBlank()) return@mapNotNull null
+
+                    val thumbnail = item.volumeInfo.imageLinks?.run {
+                        extraLarge ?: large ?: medium ?: small ?: thumbnail ?: smallThumbnail
+                    }
+                    if (thumbnail.isNullOrEmpty()) return@mapNotNull null
 
                         Book(
                             id = item.id,
@@ -50,22 +46,38 @@ class BookPagingSource(
                             thumbnail = thumbnail,
                             publishedDate = item.volumeInfo.publishedDate,
                             description = item.volumeInfo.description,
-                            isbn10 = isbn10
+                            isbn10 = isbn10,
+                            publisher = item.volumeInfo.publisher,
+                            pageCount = item.volumeInfo.pageCount,
+                            categories = item.volumeInfo.categories,
+                            averageRating = item.volumeInfo.averageRating,
+                            ratingsCount = item.volumeInfo.ratingsCount,
+                            language = item.volumeInfo.language
                         )
-                    }
                 } ?: emptyList()
 
-            LoadResult.Page(
-                data = books,
-                prevKey = if (page == 0) null else page - 1,
-                nextKey = if (books.isNotEmpty()) page + 1 else null
-            )
-        } catch (e: Exception) {
-            LoadResult.Error(e)
+                booksChunk.addAll(books)
+
+            } catch (e: Exception) {
+                // Игнорируем ошибки одного автора, продолжаем со следующими
+            }
         }
+
+        // Перемешиваем результат: например, можно просто случайно или по очереди
+        val shuffledBooks = booksChunk.shuffled() // или customMix(booksByAuthor)
+
+        val nextKey = if (authorPageIndex + 1 < pagesPerAuthor) page + 1 else null
+
+        return LoadResult.Page(
+            data = shuffledBooks,
+            prevKey = if (page == 0) null else page - 1,
+            nextKey = nextKey
+        )
     }
 
     override fun getRefreshKey(state: PagingState<Int, Book>): Int? {
         return state.anchorPosition?.let { state.closestPageToPosition(it)?.prevKey?.plus(1) }
     }
 }
+
+

@@ -78,7 +78,13 @@ class BookViewModel : ViewModel() {
                                 isFavorite = true,
                                 isBookMark = favorite.isBookMark,
                                 isRated = favorite.isRated,
-                                userRating = favorite.userRating
+                                userRating = favorite.userRating,
+                                publisher = favorite.publisher,
+                                pageCount = favorite.pageCount,
+                                categories = favorite.categories,
+                                averageRating = favorite.averageRating,
+                                ratingsCount = favorite.ratingsCount,
+                                language = favorite.language
                             )
                         }
                     favoriteBooksState.value = books
@@ -107,7 +113,13 @@ class BookViewModel : ViewModel() {
                                 isBookMark = true,
                                 isFavorite = bookmark.isFavorite,
                                 isRated = bookmark.isRated,
-                                userRating = bookmark.userRating
+                                userRating = bookmark.userRating,
+                                publisher = bookmark.publisher,
+                                pageCount = bookmark.pageCount,
+                                categories = bookmark.categories,
+                                averageRating = bookmark.averageRating,
+                                ratingsCount = bookmark.ratingsCount,
+                                language = bookmark.language
                             )
                         }
                     bookmarkBooksState.value = books
@@ -136,7 +148,13 @@ class BookViewModel : ViewModel() {
                                 isRated = true,
                                 isBookMark = rated.isBookMark,
                                 isFavorite = rated.isFavorite,
-                                userRating = rated.userRating
+                                userRating = rated.userRating,
+                                publisher = rated.publisher,
+                                pageCount = rated.pageCount,
+                                categories = rated.categories,
+                                averageRating = rated.averageRating,
+                                ratingsCount = rated.ratingsCount,
+                                language = rated.language
                             )
                         }
                     ratedBooksState.value = books

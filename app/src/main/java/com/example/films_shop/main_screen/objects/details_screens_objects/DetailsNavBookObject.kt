@@ -14,5 +14,11 @@ data class DetailsNavBookObject (
     val isFavorite: Boolean = false,
     val isBookmark: Boolean = false,
     val isRated: Boolean = false,
-    val userRating: Int = 0
+    val userRating: Int = 0,
+    val publisher: String? = "",
+    val pageCount: Int? = 0,
+    val categories: String = "",
+    val averageRating: Double? = 0.0,
+    val ratingsCount: Int? = 0,
+    val language: String? = ""
 )

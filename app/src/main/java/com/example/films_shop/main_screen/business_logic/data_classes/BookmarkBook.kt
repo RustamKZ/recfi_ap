@@ -12,7 +12,13 @@ data class BookmarkBook(
     val description: String? = "",
     val isFavorite: Boolean = false,
     val isRated: Boolean = false,
-    val userRating: Int = 0
+    val userRating: Int = 0,
+    val publisher: String? = "",
+    val pageCount: Int? = 0,
+    val categories: List<String>? = emptyList(),
+    val averageRating: Double? = 0.0,
+    val ratingsCount: Int? = 0,
+    val language: String? = ""
 ) {
     constructor(book: Book) : this(
         key = book.id,
@@ -24,6 +30,12 @@ data class BookmarkBook(
         description = book.description,
         isFavorite = book.isFavorite,
         isRated = book.isRated,
-        userRating = book.userRating
+        userRating = book.userRating,
+        publisher = book.publisher,
+        pageCount = book.pageCount,
+        categories = book.categories,
+        averageRating = book.averageRating,
+        ratingsCount = book.ratingsCount,
+        language = book.language
     )
 }

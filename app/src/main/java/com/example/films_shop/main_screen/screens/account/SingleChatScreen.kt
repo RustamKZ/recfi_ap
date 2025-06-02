@@ -661,7 +661,14 @@ fun ContentCardPlaceholder(
                                         isFavorite = bookViewModel.isInFavorites(bookItem.id),
                                         isBookmark = bookViewModel.isInBookmarks(bookItem.id),
                                         isRated = bookViewModel.isInRated(bookItem.id),
-                                        userRating = rating.toInt()
+                                        userRating = rating.toInt(),
+                                        publisher = volume.publisher,
+                                        pageCount = volume.pageCount,
+                                        categories = volume.categories?.joinToString(", ")
+                                            ?: "Неизвестно",
+                                        averageRating = volume.averageRating,
+                                        ratingsCount = volume.ratingsCount,
+                                        language = volume.language
                                     )
                                 )
                             }

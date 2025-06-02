@@ -12,6 +12,12 @@ data class RatedBook(
     val userRating: Int = 0,
     val isFavorite: Boolean = false,
     val isBookMark: Boolean = false,
+    val publisher: String? = "",
+    val pageCount: Int? = 0,
+    val categories: List<String>? = emptyList(),
+    val averageRating: Double? = 0.0,
+    val ratingsCount: Int? = 0,
+    val language: String? = ""
 ) {
     constructor(book: Book) : this(
         key = book.id,
@@ -23,6 +29,12 @@ data class RatedBook(
         description = book.description,
         userRating = book.userRating,
         isBookMark = book.isBookMark,
-        isFavorite = book.isFavorite
+        isFavorite = book.isFavorite,
+        publisher = book.publisher,
+        pageCount = book.pageCount,
+        categories = book.categories,
+        averageRating = book.averageRating,
+        ratingsCount = book.ratingsCount,
+        language = book.language
     )
 }
