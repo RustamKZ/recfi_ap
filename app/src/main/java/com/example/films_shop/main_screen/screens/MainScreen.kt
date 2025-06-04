@@ -109,6 +109,10 @@ val test_font = FontFamily(
     Font(R.font.lumiosmarker_0, FontWeight.Normal),
 )
 
+val font_books_rus = FontFamily(
+    Font(R.font.rus_font_books, FontWeight.Normal),
+)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(

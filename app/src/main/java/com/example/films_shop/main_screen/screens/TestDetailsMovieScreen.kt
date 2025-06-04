@@ -1018,7 +1018,6 @@ fun TestDetailsMovieScreen(
                                                 rating >= 5 -> Color(0xFFFF9800)
                                                 else -> Color(0xFFF44336)
                                             }
-
                                             Text(
                                                 text = String.format("%.1f", rating),
                                                 color = Color.White,

@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -85,6 +86,40 @@ import com.example.films_shop.ui.theme.BackGroundColor
 import com.example.films_shop.ui.theme.BackGroundColorButton
 import com.example.films_shop.ui.theme.BackGroundColorButtonLightGray
 
+@Composable
+fun RatingItemBook(
+    title: String,
+    rating: String,
+    votes: String,
+    buttonTextColor: Color,
+    modifier: Modifier = Modifier,
+) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = modifier) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.labelMedium,
+            color = buttonTextColor,
+            fontSize = 17.sp,
+            fontWeight = FontWeight.Bold
+        )
+        Text(
+            text = rating,
+            style = MaterialTheme.typography.displayLarge.copy(
+                fontWeight = FontWeight.Bold,
+                color = buttonTextColor,
+                fontSize = 35.sp,
+            ),
+            modifier = Modifier.padding(vertical = 4.dp)
+        )
+        Text(
+            text = "Голосов: $votes",
+            style = MaterialTheme.typography.bodySmall,
+            color = Color.Gray,
+            fontSize = 15.sp,
+        )
+    }
+}
+
 @SuppressLint("DefaultLocale")
 @Composable
 fun RatingCardBook(
@@ -108,30 +143,12 @@ fun RatingCardBook(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            RatingItem(
-                title = "Оценка",
-                rating = "Рейтинг: ${String.format("%.1f", averageRating)}",
+            RatingItemBook(
+                title = "",
+                rating = "Рейтинг: $averageRating",
                 votes = ratingsCount.toString(),
                 buttonTextColor = buttonTextColor,
                 modifier = Modifier.padding(vertical = 16.dp)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp)
-                .clip(RoundedCornerShape(24.dp))
-                .background(buttonBackgroundColor)
-                .clickable { /* оценка книги */ },
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "Оценить",
-                color = buttonTextColor,
-                style = MaterialTheme.typography.labelLarge
             )
         }
     }
@@ -514,7 +531,7 @@ fun DetailsBookScreen(
                             brush = Brush.verticalGradient(
                                 colors = listOf(
                                     Color.Transparent,
-                                    Color.White
+                                    if (isDark) BackGroundColor else Color.White
                                 )
                             )
                         )
@@ -533,17 +550,27 @@ fun DetailsBookScreen(
                 )
             }
             Spacer(modifier = Modifier.height(10.dp))
-            Box(modifier = Modifier.fillMaxWidth()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 80.dp) // можешь подстроить под высоту строки
+                    .padding(horizontal = 16.dp),
+                contentAlignment = Alignment.Center
+            ) {
                 Text(
                     text = navObject.title,
                     color = textColor,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 30.sp,
-                    modifier = Modifier.align(Alignment.Center),
-                    fontFamily = test_font
+                    fontSize = 40.sp,
+                    fontFamily = font_books_rus,
+                    textAlign = TextAlign.Center,
+                    maxLines = 3, // можно больше
+                    overflow = TextOverflow.Ellipsis,
+                    lineHeight = 64.sp // можно чуть больше, чем fontSize, чтобы не налезал
                 )
             }
-            Spacer(modifier = Modifier.height(20.dp))
+
+            Spacer(modifier = Modifier.height(10.dp))
 
             Column(
                 modifier = Modifier.fillMaxWidth(),
@@ -557,66 +584,54 @@ fun DetailsBookScreen(
                     fontFamily = custom_font
                 )
                 Spacer(modifier = Modifier.height(4.dp))
-                navObject.publisher?.let {
-                    if (it.isNotBlank()) {
-                        Text(
-                            text = "Издательство: $it",
-                            color = Color.Gray,
-                            fontSize = 16.sp,
-                            fontFamily = custom_font
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.height(4.dp))
-                navObject.publishedDate.let {
-                    if (it.isNotBlank()) {
-                        Text(
-                            text = "Дата публикации: $it",
-                            color = Color.Gray,
-                            fontSize = 16.sp,
-                            fontFamily = custom_font
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.height(4.dp))
-                navObject.pageCount?.takeIf { it > 0 }?.let {
-                    Text(
-                        text = "Страниц: $it",
-                        fontSize = 16.sp,
-                        color = Color.Gray,
-                        fontFamily = custom_font,
-                    )
-                }
-                Spacer(modifier = Modifier.height(4.dp))
-                navObject.language?.let {
-                    if (it.isNotBlank()) {
-                        val languageName = when (it.lowercase()) {
-                            "ru" -> "Русский"
-                            "en" -> "Английский"
-                            else -> "Иностранный"
+                Row() {
+                    navObject.publisher?.let {
+                        if (it.isNotBlank()) {
+                            Text(
+                                text = "${it}, ",
+                                color = Color.Gray,
+                                fontSize = 16.sp,
+                                fontFamily = custom_font
+                            )
                         }
+                    }
+                    navObject.publishedDate.let {
+                        if (it.isNotBlank()) {
+                            Text(
+                                text = "${it}, ",
+                                color = Color.Gray,
+                                fontSize = 16.sp,
+                                fontFamily = custom_font
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                    navObject.pageCount?.takeIf { it > 0 }?.let {
                         Text(
-                            text = "Язык: $languageName",
-                            color = Color.Gray,
+                            text = "${it} cтр.",
                             fontSize = 16.sp,
-                            fontFamily = custom_font
+                            color = Color.Gray,
+                            fontFamily = custom_font,
                         )
                     }
                 }
+                    Spacer(modifier = Modifier.height(4.dp))
+                    navObject.language?.let {
+                        if (it.isNotBlank()) {
+                            val languageName = when (it.lowercase()) {
+                                "ru" -> "Русский"
+                                "en" -> "Английский"
+                                else -> "Иностранный"
+                            }
+                            Text(
+                                text = "Язык: $languageName",
+                                color = Color.Gray,
+                                fontSize = 16.sp,
+                                fontFamily = custom_font
+                            )
+                        }
+                    }
             }
-            Spacer(modifier = Modifier.height(4.dp))
-            if (navObject.categories.isNotBlank()) {
-                Text(
-                    text = navObject.categories,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.DarkGray,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth(),
-                    fontFamily = custom_font
-                )
-            }
-
             Spacer(modifier = Modifier.height(20.dp))
 
             Box(modifier = Modifier.fillMaxWidth()) {
@@ -648,13 +663,6 @@ fun DetailsBookScreen(
                     ) {
                         navObject.averageRating?.let {
                             navObject.ratingsCount?.let {
-                                Text(
-                                    text = "Рейтинг: ${"%.1f".format(it)}",
-                                    fontSize = 25.sp,
-                                    style = MaterialTheme.typography.headlineMedium,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Spacer(modifier = Modifier.height(12.dp))
                                 RatingCardBook(
                                     averageRating = navObject.averageRating,
                                     ratingsCount = navObject.ratingsCount,
@@ -665,7 +673,7 @@ fun DetailsBookScreen(
                         }
                     }
                 }
-                Spacer(modifier = Modifier.height(25.dp))
+                Spacer(modifier = Modifier.height(15.dp))
                 Text(
                     text = "Похожие книги",
                     fontSize = 25.sp,
