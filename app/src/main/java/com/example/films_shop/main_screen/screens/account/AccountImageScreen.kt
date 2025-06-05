@@ -22,14 +22,27 @@ import androidx.compose.ui.layout.ContentScale
 import coil.compose.AsyncImage
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.films_shop.main_screen.bottom_menu.MainViewModel
+import com.example.films_shop.ui.theme.BackGroundColor
 
 @Composable
 fun AccountImageScreen(
     navData: ImageAccountObject,
     onAvatarSelected: () -> Unit
 ) {
+    val isDark = isSystemInDarkTheme()
+    val textColor = if (isDark) Color.White else Color.Black
     val context = LocalContext.current
     val db = remember {
         Firebase.firestore
@@ -46,36 +59,48 @@ fun AccountImageScreen(
         "https://raw.githubusercontent.com/RustamKZ/recfi_ap/refs/heads/master/photo8.png",
         "https://raw.githubusercontent.com/RustamKZ/recfi_ap/refs/heads/master/photo9.png",
     ) }
-
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(columns),
-        modifier = Modifier.padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        items(avatarUrls) { url ->
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clip(CircleShape)
-                    .clickable {
-                        db.collection("users")
-                            .document(navData.uid)
-                            .update("photo", url)
-                            .addOnSuccessListener {
-                                Toast.makeText(context, "Аватар успешно выбран", Toast.LENGTH_SHORT).show()
-                                onAvatarSelected()
-                            }
-                    }
-            ) {
-                AsyncImage( // Coil Compose
-                    model = url,
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
+    Column()
+    {
+        Box(modifier = Modifier.padding(start = 16.dp, top = 16.dp))
+        {
+            Text(
+                text = "Выберите ваш аватар:",
+                fontSize = 25.sp,
+                color = textColor,
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold
+            )
+        }
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(columns),
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            items(avatarUrls) { url ->
+                Box(
                     modifier = Modifier
-                        .size(200.dp)
+                        .fillMaxSize()
                         .clip(CircleShape)
-                )
+                        .clickable {
+                            db.collection("users")
+                                .document(navData.uid)
+                                .update("photo", url)
+                                .addOnSuccessListener {
+                                    Toast.makeText(context, "Аватар успешно выбран", Toast.LENGTH_SHORT).show()
+                                    onAvatarSelected()
+                                }
+                        }
+                ) {
+                    AsyncImage( // Coil Compose
+                        model = url,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(200.dp)
+                            .clip(CircleShape)
+                    )
+                }
             }
         }
     }

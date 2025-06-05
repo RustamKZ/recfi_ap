@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyRow
@@ -85,6 +86,9 @@ import androidx.compose.ui.graphics.Brush
 import com.example.films_shop.ui.theme.BackGroundColor
 import com.example.films_shop.ui.theme.BackGroundColorButton
 import com.example.films_shop.ui.theme.BackGroundColorButtonLightGray
+import com.example.films_shop.ui.theme.BackGroundColorChatCardDarkGray
+import com.example.films_shop.ui.theme.backColorChatCard
+import com.example.films_shop.ui.theme.mainColorUiGreen
 
 @Composable
 fun RatingItemBook(
@@ -205,6 +209,8 @@ fun DetailsBookScreen(
     val buttonBackgroundColor =
         if (isDark) BackGroundColorButton else BackGroundColorButtonLightGray
     val buttonTextColor = if (isDark) Color.White else Color.Black
+    val buttonBottom = if (isDark) Color.Black else Color.White
+    val buttonRate = if (isDark) backColorChatCard else BackGroundColorButtonLightGray
     // ui colors
 
     LaunchedEffect(id)
@@ -219,194 +225,116 @@ fun DetailsBookScreen(
         },
         bottomBar = {},
         floatingActionButton = {
-            Box(
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .padding(horizontal = 16.dp, vertical = 12.dp)
             ) {
-                // Правая часть с основными кнопками
-                Row(
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.Bottom,
-                    modifier = Modifier.align(Alignment.BottomEnd)
+                // Кнопка "Оценить" (только иконка)
+                FloatingActionButton(
+                    onClick = { showRatingDialog = true },
+                    containerColor = buttonBottom,
+                    contentColor = mainColorUiGreen,
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.size(56.dp), // Круглая кнопка
+                    elevation = FloatingActionButtonDefaults.elevation(0.dp)
                 ) {
-                    // Колонка с раскрывающимися кнопками и основной кнопкой разворачивания
-                    Box(
-                        contentAlignment = Alignment.BottomCenter,
-                        modifier = Modifier.width(150.dp)
+                    Icon(
+                        imageVector = if (!isRated) Icons.Default.StarOutline else Icons.Default.Star,
+                        contentDescription = "Оценить"
+                    )
+                }
+
+                // Кнопка "В избранное" (только иконка)
+                FloatingActionButton(
+                    onClick = {
+                        navData?.let { data ->
+                            val book = Book(
+                                id = navObject.id,
+                                isbn10 = navObject.isbn10,
+                                title = navObject.title,
+                                description = navObject.description,
+                                thumbnail = navObject.thumbnail,
+                                authors = navObject.authors.split(", "),
+                                publishedDate = navObject.publishedDate,
+                                isFavorite = isFavorite,
+                                isBookMark = isBookmark,
+                                isRated = isRated,
+                                userRating = navObject.userRating,
+                                publisher = navObject.publisher,
+                                pageCount = navObject.pageCount,
+                                categories = navObject.categories.split(", "),
+                                averageRating = navObject.averageRating,
+                                ratingsCount = navObject.ratingsCount,
+                                language = navObject.language
+                            )
+                            onFavsBooks(db, data.uid, book, !book.isFavorite)
+                        }
+                    },
+                    containerColor = buttonBottom,
+                    contentColor = mainColorUiGreen,
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.size(56.dp),
+                    elevation = FloatingActionButtonDefaults.elevation(0.dp)
+                ) {
+                    Icon(
+                        imageVector = if (!isFavorite) Icons.Default.FavoriteBorder else Icons.Default.Favorite,
+                        contentDescription = "В избранное"
+                    )
+                }
+
+                // Кнопка "Прочитать позже" (иконка + текст)
+                FloatingActionButton(
+                    onClick = {
+                        navData?.let { data ->
+                            val book = Book(
+                                id = navObject.id,
+                                isbn10 = navObject.isbn10,
+                                title = navObject.title,
+                                description = navObject.description,
+                                thumbnail = navObject.thumbnail,
+                                authors = navObject.authors.split(", "),
+                                publishedDate = navObject.publishedDate,
+                                isFavorite = isFavorite,
+                                isBookMark = isBookmark,
+                                isRated = isRated,
+                                userRating = navObject.userRating,
+                                publisher = navObject.publisher,
+                                pageCount = navObject.pageCount,
+                                categories = navObject.categories.split(", "),
+                                averageRating = navObject.averageRating,
+                                ratingsCount = navObject.ratingsCount,
+                                language = navObject.language
+                            )
+                            onBookmarkBooks(db, data.uid, book, !book.isBookMark)
+                        }
+                    },
+                    containerColor = buttonBottom,
+                    contentColor = mainColorUiGreen,
+                    shape = RoundedCornerShape(16.dp),
+                    elevation = FloatingActionButtonDefaults.elevation(0.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
                     ) {
-                        // Выпадающие кнопки сверху с анимацией
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(12.dp),
-                            modifier = Modifier
-                                .align(Alignment.BottomCenter)
-                                .padding(bottom = 62.dp)
-                                .alpha(if (expandedButton) 1f else 0f)
-                                .animateContentSize()
-                        ) {
-                            // Первая раскрывающаяся кнопка
-                            if (expandedButton) {
-                                FloatingActionButton(
-                                    onClick = { showRatingDialog = true },
-                                    containerColor = Color.White,
-                                    contentColor = Color.Black,
-                                    shape = RoundedCornerShape(16.dp),
-                                    modifier = Modifier.width(160.dp), // Фиксированная ширина
-                                    elevation = FloatingActionButtonDefaults.elevation(
-                                        defaultElevation = 0.dp,
-                                        pressedElevation = 0.dp,
-                                        focusedElevation = 0.dp,
-                                        hoveredElevation = 0.dp
-                                    )
-                                ) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.Center,
-                                        modifier = Modifier.padding(vertical = 8.dp)
-                                    ) {
-                                        Icon(
-                                            imageVector = if (!isRated) Icons.Default.StarOutline else Icons.Default.Star,
-                                            contentDescription = "Оценить"
-                                        )
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        Text(
-                                            text = "Оценить",
-                                            fontSize = 14.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            fontFamily = custom_font
-                                        )
-                                    }
-                                }
-
-                                // Вторая раскрывающаяся кнопка
-                                FloatingActionButton(
-                                    onClick = {
-                                        navData?.let { data ->
-                                            val book = Book(
-                                                id = navObject.id,
-                                                isbn10 = navObject.isbn10,
-                                                title = navObject.title,
-                                                description = navObject.description,
-                                                thumbnail = navObject.thumbnail,
-                                                authors = navObject.authors.split(", "),
-                                                publishedDate = navObject.publishedDate,
-                                                isFavorite = isFavorite,
-                                                isBookMark = isBookmark,
-                                                isRated = isRated,
-                                                userRating = navObject.userRating,
-                                                publisher = navObject.publisher,
-                                                pageCount = navObject.pageCount,
-                                                categories = navObject.categories.split(", "),
-                                                averageRating = navObject.averageRating,
-                                                ratingsCount = navObject.ratingsCount,
-                                                language = navObject.language
-                                            )
-                                            //Log.d("MyLog", "$isFavorite")
-                                            onFavsBooks(db, data.uid, book, !book.isFavorite)
-                                        }
-                                    },
-                                    containerColor = Color.White,
-                                    contentColor = Color.Black,
-                                    shape = RoundedCornerShape(16.dp),
-                                    modifier = Modifier.width(160.dp), // Фиксированная ширина
-                                    elevation = FloatingActionButtonDefaults.elevation(
-                                        defaultElevation = 0.dp,
-                                        pressedElevation = 0.dp,
-                                        focusedElevation = 0.dp,
-                                        hoveredElevation = 0.dp
-                                    )
-                                ) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.Center,
-                                        modifier = Modifier.padding(vertical = 8.dp)
-                                    ) {
-                                        Icon(
-                                            imageVector = if (!isFavorite) Icons.Default.FavoriteBorder else Icons.Default.Favorite,
-                                            contentDescription = "В избранное"
-                                        )
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        Text(
-                                            text = "В избранное",
-                                            fontSize = 14.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            fontFamily = custom_font
-                                        )
-                                    }
-                                }
-                            }
-                        }
-
-                        // Раскрывающаяся кнопка, всегда в той же позиции
-                        FloatingActionButton(
-                            onClick = { expandedButton = !expandedButton },
-                            containerColor = if (expandedButton) Color.Gray else Color.White,
-                            contentColor = Color.Black,
-                            shape = RoundedCornerShape(16.dp),
-                            modifier = Modifier.align(Alignment.BottomCenter)
-                        ) {
-                            Icon(
-                                imageVector = if (!expandedButton) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                                contentDescription = null
-                            )
-                        }
-                    }
-
-                    // Отступ между кнопками
-                    //Spacer(modifier = Modifier.width(70.dp))
-
-                    // Правая большая кнопка "Посмотреть позже"
-                    FloatingActionButton(
-                        onClick = {
-                            navData?.let { data ->
-                                val book = Book(
-                                    id = navObject.id,
-                                    isbn10 = navObject.isbn10,
-                                    title = navObject.title,
-                                    description = navObject.description,
-                                    thumbnail = navObject.thumbnail,
-                                    authors = navObject.authors.split(", "),
-                                    publishedDate = navObject.publishedDate,
-                                    isFavorite = isFavorite,
-                                    isBookMark = isBookmark,
-                                    isRated = isRated,
-                                    userRating = navObject.userRating,
-                                    publisher = navObject.publisher,
-                                    pageCount = navObject.pageCount,
-                                    categories = navObject.categories.split(", "),
-                                    averageRating = navObject.averageRating,
-                                    ratingsCount = navObject.ratingsCount,
-                                    language = navObject.language
-                                )
-                                onBookmarkBooks(db, data.uid, book, !book.isBookMark)
-                            }
-                        },
-                        containerColor = Color.White,
-                        contentColor = Color.Black,
-                        shape = RoundedCornerShape(16.dp)
-                    ) {
-                        Row(
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Icon(
-                                imageVector = if (!isBookmark) Icons.Default.BookmarkBorder else Icons.Default.Bookmark,
-                                contentDescription = null,
-                                modifier = Modifier.padding(start = 10.dp)
-                            )
-                            Text(
-                                text = "Прочитать позже",
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.Bold,
-                                fontFamily = custom_font,
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                            )
-                        }
+                        Icon(
+                            imageVector = if (!isBookmark) Icons.Default.BookmarkBorder else Icons.Default.Bookmark,
+                            contentDescription = "Прочитать позже"
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Прочитать позже",
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = custom_font
+                        )
                     }
                 }
             }
-        },
-        floatingActionButtonPosition = FabPosition.Center
+        }
     ) { innerPadding ->
         Box(
             modifier = Modifier
@@ -418,7 +346,7 @@ fun DetailsBookScreen(
             Dialog(onDismissRequest = { showRatingDialog = false }) {
                 Surface(
                     shape = RoundedCornerShape(16.dp),
-                    color = Color.White,
+                    color = buttonBottom,
                     modifier = Modifier
                         .fillMaxWidth(0.9f)
                         .wrapContentHeight()
@@ -428,10 +356,10 @@ fun DetailsBookScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "Оцените фильм",
+                            text = "Оцените книгу",
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color.Black
+                            color = mainColorUiGreen
                         )
 
                         Spacer(modifier = Modifier.height(16.dp))
@@ -442,8 +370,8 @@ fun DetailsBookScreen(
                             valueRange = 1f..10f,
                             steps = 8, // чтобы по 1 шагу (10-1)/9 = 1
                             colors = SliderDefaults.colors(
-                                thumbColor = Color(0xFFE16B04),
-                                activeTrackColor = Color(0xFFE16B04)
+                                thumbColor = mainColorUiGreen,
+                                activeTrackColor = mainColorUiGreen
                             )
                         )
 
@@ -452,7 +380,7 @@ fun DetailsBookScreen(
                         Text(
                             text = "Вы выбрали: ${userRating.toInt()}",
                             fontSize = 16.sp,
-                            color = Color.Black
+                            color = mainColorUiGreen
                         )
 
                         Spacer(modifier = Modifier.height(24.dp))
@@ -484,8 +412,8 @@ fun DetailsBookScreen(
                                 showRatingDialog = false // Закрыть диалог
                             },
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFFE16B04),
-                                contentColor = Color.White
+                                containerColor = buttonRate,
+                                contentColor = mainColorUiGreen
                             ),
                             shape = RoundedCornerShape(12.dp)
                         ) {
@@ -525,7 +453,7 @@ fun DetailsBookScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(150.dp)
+                        .height(250.dp)
                         .align(Alignment.BottomCenter)
                         .background(
                             brush = Brush.verticalGradient(

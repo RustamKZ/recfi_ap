@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
@@ -32,6 +33,7 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.films_shop.main_screen.api.BookApi.BookItemUi
 import com.example.films_shop.main_screen.api.BookApi.BookViewModel
 import com.example.films_shop.main_screen.bottom_menu.BottomMenu
+import com.example.films_shop.main_screen.bottom_menu.MainViewModel
 import com.example.films_shop.main_screen.objects.details_screens_objects.DetailsNavBookObject
 import com.example.films_shop.main_screen.objects.main_screens_objects.MainScreenDataObject
 import com.example.films_shop.main_screen.top_bar.TopBarMenu
@@ -49,6 +51,7 @@ fun RatedBookScreen(
     showBottomBar: Boolean = true,
     scrollBehavior: TopAppBarScrollBehavior,
 ) {
+    val viewModel: MainViewModel = viewModel()
     val ratedBooksState = remember { bookViewModel.ratedBooksState }
     val db = Firebase.firestore
     val isRatedListEmptyState = remember { mutableStateOf(ratedBooksState.value.isEmpty()) }
@@ -68,7 +71,9 @@ fun RatedBookScreen(
                 BottomMenu(
                     navController = navController,
                     uid = navData.uid,
-                    email = navData.email
+                    email = navData.email,
+                    selectedTab = viewModel.selectedTab,
+                    onTabSelected = { viewModel.onTabSelected(it) }
                 )
             }
         }

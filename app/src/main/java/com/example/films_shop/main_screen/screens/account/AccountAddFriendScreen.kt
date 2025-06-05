@@ -37,6 +37,7 @@ import com.example.films_shop.main_screen.screens.favourite_screens.rated_screen
 import com.example.films_shop.ui.theme.BackGroundColor
 import com.example.films_shop.ui.theme.BackGroundColorButton
 import com.example.films_shop.ui.theme.BackGroundColorButtonLightGray
+import com.example.films_shop.ui.theme.mainColorUiGreen
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -50,6 +51,7 @@ fun AddFriendWithRequestsScreen(navData: AddFriendObject) {
     val isDark = isSystemInDarkTheme()
     val tabColor = if (isDark) BackGroundColor else Color.White
     val textColor = if (isDark) Color.White else Color.Black
+    val indicatorColor = if (isDark) mainColorUiGreen else mainColorUiGreen
     val tabs = listOf("Добавить друга", "Входящие заявки")
     val pagerState = rememberPagerState(initialPage = 0, pageCount = { tabs.size })
     val coroutineScope = rememberCoroutineScope()
@@ -57,7 +59,7 @@ fun AddFriendWithRequestsScreen(navData: AddFriendObject) {
         TabRow(
             selectedTabIndex = pagerState.currentPage,
             containerColor = tabColor,
-            contentColor = textColor,
+            contentColor = indicatorColor,
             indicator = { tabPositions ->
                 TabRowDefaults.Indicator(
                     Modifier.tabIndicatorOffset(tabPositions[pagerState.currentPage]),
@@ -76,7 +78,7 @@ fun AddFriendWithRequestsScreen(navData: AddFriendObject) {
                     text = {
                         Text(
                             text = title,
-                            color = if (pagerState.currentPage == index) textColor else textColor
+                            color = if (pagerState.currentPage == index) indicatorColor else textColor
                         )
                     }
                 )
@@ -126,7 +128,7 @@ fun AccountAddFriendScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(16.dp))
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -148,7 +150,7 @@ fun AccountAddFriendScreen(
             )
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
         Box(
             modifier = Modifier
@@ -295,8 +297,8 @@ fun IncomingFriendRequestsScreen(navData: AddFriendObject) {
             var offsetX by remember { mutableStateOf(0f) }
             val maxOffset = 1000f
             val backgroundColor = when {
-                offsetX > 0 -> Color(0xFFB9F6CA).copy(alpha = min(offsetX / maxOffset, 1f))
-                offsetX < 0 -> Color(0xFFFF8A80).copy(
+                offsetX > 0 -> mainColorUiGreen.copy(alpha = min(offsetX / maxOffset, 1f))
+                offsetX < 0 -> Color.Red.copy(
                     alpha = min(
                         offsetX.absoluteValue / maxOffset,
                         1f

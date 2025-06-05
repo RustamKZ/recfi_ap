@@ -138,7 +138,7 @@ fun SingleChatScreen(
     val isDark = isSystemInDarkTheme()
     val textColor = if (isDark) Color.White else Color.Black
     val buttonBackgroundColor =
-        if (isDark) backColorChatCard else BackGroundColorChatCardDarkGray
+        if (isDark) backColorChatCard else Color.White
     val db = FirebaseFirestore.getInstance()
     val currentUid = uid
     val chatId = listOf(currentUid, friendUid).sorted().joinToString("_")

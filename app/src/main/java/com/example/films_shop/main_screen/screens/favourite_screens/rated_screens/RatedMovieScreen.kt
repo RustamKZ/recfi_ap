@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
@@ -33,6 +34,7 @@ import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.films_shop.main_screen.api.MovieitemUi
 import com.example.films_shop.main_screen.bottom_menu.BottomMenu
+import com.example.films_shop.main_screen.bottom_menu.MainViewModel
 import com.example.films_shop.main_screen.objects.details_screens_objects.DetailsNavMovieObject
 import com.example.films_shop.main_screen.objects.main_screens_objects.MainScreenDataObject
 import com.example.films_shop.main_screen.top_bar.TopBarMenu
@@ -51,6 +53,7 @@ fun RatedMovieScreen(
     scrollBehavior: TopAppBarScrollBehavior,
     contentType: ContentType,
 ) {
+    val viewModel: MainViewModel = viewModel()
     val ratedContentState = when (contentType) {
         ContentType.MOVIES -> remember { movieViewModel.ratedMoviesState }
         ContentType.TV_SERIES -> remember { movieViewModel.ratedTvSeriesState }
@@ -75,7 +78,9 @@ fun RatedMovieScreen(
                 BottomMenu(
                     navController = navController,
                     uid = navData.uid,
-                    email = navData.email
+                    email = navData.email,
+                    selectedTab = viewModel.selectedTab,
+                    onTabSelected = { viewModel.onTabSelected(it) }
                 )
             }
         }

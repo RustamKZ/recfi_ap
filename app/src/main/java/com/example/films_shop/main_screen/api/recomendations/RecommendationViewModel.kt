@@ -293,7 +293,19 @@ class RecommendationViewModel : ViewModel() {
             }
 
             // Фильтруем фильмы без названия
-            val filteredMovies = updatedMovies.filter { it.name != null }
+            val filteredMovies = updatedMovies
+                .filter { movie ->
+                    movie.name != null &&
+                            movie.poster?.url != "https://raw.githubusercontent.com/RustamKZ/recfi_ap/refs/heads/master/poster.jpg"
+                }
+                .sortedByDescending { movie ->
+                    when {
+                        movie.rating?.kp != null && movie.rating.kp > 0.0 -> movie.rating.kp
+                        movie.rating?.imdb != null && movie.rating.imdb > 0.0 -> movie.rating.imdb
+                        else -> 0.0
+                    }
+                }
+
 
             _recommendationMovies.value = filteredMovies
 
@@ -356,6 +368,13 @@ class RecommendationViewModel : ViewModel() {
             val filteredMovies = updatedMovies.filterNot {
                 it.name == null || it.poster == Poster("https://raw.githubusercontent.com/RustamKZ/recfi_ap/refs/heads/master/poster.jpg")
             }
+                .sortedByDescending { movie ->
+                    when {
+                        movie.rating?.kp != null && movie.rating.kp > 0.0 -> movie.rating.kp
+                        movie.rating?.imdb != null && movie.rating.imdb > 0.0 -> movie.rating.imdb
+                        else -> 0.0
+                    }
+                }
             when (type) {
                 "movie" -> {
                     _recommendationCollabMovies.value = filteredMovies

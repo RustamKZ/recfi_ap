@@ -194,24 +194,6 @@ fun RatingCard(
                 itemModifier
             )
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp)
-                .clip(RoundedCornerShape(24.dp))
-                .background(buttonBackgroundColor)
-                .clickable { /* пустышка */ },
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "Оценить",
-                color = buttonTextColor,
-                style = MaterialTheme.typography.labelLarge
-            )
-        }
     }
 }
 
@@ -1012,7 +994,11 @@ fun TestDetailsMovieScreen(
                                             )
 
                                             // Оценка
-                                            val rating = movie.rating?.kp ?: 0.0
+                                            val rating = when {
+                                                movie.rating?.kp != null && movie.rating.kp > 0.0 -> movie.rating.kp
+                                                movie.rating?.imdb != null && movie.rating.imdb > 0.0 -> movie.rating.imdb
+                                                else -> 0.0
+                                            }
                                             val backgroundColor = when {
                                                 rating > 7 -> colorResource(id = R.color.kp_rating)
                                                 rating >= 5 -> Color(0xFFFF9800)
@@ -1035,40 +1021,7 @@ fun TestDetailsMovieScreen(
                                         }
                                     }
                                 }
-                            } else if (error != null) {
-                                // Показать сообщение об ошибке
-                                item {
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .height(200.dp),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Text(
-                                            text = "Не удалось загрузить рекомендации",
-                                            color = Color.Red,
-                                            fontSize = 16.sp
-                                        )
-                                    }
-                                }
-                            } else {
-                                // Показать сообщение, если рекомендаций нет
-                                item {
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .height(200.dp),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Text(
-                                            text = "Нет рекомендаций для этого фильма",
-                                            color = Color.Gray,
-                                            fontSize = 16.sp
-                                        )
-                                    }
-                                }
                             }
-
                         }
                         Spacer(modifier = Modifier.height(40.dp))
                     }

@@ -17,6 +17,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.films_shop.main_screen.api.BookApi.Book
@@ -24,6 +25,7 @@ import com.example.films_shop.main_screen.api.BookApi.BookItemUi
 import com.example.films_shop.main_screen.api.BookApi.BookViewModel
 import com.example.films_shop.main_screen.api.recomendations.RecommendationViewModel
 import com.example.films_shop.main_screen.bottom_menu.BottomMenu
+import com.example.films_shop.main_screen.bottom_menu.MainViewModel
 import com.example.films_shop.main_screen.objects.main_screens_objects.BookScreenDataObject
 import com.example.films_shop.main_screen.objects.details_screens_objects.DetailsNavBookObject
 import com.example.films_shop.main_screen.objects.rec_objects.RecBookScreenDataObject
@@ -42,6 +44,7 @@ fun RecBookScreen(
     showBottomBar: Boolean = true,
     scrollBehavior: TopAppBarScrollBehavior,
     noOpNestedScrollConnection: NestedScrollConnection,
+    viewModel: MainViewModel
 ) {
     val books = bookViewModel.bookPagingFlow.collectAsLazyPagingItems()
     val db = Firebase.firestore
@@ -68,7 +71,9 @@ fun RecBookScreen(
                 BottomMenu(
                     navController = navController,
                     uid = navData.uid,
-                    email = navData.email
+                    email = navData.email,
+                    selectedTab = viewModel.selectedTab,
+                    onTabSelected = { viewModel.onTabSelected(it) }
                 )
             }
         }

@@ -22,12 +22,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.films_shop.main_screen.api.Movie
 import com.example.films_shop.main_screen.api.MovieitemUi
 import com.example.films_shop.main_screen.api.recomendations.RecommendationViewModel
 import com.example.films_shop.main_screen.bottom_menu.BottomMenu
+import com.example.films_shop.main_screen.bottom_menu.MainViewModel
 import com.example.films_shop.main_screen.objects.details_screens_objects.DetailsNavMovieObject
 import com.example.films_shop.main_screen.objects.rec_objects.RecMovieScreenDataObject
 import com.example.films_shop.main_screen.top_bar.TopBarMenu
@@ -46,6 +48,7 @@ fun RecMovieScreen(
     scrollBehavior: TopAppBarScrollBehavior,
     noOpNestedScrollConnection: NestedScrollConnection,
     contentType: ContentType,
+    viewModel: MainViewModel
 ) {
     LaunchedEffect(contentType) {
         movieViewModel.setContentType(contentType)
@@ -85,7 +88,9 @@ fun RecMovieScreen(
                 BottomMenu(
                     navController = navController,
                     uid = navData.uid,
-                    email = navData.email
+                    email = navData.email,
+                    selectedTab = viewModel.selectedTab,
+                    onTabSelected = { viewModel.onTabSelected(it) }
                 )
             }
         }

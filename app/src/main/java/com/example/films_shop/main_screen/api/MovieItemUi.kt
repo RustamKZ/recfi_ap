@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.films_shop.R
+import com.example.films_shop.ui.theme.mainColorUiGreen
 
 @Composable
 fun MovieitemUi(
@@ -49,27 +50,29 @@ fun MovieitemUi(
             )
 
             // Оценка
-            val rating = movie.rating?.kp ?: 0.0
-            val backgroundColor = when {
-                rating > 7 -> colorResource(id = R.color.kp_rating)
-                rating >= 5 -> Color(0xFFFF9800)
-                else -> Color(0xFFF44336)
-            }
+            val rating = movie.rating?.kp ?: movie.rating?.imdb ?:0.0
+            if (rating != 0.0) {
+                val backgroundColor = when {
+                    rating > 7 -> mainColorUiGreen
+                    rating >= 5 -> Color(0xFFFF9800)
+                    else -> Color(0xFFF44336)
+                }
 
-            Text(
-                text = String.format("%.1f", rating),
-                color = Color.White,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier
-                    .padding(8.dp)
-                    .background(
-                        color = backgroundColor,
-                        shape = RoundedCornerShape(6.dp)
-                    )
-                    .padding(horizontal = 10.dp, vertical = 2.dp)
-                    .align(Alignment.TopStart)
-            )
+                Text(
+                    text = String.format("%.1f", rating),
+                    color = Color.White,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .background(
+                            color = backgroundColor,
+                            shape = RoundedCornerShape(6.dp)
+                        )
+                        .padding(horizontal = 10.dp, vertical = 2.dp)
+                        .align(Alignment.TopStart)
+                )
+            }
         }
         Spacer(modifier = Modifier.height(5.dp))
         Text(

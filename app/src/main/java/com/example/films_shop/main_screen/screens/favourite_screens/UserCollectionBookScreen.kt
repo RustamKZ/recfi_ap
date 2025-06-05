@@ -9,15 +9,18 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.indicatorC
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.films_shop.main_screen.api.BookApi.BookViewModel
 import com.example.films_shop.main_screen.bottom_menu.BottomMenu
+import com.example.films_shop.main_screen.bottom_menu.MainViewModel
 import com.example.films_shop.main_screen.objects.main_screens_objects.MainScreenDataObject
 import com.example.films_shop.main_screen.screens.favourite_screens.bookmark_screens.BookmarkBookScreen
 import com.example.films_shop.main_screen.screens.favourite_screens.favourite_screens.FavBookScreen
 import com.example.films_shop.main_screen.screens.favourite_screens.rated_screens.RatedBookScreen
 import com.example.films_shop.main_screen.top_bar.TopBarMenu
 import com.example.films_shop.ui.theme.BackGroundColor
+import com.example.films_shop.ui.theme.mainColorUiGreen
 import kotlinx.coroutines.launch
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -30,10 +33,12 @@ fun UserCollectionBookScreen(
     showTopBar: Boolean = true,
     showBottomBar: Boolean = true,
     scrollBehavior: TopAppBarScrollBehavior,
+    viewModel: MainViewModel
 ) {
     val isDark = isSystemInDarkTheme()
     val tabColor = if (isDark) BackGroundColor else Color.White
     val textColor = if (isDark) Color.White else Color.Black
+    val indicatorColor = if (isDark) mainColorUiGreen else mainColorUiGreen
     val tabs = listOf("Избранное", "Прочесть позже", "Вы оценили")
     val pagerState = rememberPagerState(initialPage = 0, pageCount = { tabs.size })
     val coroutineScope = rememberCoroutineScope()
@@ -48,7 +53,9 @@ fun UserCollectionBookScreen(
                 BottomMenu(
                     navController = navController,
                     uid = navData.uid,
-                    email = navData.email
+                    email = navData.email,
+                    selectedTab = viewModel.selectedTab,
+                    onTabSelected = { viewModel.onTabSelected(it) }
                 )
             }
         }
@@ -57,7 +64,7 @@ fun UserCollectionBookScreen(
             TabRow(
                 selectedTabIndex = pagerState.currentPage,
                 containerColor = tabColor,
-                contentColor = textColor,
+                contentColor = indicatorColor,
                 indicator = { tabPositions ->
                     TabRowDefaults.Indicator(
                         Modifier.tabIndicatorOffset(tabPositions[pagerState.currentPage]),
@@ -76,7 +83,7 @@ fun UserCollectionBookScreen(
                         text = {
                             Text(
                                 text = title,
-                                color = if (pagerState.currentPage == index) textColor else textColor
+                                color = if (pagerState.currentPage == index) indicatorColor else textColor
                             )
                         }
                     )

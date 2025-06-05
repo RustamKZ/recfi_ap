@@ -69,6 +69,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.paging.compose.collectAsLazyPagingItems
 import coil.compose.AsyncImage
@@ -82,6 +83,7 @@ import com.example.films_shop.main_screen.Genres.loadUserGenres
 import com.example.films_shop.main_screen.api.BookApi.BookViewModel
 import com.example.films_shop.main_screen.api.recomendations.RecommendationViewModel
 import com.example.films_shop.main_screen.bottom_menu.BottomMenu
+import com.example.films_shop.main_screen.bottom_menu.MainViewModel
 import com.example.films_shop.main_screen.objects.main_screens_objects.BookScreenDataObject
 import com.example.films_shop.main_screen.objects.main_screens_objects.CartoonScreenDataObject
 import com.example.films_shop.main_screen.objects.details_screens_objects.DetailsNavBookObject
@@ -94,6 +96,7 @@ import com.example.films_shop.main_screen.objects.rec_objects.RecCartoonScreenDa
 import com.example.films_shop.main_screen.objects.rec_objects.RecMovieScreenDataObject
 import com.example.films_shop.main_screen.objects.rec_objects.RecTvSeriesScreenDataObject
 import com.example.films_shop.main_screen.top_bar.TopBarMenu
+import com.example.films_shop.ui.theme.mainColorUiGreen
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.delay
@@ -113,6 +116,18 @@ val font_books_rus = FontFamily(
     Font(R.font.rus_font_books, FontWeight.Normal),
 )
 
+val font_series_rus = FontFamily(
+    Font(R.font.series_font, FontWeight.Normal),
+)
+
+val font_films_rus = FontFamily(
+    Font(R.font.films_font, FontWeight.Normal),
+)
+
+val font_cartoon_rus = FontFamily(
+    Font(R.font.cartoon_font, FontWeight.Normal),
+)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
@@ -124,7 +139,8 @@ fun MainScreen(
     showTopBar: Boolean = true,
     showBottomBar: Boolean = true,
     scrollBehavior: TopAppBarScrollBehavior,
-    noOpNestedScrollConnection:  NestedScrollConnection
+    noOpNestedScrollConnection:  NestedScrollConnection,
+    viewModel: MainViewModel
 ) {
     // ui theme
     val isDark = isSystemInDarkTheme()
@@ -134,8 +150,8 @@ fun MainScreen(
     val selectedGenres = remember { mutableStateListOf<GenreKP>() }
     // Инициализируем состояние анимации
     val showLoadingAnimation = remember { mutableStateOf(navData.showLoadingAnimation) }
-    val composition = if (isDark) rememberLottieComposition(spec = LottieCompositionSpec.Asset("white_intro.json")) else
-        rememberLottieComposition(spec = LottieCompositionSpec.Asset("black_intro.json"))
+    val composition = if (isDark) rememberLottieComposition(spec = LottieCompositionSpec.Asset("green_intro.json")) else
+        rememberLottieComposition(spec = LottieCompositionSpec.Asset("green_intro.json"))
     val alpha = remember { Animatable(1f) }
     val dataLoaded = remember { mutableStateOf(false) }
     val movies = movieViewModel.moviesPagingFlow.collectAsLazyPagingItems()
@@ -262,7 +278,9 @@ fun MainScreen(
                     BottomMenu(
                         navController = navController,
                         uid = navData.uid,
-                        email = navData.email
+                        email = navData.email,
+                        selectedTab = viewModel.selectedTab,
+                        onTabSelected = { viewModel.onTabSelected(it) }
                     )
                 }
             }
@@ -372,27 +390,34 @@ fun MainScreen(
                                         )
 
                                         // Оценка
-                                        val rating = movie.rating?.kp ?: 0.0
-                                        val backgroundColor = when {
-                                            rating > 7 -> colorResource(id = R.color.kp_rating)
-                                            rating >= 5 -> Color(0xFFFF9800)
-                                            else -> Color(0xFFF44336)
+                                        val rating = when {
+                                            movie.rating?.kp != null && movie.rating.kp > 0.0 -> movie.rating.kp
+                                            movie.rating?.imdb != null && movie.rating.imdb > 0.0 -> movie.rating.imdb
+                                            else -> 0.0
                                         }
+                                        if (rating != 0.0)
+                                        {
+                                            val backgroundColor = when {
+                                                rating > 7 -> mainColorUiGreen
+                                                rating >= 5 -> Color(0xFFFF9800)
+                                                else -> Color(0xFFF44336)
+                                            }
 
-                                        Text(
-                                            text = String.format("%.1f", rating),
-                                            color = Color.White,
-                                            fontSize = 14.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            modifier = Modifier
-                                                .padding(8.dp)
-                                                .background(
-                                                    color = backgroundColor,
-                                                    shape = RoundedCornerShape(6.dp)
-                                                )
-                                                .padding(horizontal = 10.dp, vertical = 2.dp)
-                                                .align(Alignment.TopStart)
-                                        )
+                                            Text(
+                                                text = String.format("%.1f", rating),
+                                                color = Color.White,
+                                                fontSize = 14.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                modifier = Modifier
+                                                    .padding(8.dp)
+                                                    .background(
+                                                        color = backgroundColor,
+                                                        shape = RoundedCornerShape(6.dp)
+                                                    )
+                                                    .padding(horizontal = 10.dp, vertical = 2.dp)
+                                                    .align(Alignment.TopStart)
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -578,29 +603,37 @@ fun MainScreen(
                                                     .clip(RoundedCornerShape(15.dp)),
                                                 contentScale = ContentScale.Crop
                                             )
-
-                                            // Оценка
-                                            val rating = movie.rating?.kp ?: 0.0
-                                            val backgroundColor = when {
-                                                rating > 7 -> colorResource(id = R.color.kp_rating)
-                                                rating >= 5 -> Color(0xFFFF9800)
-                                                else -> Color(0xFFF44336)
+                                            val rating = when {
+                                                movie.rating?.kp != null && movie.rating.kp > 0.0 -> movie.rating.kp
+                                                movie.rating?.imdb != null && movie.rating.imdb > 0.0 -> movie.rating.imdb
+                                                else -> 0.0
                                             }
+                                            if (rating != 0.0) {
+                                                // Оценка
+                                                val backgroundColor = when {
+                                                    rating > 7 -> mainColorUiGreen
+                                                    rating >= 5 -> Color(0xFFFF9800)
+                                                    else -> Color(0xFFF44336)
+                                                }
 
-                                            Text(
-                                                text = String.format("%.1f", rating),
-                                                color = Color.White,
-                                                fontSize = 14.sp,
-                                                fontWeight = FontWeight.Bold,
-                                                modifier = Modifier
-                                                    .padding(8.dp)
-                                                    .background(
-                                                        color = backgroundColor,
-                                                        shape = RoundedCornerShape(6.dp)
-                                                    )
-                                                    .padding(horizontal = 10.dp, vertical = 2.dp)
-                                                    .align(Alignment.TopStart)
-                                            )
+                                                Text(
+                                                    text = String.format("%.1f", rating),
+                                                    color = Color.White,
+                                                    fontSize = 14.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    modifier = Modifier
+                                                        .padding(8.dp)
+                                                        .background(
+                                                            color = backgroundColor,
+                                                            shape = RoundedCornerShape(6.dp)
+                                                        )
+                                                        .padding(
+                                                            horizontal = 10.dp,
+                                                            vertical = 2.dp
+                                                        )
+                                                        .align(Alignment.TopStart)
+                                                )
+                                            }
                                         }
                                     }
                                 }
@@ -700,30 +733,36 @@ fun MainScreen(
                                                 )
 
                                                 // Оценка
-                                                val rating = movie.rating?.kp ?: 0.0
-                                                val backgroundColor = when {
-                                                    rating > 6.5 -> colorResource(id = R.color.kp_rating)
-                                                    rating >= 4 -> Color(0xFFFF9800)
-                                                    else -> Color(0xFFF44336)
+                                                val rating = when {
+                                                    movie.rating?.kp != null && movie.rating.kp > 0.0 -> movie.rating.kp
+                                                    movie.rating?.imdb != null && movie.rating.imdb > 0.0 -> movie.rating.imdb
+                                                    else -> 0.0
                                                 }
+                                                if (rating != 0.0) {
+                                                    val backgroundColor = when {
+                                                        rating > 6.5 -> mainColorUiGreen
+                                                        rating >= 4 -> Color(0xFFFF9800)
+                                                        else -> Color(0xFFF44336)
+                                                    }
 
-                                                Text(
-                                                    text = String.format("%.1f", rating),
-                                                    color = Color.White,
-                                                    fontSize = 14.sp,
-                                                    fontWeight = FontWeight.Bold,
-                                                    modifier = Modifier
-                                                        .padding(8.dp)
-                                                        .background(
-                                                            color = backgroundColor,
-                                                            shape = RoundedCornerShape(6.dp)
-                                                        )
-                                                        .padding(
-                                                            horizontal = 10.dp,
-                                                            vertical = 2.dp
-                                                        )
-                                                        .align(Alignment.TopStart)
-                                                )
+                                                    Text(
+                                                        text = String.format("%.1f", rating),
+                                                        color = Color.White,
+                                                        fontSize = 14.sp,
+                                                        fontWeight = FontWeight.Bold,
+                                                        modifier = Modifier
+                                                            .padding(8.dp)
+                                                            .background(
+                                                                color = backgroundColor,
+                                                                shape = RoundedCornerShape(6.dp)
+                                                            )
+                                                            .padding(
+                                                                horizontal = 10.dp,
+                                                                vertical = 2.dp
+                                                            )
+                                                            .align(Alignment.TopStart)
+                                                    )
+                                                }
                                             }
                                         }
                                     }
@@ -830,27 +869,36 @@ fun MainScreen(
                                             )
 
                                             // Оценка
-                                            val rating = movie.rating?.kp ?: 0.0
-                                            val backgroundColor = when {
-                                                rating > 7 -> colorResource(id = R.color.kp_rating)
-                                                rating >= 5 -> Color(0xFFFF9800)
-                                                else -> Color(0xFFF44336)
+                                            val rating = when {
+                                                movie.rating?.kp != null && movie.rating.kp > 0.0 -> movie.rating.kp
+                                                movie.rating?.imdb != null && movie.rating.imdb > 0.0 -> movie.rating.imdb
+                                                else -> 0.0
                                             }
+                                            if (rating != 0.0) {
+                                                val backgroundColor = when {
+                                                    rating > 7 -> mainColorUiGreen
+                                                    rating >= 5 -> Color(0xFFFF9800)
+                                                    else -> Color(0xFFF44336)
+                                                }
 
-                                            Text(
-                                                text = String.format("%.1f", rating),
-                                                color = Color.White,
-                                                fontSize = 14.sp,
-                                                fontWeight = FontWeight.Bold,
-                                                modifier = Modifier
-                                                    .padding(8.dp)
-                                                    .background(
-                                                        color = backgroundColor,
-                                                        shape = RoundedCornerShape(6.dp)
-                                                    )
-                                                    .padding(horizontal = 10.dp, vertical = 2.dp)
-                                                    .align(Alignment.TopStart)
-                                            )
+                                                Text(
+                                                    text = String.format("%.1f", rating),
+                                                    color = Color.White,
+                                                    fontSize = 14.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    modifier = Modifier
+                                                        .padding(8.dp)
+                                                        .background(
+                                                            color = backgroundColor,
+                                                            shape = RoundedCornerShape(6.dp)
+                                                        )
+                                                        .padding(
+                                                            horizontal = 10.dp,
+                                                            vertical = 2.dp
+                                                        )
+                                                        .align(Alignment.TopStart)
+                                                )
+                                            }
                                         }
                                     }
                                 }
@@ -951,30 +999,36 @@ fun MainScreen(
                                                 )
 
                                                 // Оценка
-                                                val rating = movie.rating?.kp ?: 0.0
-                                                val backgroundColor = when {
-                                                    rating > 7 -> colorResource(id = R.color.kp_rating)
-                                                    rating >= 5 -> Color(0xFFFF9800)
-                                                    else -> Color(0xFFF44336)
+                                                val rating = when {
+                                                    movie.rating?.kp != null && movie.rating.kp > 0.0 -> movie.rating.kp
+                                                    movie.rating?.imdb != null && movie.rating.imdb > 0.0 -> movie.rating.imdb
+                                                    else -> 0.0
                                                 }
+                                                if (rating != 0.0) {
+                                                    val backgroundColor = when {
+                                                        rating > 7 -> mainColorUiGreen
+                                                        rating >= 5 -> Color(0xFFFF9800)
+                                                        else -> Color(0xFFF44336)
+                                                    }
 
-                                                Text(
-                                                    text = String.format("%.1f", rating),
-                                                    color = Color.White,
-                                                    fontSize = 14.sp,
-                                                    fontWeight = FontWeight.Bold,
-                                                    modifier = Modifier
-                                                        .padding(8.dp)
-                                                        .background(
-                                                            color = backgroundColor,
-                                                            shape = RoundedCornerShape(6.dp)
-                                                        )
-                                                        .padding(
-                                                            horizontal = 10.dp,
-                                                            vertical = 2.dp
-                                                        )
-                                                        .align(Alignment.TopStart)
-                                                )
+                                                    Text(
+                                                        text = String.format("%.1f", rating),
+                                                        color = Color.White,
+                                                        fontSize = 14.sp,
+                                                        fontWeight = FontWeight.Bold,
+                                                        modifier = Modifier
+                                                            .padding(8.dp)
+                                                            .background(
+                                                                color = backgroundColor,
+                                                                shape = RoundedCornerShape(6.dp)
+                                                            )
+                                                            .padding(
+                                                                horizontal = 10.dp,
+                                                                vertical = 2.dp
+                                                            )
+                                                            .align(Alignment.TopStart)
+                                                    )
+                                                }
                                             }
                                         }
                                     }
@@ -1081,9 +1135,14 @@ fun MainScreen(
                                             )
 
                                             // Оценка
-                                            val rating = movie.rating?.kp ?: 0.0
+                                            val rating = when {
+                                                movie.rating?.kp != null && movie.rating.kp > 0.0 -> movie.rating.kp
+                                                movie.rating?.imdb != null && movie.rating.imdb > 0.0 -> movie.rating.imdb
+                                                else -> 0.0
+                                            }
+                                            if (rating != 0.0) {
                                             val backgroundColor = when {
-                                                rating > 7 -> colorResource(id = R.color.kp_rating)
+                                                rating > 7 -> mainColorUiGreen
                                                 rating >= 5 -> Color(0xFFFF9800)
                                                 else -> Color(0xFFF44336)
                                             }
@@ -1102,6 +1161,7 @@ fun MainScreen(
                                                     .padding(horizontal = 10.dp, vertical = 2.dp)
                                                     .align(Alignment.TopStart)
                                             )
+                                                }
                                         }
                                     }
                                 }
@@ -1206,7 +1266,7 @@ fun MainScreen(
                                                 // Оценка
                                                 val rating = book.userRating
                                                 val backgroundColor = when {
-                                                    rating > 7 -> colorResource(id = R.color.kp_rating)
+                                                    rating > 7 -> mainColorUiGreen
                                                     rating >= 5 -> Color(0xFFFF9800)
                                                     else -> Color(0xFFF44336)
                                                 }
@@ -1347,7 +1407,7 @@ fun MainScreen(
                                                 // Оценка
                                                 val rating = book.userRating
                                                 val backgroundColor = when {
-                                                    rating > 7 -> colorResource(id = R.color.kp_rating)
+                                                    rating > 7 -> mainColorUiGreen
                                                     rating >= 5 -> Color(0xFFFF9800)
                                                     else -> Color(0xFFF44336)
                                                 }

@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.core.view.WindowCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -28,6 +29,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.example.films_shop.main_screen.api.BookApi.BookViewModel
 import com.example.films_shop.main_screen.api.recomendations.RecommendationViewModel
+import com.example.films_shop.main_screen.bottom_menu.MainViewModel
 import com.example.films_shop.main_screen.objects.auth_screens_objects.AccountDetailsObject
 import com.example.films_shop.main_screen.objects.auth_screens_objects.AddFriendObject
 import com.example.films_shop.main_screen.objects.auth_screens_objects.ChatFriendsObject
@@ -96,6 +98,7 @@ class MainActivity : ComponentActivity() {
                 val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(
                     state = rememberTopAppBarState()
                 )
+                val viewModel: MainViewModel = viewModel()
                 Scaffold(
                 ) {
                     NavHost(
@@ -125,7 +128,8 @@ class MainActivity : ComponentActivity() {
                                 showTopBar = false,
                                 showBottomBar = true,
                                 scrollBehavior,
-                                noOpNestedScrollConnection
+                                noOpNestedScrollConnection,
+                                viewModel
                             )
                         }
                         composable<FavScreenDataObject>
@@ -134,6 +138,7 @@ class MainActivity : ComponentActivity() {
                             FavScreen(
                                 navData = MainScreenDataObject(navData.uid, navData.email),
                                 navController = navController,
+                                viewModel
                             )
                         }
                         composable<FavMovieScreenDataObject>
@@ -147,7 +152,8 @@ class MainActivity : ComponentActivity() {
                                 true,
                                 scrollBehavior,
                                 noOpNestedScrollConnection,
-                                ContentType.MOVIES
+                                ContentType.MOVIES,
+                                viewModel
                             )
                         }
                         composable<FavSeriesScreenDataObject>
@@ -161,7 +167,8 @@ class MainActivity : ComponentActivity() {
                                 true,
                                 scrollBehavior,
                                 noOpNestedScrollConnection,
-                                ContentType.TV_SERIES
+                                ContentType.TV_SERIES,
+                                viewModel
                             )
                         }
                         composable<FavCartoonScreenDataObject>
@@ -175,7 +182,8 @@ class MainActivity : ComponentActivity() {
                                 true,
                                 scrollBehavior,
                                 noOpNestedScrollConnection,
-                                ContentType.CARTOONS
+                                ContentType.CARTOONS,
+                                viewModel
                             )
                         }
                         composable<FavBookScreenDataObject>
@@ -187,7 +195,8 @@ class MainActivity : ComponentActivity() {
                                 navController = navController,
                                 false,
                                 true,
-                                scrollBehavior
+                                scrollBehavior,
+                                viewModel
                             )
                         }
                         composable<MovieScreenDataObject> { navEntry ->
@@ -201,7 +210,8 @@ class MainActivity : ComponentActivity() {
                                 showBottomBar = true,
                                 scrollBehavior,
                                 noOpNestedScrollConnection,
-                                ContentType.MOVIES
+                                ContentType.MOVIES,
+                                viewModel
                             )
                         }
                         composable<RecMovieScreenDataObject> { navEntry ->
@@ -215,7 +225,8 @@ class MainActivity : ComponentActivity() {
                                 showBottomBar = true,
                                 scrollBehavior,
                                 noOpNestedScrollConnection,
-                                ContentType.MOVIES
+                                ContentType.MOVIES,
+                                viewModel
                             )
                         }
                         composable<SeriesScreenDataObject> { navEntry ->
@@ -228,7 +239,8 @@ class MainActivity : ComponentActivity() {
                                 showBottomBar = true,
                                 scrollBehavior,
                                 noOpNestedScrollConnection,
-                                ContentType.TV_SERIES
+                                ContentType.TV_SERIES,
+                                viewModel
                             )
                         }
                         composable<RecTvSeriesScreenDataObject> { navEntry ->
@@ -242,7 +254,8 @@ class MainActivity : ComponentActivity() {
                                 showBottomBar = true,
                                 scrollBehavior,
                                 noOpNestedScrollConnection,
-                                ContentType.TV_SERIES
+                                ContentType.TV_SERIES,
+                                viewModel
                             )
                         }
                         composable<CartoonScreenDataObject> { navEntry ->
@@ -255,7 +268,8 @@ class MainActivity : ComponentActivity() {
                                 showBottomBar = true,
                                 scrollBehavior,
                                 noOpNestedScrollConnection,
-                                ContentType.CARTOONS
+                                ContentType.CARTOONS,
+                                viewModel
                             )
                         }
                         composable<RecCartoonScreenDataObject> { navEntry ->
@@ -269,7 +283,8 @@ class MainActivity : ComponentActivity() {
                                 showBottomBar = true,
                                 scrollBehavior,
                                 noOpNestedScrollConnection,
-                                ContentType.CARTOONS
+                                ContentType.CARTOONS,
+                                viewModel
                             )
                         }
                         composable<BookScreenDataObject> { navEntry ->
@@ -281,7 +296,8 @@ class MainActivity : ComponentActivity() {
                                 showTopBar = false,
                                 showBottomBar = true,
                                 scrollBehavior,
-                                noOpNestedScrollConnection
+                                noOpNestedScrollConnection,
+                                viewModel
                             )
                         }
                         composable<RecBookScreenDataObject> { navEntry ->
@@ -294,7 +310,8 @@ class MainActivity : ComponentActivity() {
                                 showTopBar = false,
                                 showBottomBar = true,
                                 scrollBehavior,
-                                noOpNestedScrollConnection
+                                noOpNestedScrollConnection,
+                                viewModel
                             )
                         }
                         // Экран аккаунта
@@ -305,6 +322,7 @@ class MainActivity : ComponentActivity() {
                                 navController = navController,
                                 navData,
                                 showBottomBar = true,
+                                viewModel
                             ) {
                                 Firebase.auth.signOut()
                                 navController.navigate(LoginScreenObject) {

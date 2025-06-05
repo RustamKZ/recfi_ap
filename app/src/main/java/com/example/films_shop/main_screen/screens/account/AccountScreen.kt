@@ -2,6 +2,8 @@ package com.example.films_shop.main_screen.screens.account
 
 import android.widget.Toast
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -43,6 +45,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.airbnb.lottie.compose.LottieAnimation
@@ -52,6 +55,7 @@ import com.airbnb.lottie.compose.rememberLottieAnimatable
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.films_shop.R
 import com.example.films_shop.main_screen.bottom_menu.BottomMenu
+import com.example.films_shop.main_screen.bottom_menu.MainViewModel
 import com.example.films_shop.main_screen.objects.auth_screens_objects.AccountDetailsObject
 import com.example.films_shop.main_screen.objects.auth_screens_objects.AddFriendObject
 import com.example.films_shop.main_screen.objects.auth_screens_objects.ChatFriendsObject
@@ -62,6 +66,7 @@ import com.example.films_shop.main_screen.screens.custom_font
 import com.example.films_shop.ui.theme.BackGroundColorButton
 import com.example.films_shop.ui.theme.CopyUid
 import com.example.films_shop.ui.theme.ExitButtonColor
+import com.example.films_shop.ui.theme.mainColorUiGreen
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 
@@ -71,6 +76,7 @@ fun AccountScreen(
     navController: NavController,
     navData: AccountDetailsObject,
     showBottomBar: Boolean = true,
+    viewModel: MainViewModel,
     onExitClick: () -> Unit,
 ) {
     // Добавление в друзья
@@ -102,6 +108,26 @@ fun AccountScreen(
             LottieCompositionSpec.Asset("user_lottie.json")
     )
     val lottieAnimatable = rememberLottieAnimatable()
+
+    val interactionSource1 = remember { MutableInteractionSource() }
+    val isPressed1 by interactionSource1.collectIsPressedAsState()
+    val currentColor1 = if (isPressed1) mainColorUiGreen else iconColor
+
+    val interactionSource2 = remember { MutableInteractionSource() }
+    val isPressed2 by interactionSource2.collectIsPressedAsState()
+    val currentColor2 = if (isPressed2) mainColorUiGreen else iconColor
+
+    val interactionSource3 = remember { MutableInteractionSource() }
+    val isPressed3 by interactionSource3.collectIsPressedAsState()
+    val currentColor3 = if (isPressed3) mainColorUiGreen else iconColor
+
+    val interactionSource4 = remember { MutableInteractionSource() }
+    val isPressed4 by interactionSource4.collectIsPressedAsState()
+    val currentColor4 = if (isPressed4) mainColorUiGreen else iconColor
+
+    val interactionSource5 = remember { MutableInteractionSource() }
+    val isPressed5 by interactionSource5.collectIsPressedAsState()
+    val currentColor5 = if (isPressed5) mainColorUiGreen else iconColor
     LaunchedEffect(composition) {
         composition?.let {
             lottieAnimatable.animate(
@@ -118,7 +144,9 @@ fun AccountScreen(
                 BottomMenu(
                     navController = navController,
                     uid = navData.uid,
-                    email = navData.email
+                    email = navData.email,
+                    selectedTab = viewModel.selectedTab,
+                    onTabSelected = { viewModel.onTabSelected(it) }
                 )
             }
         }
@@ -182,7 +210,10 @@ fun AccountScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 12.dp)
-                    .clickable {
+                    .clickable(
+                        interactionSource = interactionSource1,
+                        indication = null
+                    ) {
                         navController.navigate(
                             SettingsAccountObject(
                                 navData.uid,
@@ -199,20 +230,20 @@ fun AccountScreen(
                         painter = painterResource(R.drawable.baseline_manage_accounts_24),
                         contentDescription = "Добавить информациию",
                         modifier = Modifier.size(30.dp),
-                        tint = iconColor
+                        tint = currentColor1
                     )
                     Spacer(Modifier.width(15.dp))
                     Text(
                         text = "Настройки",
                         fontFamily = custom_font,
                         fontSize = 25.sp,
-                        color = iconColor,
+                        color = currentColor1,
                         modifier = Modifier.weight(1f)
                     )
                     Icon(
                         imageVector = Icons.Outlined.ChevronRight,
                         contentDescription = "Посмотреть",
-                        tint = iconColor
+                        tint = currentColor1
                     )
                 }
             }
@@ -220,7 +251,10 @@ fun AccountScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 12.dp)
-                    .clickable {
+                    .clickable(
+                        interactionSource = interactionSource2,
+                        indication = null
+                    ) {
                         navController.navigate(
                             ImageAccountObject(
                                 navData.uid,
@@ -237,20 +271,20 @@ fun AccountScreen(
                         painter = painterResource(R.drawable.baseline_face_24),
                         contentDescription = "Добавить информациию",
                         modifier = Modifier.size(30.dp),
-                        tint = iconColor
+                        tint = currentColor2
                     )
                     Spacer(Modifier.width(15.dp))
                     Text(
                         text = "Выбрать аватар",
                         fontFamily = custom_font,
                         fontSize = 25.sp,
-                        color = iconColor,
+                        color = currentColor2,
                         modifier = Modifier.weight(1f)
                     )
                     Icon(
                         imageVector = Icons.Outlined.ChevronRight,
                         contentDescription = "Посмотреть",
-                        tint = iconColor
+                        tint = currentColor2
                     )
                 }
             }
@@ -258,7 +292,10 @@ fun AccountScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 12.dp)
-                    .clickable {
+                    .clickable(
+                        interactionSource = interactionSource3,
+                        indication = null
+                    ) {
                         navController.navigate(
                             AddFriendObject(
                                 navData.uid,
@@ -275,20 +312,20 @@ fun AccountScreen(
                         painter = painterResource(R.drawable.baseline_person_add_alt_1_24),
                         contentDescription = "Добавить друга",
                         modifier = Modifier.size(30.dp),
-                        tint = iconColor
+                        tint = currentColor3
                     )
                     Spacer(Modifier.width(15.dp))
                     Text(
                         text = "Добавить друга",
                         fontFamily = custom_font,
                         fontSize = 25.sp,
-                        color = iconColor,
+                        color = currentColor3,
                         modifier = Modifier.weight(1f)
                     )
                     Icon(
                         imageVector = Icons.Outlined.ChevronRight,
                         contentDescription = "Посмотреть",
-                        tint = iconColor
+                        tint = currentColor3
                     )
                 }
             }
@@ -296,7 +333,10 @@ fun AccountScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 12.dp)
-                    .clickable {
+                    .clickable(
+                        interactionSource = interactionSource4,
+                        indication = null
+                    ) {
                         navController.navigate(
                             FriendsAccountObject(
                                 navData.uid,
@@ -313,20 +353,20 @@ fun AccountScreen(
                         painter = painterResource(R.drawable.baseline_people_24),
                         contentDescription = "Друзья",
                         modifier = Modifier.size(30.dp),
-                        tint = iconColor
+                        tint = currentColor4
                     )
                     Spacer(Modifier.width(15.dp))
                     Text(
                         text = "Друзья",
                         fontFamily = custom_font,
                         fontSize = 25.sp,
-                        color = iconColor,
+                        color = currentColor4,
                         modifier = Modifier.weight(1f)
                     )
                     Icon(
                         imageVector = Icons.Outlined.ChevronRight,
                         contentDescription = "Посмотреть",
-                        tint = iconColor
+                        tint = currentColor4
                     )
                 }
             }
@@ -334,7 +374,10 @@ fun AccountScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 12.dp)
-                    .clickable {
+                    .clickable(
+                        interactionSource = interactionSource5,
+                        indication = null
+                    ) {
                         navController.navigate(
                             ChatFriendsObject(
                                 navData.uid,
@@ -351,20 +394,20 @@ fun AccountScreen(
                         painter = painterResource(R.drawable.baseline_chat_24),
                         contentDescription = "Чат",
                         modifier = Modifier.size(30.dp),
-                        tint = iconColor
+                        tint = currentColor5
                     )
                     Spacer(Modifier.width(15.dp))
                     Text(
                         text = "Чат",
                         fontFamily = custom_font,
                         fontSize = 25.sp,
-                        color = iconColor,
+                        color = currentColor5,
                         modifier = Modifier.weight(1f)
                     )
                     Icon(
                         imageVector = Icons.Outlined.ChevronRight,
                         contentDescription = "Посмотреть",
-                        tint = iconColor
+                        tint = currentColor5
                     )
                 }
             }
@@ -393,7 +436,7 @@ fun AccountScreen(
                         text = "Код для друзей",
                         fontFamily = custom_font,
                         fontSize = 25.sp,
-                        color = CopyUid
+                        color = mainColorUiGreen
                     )
                 }
             }

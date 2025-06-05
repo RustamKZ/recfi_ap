@@ -1,7 +1,9 @@
 package com.example.films_shop.main_screen.screens.favourite_screens
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,20 +25,35 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.films_shop.R
 import com.example.films_shop.main_screen.bottom_menu.BottomMenu
+import com.example.films_shop.main_screen.bottom_menu.MainViewModel
 import com.example.films_shop.main_screen.objects.fav_screens_objects.FavBookScreenDataObject
 import com.example.films_shop.main_screen.objects.fav_screens_objects.FavCartoonScreenDataObject
 import com.example.films_shop.main_screen.objects.fav_screens_objects.FavMovieScreenDataObject
 import com.example.films_shop.main_screen.objects.fav_screens_objects.FavSeriesScreenDataObject
 import com.example.films_shop.main_screen.objects.main_screens_objects.MainScreenDataObject
+import com.example.films_shop.main_screen.screens.font_books_rus
+import com.example.films_shop.main_screen.screens.font_cartoon_rus
+import com.example.films_shop.main_screen.screens.font_films_rus
+import com.example.films_shop.main_screen.screens.font_series_rus
+import com.example.films_shop.ui.theme.BackGroundColor
+import com.example.films_shop.ui.theme.BackGroundColorButtonLightGray
+import com.example.films_shop.ui.theme.BackGroundColorChatCardDarkGray
+import com.example.films_shop.ui.theme.backColorChatCard
+import com.example.films_shop.ui.theme.mainColorUiGreen
 
 @Composable
 fun FavScreen(
     navData: MainScreenDataObject,
     navController: NavController,
+    viewModel: MainViewModel
 ) {
+    val isDark = isSystemInDarkTheme()
+    val backColor = if (isDark) Color.Black else Color.White
+    val textColor = if (isDark) mainColorUiGreen else mainColorUiGreen
     val scrollState = rememberScrollState()
     Scaffold(
         topBar = {
@@ -45,7 +62,9 @@ fun FavScreen(
             BottomMenu(
                 navController = navController,
                 uid = navData.uid,
-                email = navData.email
+                email = navData.email,
+                selectedTab = viewModel.selectedTab,
+                onTabSelected = { viewModel.onTabSelected(it) }
             )
         }
     ) { innerPadding ->
@@ -64,6 +83,7 @@ fun FavScreen(
                     .height(200.dp)
                     .padding(start = 8.dp, end = 8.dp, bottom = 16.dp)
                     .clip(RoundedCornerShape(15.dp))
+                    .background(backColor)
                     .clickable {
                         navController.navigate(
                             FavMovieScreenDataObject(
@@ -73,17 +93,12 @@ fun FavScreen(
                         )
                     }
             ) {
-                Image(
-                    painter = painterResource(R.drawable.poster_fav_films),
-                    contentDescription = "Постер фильма",
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
                 Text(
-                    text = "Фильмы",
-                    color = Color.White,
+                    text = "ФИЛЬМЫ",
+                    color = textColor,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 40.sp,
+                    fontFamily = font_films_rus,
+                    fontSize = 70.sp,
                     modifier = Modifier
                         .align(Alignment.Center)
                         .padding(16.dp)
@@ -96,6 +111,7 @@ fun FavScreen(
                     .height(200.dp)
                     .padding(start = 8.dp, end = 8.dp, bottom = 16.dp)
                     .clip(RoundedCornerShape(15.dp))
+                    .background(backColor)
                     .clickable {
                         navController.navigate(
                             FavCartoonScreenDataObject(
@@ -105,17 +121,12 @@ fun FavScreen(
                         )
                     }
             ) {
-                Image(
-                    painter = painterResource(R.drawable.poster_fav_cartoon),
-                    contentDescription = "Постер мультфильма",
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
                 Text(
-                    text = "Мультфильмы",
-                    color = Color.White,
+                    text = "МУЛЬТФИЛЬМЫ",
+                    color = textColor,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 40.sp,
+                    fontFamily = font_cartoon_rus,
+                    fontSize = 60.sp,
                     modifier = Modifier
                         .align(Alignment.Center)
                         .padding(16.dp)
@@ -128,6 +139,7 @@ fun FavScreen(
                     .height(200.dp)
                     .padding(start = 8.dp, end = 8.dp, bottom = 16.dp)
                     .clip(RoundedCornerShape(15.dp))
+                    .background(backColor)
                     .clickable {
                         navController.navigate(
                             FavSeriesScreenDataObject(
@@ -137,17 +149,12 @@ fun FavScreen(
                         )
                     }
             ) {
-                Image(
-                    painter = painterResource(R.drawable.poster_fav_series),
-                    contentDescription = "Постер сериала",
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
                 Text(
                     text = "Сериалы",
-                    color = Color.White,
+                    color = textColor,
+                    fontFamily = font_series_rus,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 40.sp,
+                    fontSize = 70.sp,
                     modifier = Modifier
                         .align(Alignment.Center)
                         .padding(16.dp)
@@ -160,6 +167,7 @@ fun FavScreen(
                     .height(200.dp)
                     .padding(start = 8.dp, end = 8.dp, bottom = 16.dp)
                     .clip(RoundedCornerShape(15.dp))
+                    .background(backColor)
                     .clickable {
                         navController.navigate(
                             FavBookScreenDataObject(
@@ -169,17 +177,12 @@ fun FavScreen(
                         )
                     }
             ) {
-                Image(
-                    painter = painterResource(R.drawable.poster_fav_book),
-                    contentDescription = "Постер книги",
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
                 Text(
                     text = "Книги",
-                    color = Color.White,
+                    color = textColor,
+                    fontFamily = font_books_rus,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 40.sp,
+                    fontSize = 60.sp,
                     modifier = Modifier
                         .align(Alignment.Center)
                         .padding(16.dp)
