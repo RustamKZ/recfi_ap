@@ -53,7 +53,8 @@ fun signIn(
                 onSignInSuccess(
                     MainScreenDataObject(
                         task.result.user?.uid!!,
-                        task.result.user?.email!!
+                        task.result.user?.email!!,
+                        true
                     )
                 )
             }

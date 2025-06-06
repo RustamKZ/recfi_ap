@@ -12,6 +12,11 @@ sealed class BottomMenuItem(
         title = "Home",
         icon = R.drawable.baseline_home_24,
     )
+    object Search : BottomMenuItem(
+        route = "search",
+        title = "Search",
+        icon = R.drawable.error_avatar,
+    )
     object Account : BottomMenuItem(
         route = "account",
         title = "Account",

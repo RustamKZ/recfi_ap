@@ -21,9 +21,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.ExpandLess
@@ -39,6 +41,7 @@ import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -341,208 +344,208 @@ fun DetailsBookScreen(
                 .fillMaxSize()
                 .background(Color.Transparent)
                 .padding(innerPadding),
-        )
-        if (showRatingDialog) {
-            Dialog(onDismissRequest = { showRatingDialog = false }) {
-                Surface(
-                    shape = RoundedCornerShape(16.dp),
-                    color = buttonBottom,
-                    modifier = Modifier
-                        .fillMaxWidth(0.9f)
-                        .wrapContentHeight()
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            if (showRatingDialog) {
+                Dialog(onDismissRequest = { showRatingDialog = false }) {
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = buttonBottom,
+                        modifier = Modifier
+                            .fillMaxWidth(0.9f)
+                            .wrapContentHeight()
                     ) {
-                        Text(
-                            text = "Оцените книгу",
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = mainColorUiGreen
-                        )
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        Slider(
-                            value = userRating,
-                            onValueChange = { userRating = it },
-                            valueRange = 1f..10f,
-                            steps = 8, // чтобы по 1 шагу (10-1)/9 = 1
-                            colors = SliderDefaults.colors(
-                                thumbColor = mainColorUiGreen,
-                                activeTrackColor = mainColorUiGreen
-                            )
-                        )
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Text(
-                            text = "Вы выбрали: ${userRating.toInt()}",
-                            fontSize = 16.sp,
-                            color = mainColorUiGreen
-                        )
-
-                        Spacer(modifier = Modifier.height(24.dp))
-
-                        Button(
-                            onClick = {
-                                navData?.let { data ->
-                                    val book = Book(
-                                        id = navObject.id,
-                                        isbn10 = navObject.isbn10,
-                                        title = navObject.title,
-                                        description = navObject.description,
-                                        thumbnail = navObject.thumbnail,
-                                        authors = navObject.authors.split(", "),
-                                        publishedDate = navObject.publishedDate,
-                                        isFavorite = isFavorite,
-                                        isBookMark = isBookmark,
-                                        isRated = isRated,
-                                        userRating = userRating.toInt(),
-                                        publisher = navObject.publisher,
-                                        pageCount = navObject.pageCount,
-                                        categories = navObject.categories.split(", "),
-                                        averageRating = navObject.averageRating,
-                                        ratingsCount = navObject.ratingsCount,
-                                        language = navObject.language
-                                    )
-                                    onRatedBooks(db, data.uid, book)
-                                }
-                                showRatingDialog = false // Закрыть диалог
-                            },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = buttonRate,
-                                contentColor = mainColorUiGreen
-                            ),
-                            shape = RoundedCornerShape(12.dp)
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                text = "Поставить оценку",
+                                text = "Оцените книгу",
+                                fontSize = 20.sp,
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 16.sp
+                                color = mainColorUiGreen
                             )
+
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            Slider(
+                                value = userRating,
+                                onValueChange = { userRating = it },
+                                valueRange = 1f..10f,
+                                steps = 8, // чтобы по 1 шагу (10-1)/9 = 1
+                                colors = SliderDefaults.colors(
+                                    thumbColor = mainColorUiGreen,
+                                    activeTrackColor = mainColorUiGreen
+                                )
+                            )
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            Text(
+                                text = "Вы выбрали: ${userRating.toInt()}",
+                                fontSize = 16.sp,
+                                color = mainColorUiGreen
+                            )
+
+                            Spacer(modifier = Modifier.height(24.dp))
+
+                            Button(
+                                onClick = {
+                                    navData?.let { data ->
+                                        val book = Book(
+                                            id = navObject.id,
+                                            isbn10 = navObject.isbn10,
+                                            title = navObject.title,
+                                            description = navObject.description,
+                                            thumbnail = navObject.thumbnail,
+                                            authors = navObject.authors.split(", "),
+                                            publishedDate = navObject.publishedDate,
+                                            isFavorite = isFavorite,
+                                            isBookMark = isBookmark,
+                                            isRated = isRated,
+                                            userRating = userRating.toInt(),
+                                            publisher = navObject.publisher,
+                                            pageCount = navObject.pageCount,
+                                            categories = navObject.categories.split(", "),
+                                            averageRating = navObject.averageRating,
+                                            ratingsCount = navObject.ratingsCount,
+                                            language = navObject.language
+                                        )
+                                        onRatedBooks(db, data.uid, book)
+                                    }
+                                    showRatingDialog = false // Закрыть диалог
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = buttonRate,
+                                    contentColor = mainColorUiGreen
+                                ),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Text(
+                                    text = "Поставить оценку",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 16.sp
+                                )
+                            }
                         }
                     }
                 }
             }
-        }
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(scrollState)
-        )
-        {
-            Box(
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(500.dp)
-            ) {
-                // 1. Фоновое замыленное изображение
-                AsyncImage(
-                    model = navObject.thumbnail.replace("http://", "https://"),
-                    contentDescription = "Фон книги",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .blur(20.dp)
-                )
-
-                // 2. Градиент поверх фона
+                    .fillMaxSize()
+                    .verticalScroll(scrollState)
+            )
+            {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(250.dp)
-                        .align(Alignment.BottomCenter)
-                        .background(
-                            brush = Brush.verticalGradient(
-                                colors = listOf(
-                                    Color.Transparent,
-                                    if (isDark) BackGroundColor else Color.White
+                        .height(500.dp)
+                ) {
+                    // 1. Фоновое замыленное изображение
+                    AsyncImage(
+                        model = navObject.thumbnail.replace("http://", "https://"),
+                        contentDescription = "Фон книги",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .blur(20.dp)
+                    )
+
+                    // 2. Градиент поверх фона
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(250.dp)
+                            .align(Alignment.BottomCenter)
+                            .background(
+                                brush = Brush.verticalGradient(
+                                    colors = listOf(
+                                        Color.Transparent,
+                                        if (isDark) BackGroundColor else Color.White
+                                    )
                                 )
                             )
-                        )
-                )
+                    )
 
-                // 3. Четкое изображение обложки поверх всего
-                AsyncImage(
-                    model = navObject.thumbnail.replace("http://", "https://"),
-                    contentDescription = "Обложка книги",
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .width(200.dp)
-                        .height(300.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                )
-            }
-            Spacer(modifier = Modifier.height(10.dp))
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 80.dp) // можешь подстроить под высоту строки
-                    .padding(horizontal = 16.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = navObject.title,
-                    color = textColor,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 40.sp,
-                    fontFamily = font_books_rus,
-                    textAlign = TextAlign.Center,
-                    maxLines = 3, // можно больше
-                    overflow = TextOverflow.Ellipsis,
-                    lineHeight = 64.sp // можно чуть больше, чем fontSize, чтобы не налезал
-                )
-            }
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = navObject.authors,
-                    color = Color.Gray,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = custom_font
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Row() {
-                    navObject.publisher?.let {
-                        if (it.isNotBlank()) {
-                            Text(
-                                text = "${it}, ",
-                                color = Color.Gray,
-                                fontSize = 16.sp,
-                                fontFamily = custom_font
-                            )
-                        }
-                    }
-                    navObject.publishedDate.let {
-                        if (it.isNotBlank()) {
-                            Text(
-                                text = "${it}, ",
-                                color = Color.Gray,
-                                fontSize = 16.sp,
-                                fontFamily = custom_font
-                            )
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(4.dp))
-                    navObject.pageCount?.takeIf { it > 0 }?.let {
-                        Text(
-                            text = "${it} cтр.",
-                            fontSize = 16.sp,
-                            color = Color.Gray,
-                            fontFamily = custom_font,
-                        )
-                    }
+                    // 3. Четкое изображение обложки поверх всего
+                    AsyncImage(
+                        model = navObject.thumbnail.replace("http://", "https://"),
+                        contentDescription = "Обложка книги",
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .width(200.dp)
+                            .height(300.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                    )
                 }
+                Spacer(modifier = Modifier.height(10.dp))
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 80.dp) // можешь подстроить под высоту строки
+                        .padding(horizontal = 16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = navObject.title,
+                        color = textColor,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 40.sp,
+                        fontFamily = font_books_rus,
+                        textAlign = TextAlign.Center,
+                        maxLines = 3, // можно больше
+                        overflow = TextOverflow.Ellipsis,
+                        lineHeight = 64.sp // можно чуть больше, чем fontSize, чтобы не налезал
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = navObject.authors,
+                        color = Color.Gray,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = custom_font
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row() {
+                        navObject.publisher?.let {
+                            if (it.isNotBlank()) {
+                                Text(
+                                    text = "${it}, ",
+                                    color = Color.Gray,
+                                    fontSize = 16.sp,
+                                    fontFamily = custom_font
+                                )
+                            }
+                        }
+                        navObject.publishedDate.let {
+                            if (it.isNotBlank()) {
+                                Text(
+                                    text = "${it}, ",
+                                    color = Color.Gray,
+                                    fontSize = 16.sp,
+                                    fontFamily = custom_font
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(4.dp))
+                        navObject.pageCount?.takeIf { it > 0 }?.let {
+                            Text(
+                                text = "${it} cтр.",
+                                fontSize = 16.sp,
+                                color = Color.Gray,
+                                fontFamily = custom_font,
+                            )
+                        }
+                    }
                     Spacer(modifier = Modifier.height(4.dp))
                     navObject.language?.let {
                         if (it.isNotBlank()) {
@@ -559,170 +562,192 @@ fun DetailsBookScreen(
                             )
                         }
                     }
-            }
-            Spacer(modifier = Modifier.height(20.dp))
+                }
+                Spacer(modifier = Modifier.height(20.dp))
 
-            Box(modifier = Modifier.fillMaxWidth()) {
-                Column(
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp)
-                ) {
-                    Text(
-                        text = navObject.description,
-                        color = textColor,
-                        fontSize = 16.sp,
-                        fontFamily = custom_font,
-                        maxLines = if (expanded) Int.MAX_VALUE else 4,
-                        overflow = TextOverflow.Ellipsis
-                    )
-
-                    TextButton(onClick = { expanded = !expanded }) {
-                        Text(
-                            text = if (expanded) "Скрыть" else "Читать далее",
-                            color = Color.Gray,
-                            fontSize = 16.sp
-                        )
-                    }
-
-                if (navObject.averageRating != null && navObject.ratingsCount != null) {
-                    Row(
-                        horizontalArrangement = Arrangement.Center,
-                        modifier = Modifier.fillMaxWidth()
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    Column(
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp)
                     ) {
-                        navObject.averageRating?.let {
-                            navObject.ratingsCount?.let {
-                                RatingCardBook(
-                                    averageRating = navObject.averageRating,
-                                    ratingsCount = navObject.ratingsCount,
-                                    buttonBackgroundColor = buttonBackgroundColor,
-                                    buttonTextColor = buttonTextColor
-                                )
-                            }
-                        }
-                    }
-                }
-                Spacer(modifier = Modifier.height(15.dp))
-                Text(
-                    text = "Похожие книги",
-                    fontSize = 25.sp,
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                LazyRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    if (isLoading) {
-                        // Показать индикатор загрузки
-                        items(3) {
-                            Box(
-                                modifier = Modifier
-                                    .width(120.dp)
-                                    .height(220.dp)
-                                    .clip(RoundedCornerShape(15.dp))
-                                    .background(Color.LightGray),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.height(30.dp),
-                                    color = ButtonColor
-                                )
-                            }
-                        }
-                    } else if (recommendationBooks.isNotEmpty()) {
-                        val filteredRecommendations = recommendationBooks.filter { it.isbn10 != "Неизвестно" }
-                        items(filteredRecommendations.size) { index ->
-                            val book = recommendationBooks[index]
-                            Box(
-                                modifier = Modifier
-                                    .width(170.dp)
-                                    .height(250.dp)
-                                    .clip(RoundedCornerShape(15.dp))
-                                    .background(Color.Gray)
-                                    .clickable {
-                                        // Навигация к деталям рекомендуемого фильма
-                                        navData.let { data ->
-                                            val detailsNavBookObject = DetailsNavBookObject(
-                                                id = book.id,
-                                                isbn10 = book.isbn10,
-                                                title = book.title,
-                                                authors = book.authors?.joinToString(", ")
-                                                    ?: "Неизвестно",
-                                                description = book.description
-                                                    ?: "Описание отсутствует",
-                                                thumbnail = book.thumbnail?.replace(
-                                                    "http://",
-                                                    "https://"
-                                                )
-                                                    ?: "",
-                                                publishedDate = book.publishedDate ?: "Неизвестно",
-                                                isFavorite = book.isFavorite,
-                                                isBookmark = book.isBookMark,
-                                                isRated = book.isRated,
-                                                userRating = book.userRating,
-                                                publisher = book.publisher,
-                                                pageCount = book.pageCount,
-                                                categories = book.categories?.joinToString(", ")
-                                                    ?: "Неизвестно",
-                                                averageRating = book.averageRating,
-                                                ratingsCount = book.ratingsCount,
-                                                language = book.language
-                                            )
-                                            navController.navigate(detailsNavBookObject)
-                                        }
-                                    },
-                                contentAlignment = Alignment.Center
-                            ) {
-                                AsyncImage(
-                                    model = book.thumbnail?.replace("http://", "https://"),
-                                    contentDescription = "Постер фильма",
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(250.dp)
-                                        .clip(RoundedCornerShape(15.dp)),
-                                    contentScale = ContentScale.Crop
-                                )
-                            }
-                        }
-                    } else if (error != null) {
-                        // Показать сообщение об ошибке
-                        item {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(200.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = "Не удалось загрузить рекомендации",
-                                    color = Color.Red,
-                                    fontSize = 16.sp
-                                )
-                            }
-                        }
-                    } else {
-                        // Показать сообщение, если рекомендаций нет
-                        item {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(200.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = "Нет рекомендаций для этого фильма",
-                                    color = Color.Gray,
-                                    fontSize = 16.sp
-                                )
-                            }
-                        }
-                    }
+                        Text(
+                            text = navObject.description,
+                            color = textColor,
+                            fontSize = 16.sp,
+                            fontFamily = custom_font,
+                            maxLines = if (expanded) Int.MAX_VALUE else 4,
+                            overflow = TextOverflow.Ellipsis
+                        )
 
+                        TextButton(onClick = { expanded = !expanded }) {
+                            Text(
+                                text = if (expanded) "Скрыть" else "Читать далее",
+                                color = Color.Gray,
+                                fontSize = 16.sp
+                            )
+                        }
+
+                        if (navObject.averageRating != null && navObject.ratingsCount != null) {
+                            Row(
+                                horizontalArrangement = Arrangement.Center,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                navObject.averageRating?.let {
+                                    navObject.ratingsCount?.let {
+                                        RatingCardBook(
+                                            averageRating = navObject.averageRating,
+                                            ratingsCount = navObject.ratingsCount,
+                                            buttonBackgroundColor = buttonBackgroundColor,
+                                            buttonTextColor = buttonTextColor
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(15.dp))
+                        Text(
+                            text = "Похожие книги",
+                            fontSize = 25.sp,
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        LazyRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            if (isLoading) {
+                                // Показать индикатор загрузки
+                                items(3) {
+                                    Box(
+                                        modifier = Modifier
+                                            .width(120.dp)
+                                            .height(220.dp)
+                                            .clip(RoundedCornerShape(15.dp))
+                                            .background(Color.LightGray),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        CircularProgressIndicator(
+                                            modifier = Modifier.height(30.dp),
+                                            color = ButtonColor
+                                        )
+                                    }
+                                }
+                            } else if (recommendationBooks.isNotEmpty()) {
+                                val filteredRecommendations =
+                                    recommendationBooks.filter { it.isbn10 != "Неизвестно" }
+                                items(filteredRecommendations.size) { index ->
+                                    val book = recommendationBooks[index]
+                                    Box(
+                                        modifier = Modifier
+                                            .width(170.dp)
+                                            .height(250.dp)
+                                            .clip(RoundedCornerShape(15.dp))
+                                            .background(Color.Gray)
+                                            .clickable {
+                                                // Навигация к деталям рекомендуемого фильма
+                                                navData.let { data ->
+                                                    val detailsNavBookObject = DetailsNavBookObject(
+                                                        id = book.id,
+                                                        isbn10 = book.isbn10,
+                                                        title = book.title,
+                                                        authors = book.authors?.joinToString(", ")
+                                                            ?: "Неизвестно",
+                                                        description = book.description
+                                                            ?: "Описание отсутствует",
+                                                        thumbnail = book.thumbnail?.replace(
+                                                            "http://",
+                                                            "https://"
+                                                        )
+                                                            ?: "",
+                                                        publishedDate = book.publishedDate
+                                                            ?: "Неизвестно",
+                                                        isFavorite = book.isFavorite,
+                                                        isBookmark = book.isBookMark,
+                                                        isRated = book.isRated,
+                                                        userRating = book.userRating,
+                                                        publisher = book.publisher,
+                                                        pageCount = book.pageCount,
+                                                        categories = book.categories?.joinToString(", ")
+                                                            ?: "Неизвестно",
+                                                        averageRating = book.averageRating,
+                                                        ratingsCount = book.ratingsCount,
+                                                        language = book.language
+                                                    )
+                                                    navController.navigate(detailsNavBookObject)
+                                                }
+                                            },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        AsyncImage(
+                                            model = book.thumbnail?.replace("http://", "https://"),
+                                            contentDescription = "Постер фильма",
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(250.dp)
+                                                .clip(RoundedCornerShape(15.dp)),
+                                            contentScale = ContentScale.Crop
+                                        )
+                                    }
+                                }
+                            } else if (error != null) {
+                                // Показать сообщение об ошибке
+                                item {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(200.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = "Не удалось загрузить рекомендации",
+                                            color = Color.Red,
+                                            fontSize = 16.sp
+                                        )
+                                    }
+                                }
+                            } else {
+                                // Показать сообщение, если рекомендаций нет
+                                item {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(200.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = "Нет рекомендаций для этого фильма",
+                                            color = Color.Gray,
+                                            fontSize = 16.sp
+                                        )
+                                    }
+                                }
+                            }
+
+                        }
+                        Spacer(modifier = Modifier.height(40.dp))
+                    }
                 }
-                Spacer(modifier = Modifier.height(40.dp))
             }
-                }
+            IconButton(
+                onClick = { navController.popBackStack() },
+                modifier = Modifier
+                    .padding(top = 32.dp, start = 8.dp)
+                    .align(Alignment.TopStart)
+                    .background(
+                        color = if (isDark) Color.Black.copy(alpha = 0.4f) else Color.White.copy(
+                            alpha = 0.4f
+                        ),
+                        shape = CircleShape
+                    )
+                    .size(36.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ArrowBack,
+                    contentDescription = "Назад",
+                    tint = mainColorUiGreen
+                )
+            }
         }
         }
     }

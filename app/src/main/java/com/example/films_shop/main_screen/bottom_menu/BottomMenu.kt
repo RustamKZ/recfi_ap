@@ -26,6 +26,7 @@ import androidx.navigation.NavController
 import com.example.films_shop.main_screen.objects.auth_screens_objects.AccountDetailsObject
 import com.example.films_shop.main_screen.objects.fav_screens_objects.FavScreenDataObject
 import com.example.films_shop.main_screen.objects.main_screens_objects.MainScreenDataObject
+import com.example.films_shop.main_screen.objects.main_screens_objects.SearchScreenDataObject
 import com.example.films_shop.ui.theme.AppColor
 import com.example.films_shop.ui.theme.mainColorUiGreen
 
@@ -49,6 +50,7 @@ fun BottomMenu(
 ) {
     val items = listOf(
         BottomMenuItem.Home,
+        BottomMenuItem.Search,
         BottomMenuItem.Account,
         BottomMenuItem.Favourite
     )
@@ -79,6 +81,7 @@ fun BottomMenu(
                         onTabSelected(item.title)
                         when (item) {
                             is BottomMenuItem.Home -> navController.navigate(MainScreenDataObject(uid, email))
+                            is BottomMenuItem.Search -> navController.navigate(SearchScreenDataObject(uid, email))
                             is BottomMenuItem.Account -> navController.navigate(AccountDetailsObject(uid, email))
                             is BottomMenuItem.Favourite -> navController.navigate(FavScreenDataObject(uid, email))
                         }

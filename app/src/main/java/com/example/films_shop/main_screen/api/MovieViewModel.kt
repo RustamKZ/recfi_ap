@@ -40,6 +40,66 @@ enum class ContentType(val apiValue: String) {
     CARTOONS("cartoon")
 }
 
+class SearchMoviesPagingSource(
+    private val apiService: MovieApiService,
+    private val apiKey: String,
+    private val query: String
+) : PagingSource<Int, Movie>() {
+
+    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Movie> {
+        val page = params.key ?: 1
+        return try {
+            val response = apiService.searchMoviesByName(apiKey, query, page, limit = 10)
+
+            val updatedMovies = response.docs.map { movie ->
+                movie.copy(
+                    poster = movie.poster?.copy(
+                        url = movie.poster.url
+                            ?: "https://raw.githubusercontent.com/RustamKZ/recfi_ap/refs/heads/master/poster.jpg"
+                    )
+                        ?: Poster("https://raw.githubusercontent.com/RustamKZ/recfi_ap/refs/heads/master/poster.jpg"),
+                    backdrop = when {
+                        movie.backdrop != null && movie.backdrop.url != null ->
+                            movie.backdrop.copy(url = movie.backdrop.url)
+                        movie.poster != null && movie.poster.url != null ->
+                            Backdrop(movie.poster.url)
+                        else ->
+                            Backdrop("https://raw.githubusercontent.com/RustamKZ/recfi_ap/refs/heads/master/poster.jpg")
+                    },
+                    persons = movie.persons?.filter { it.profession == "режиссеры" } ?: emptyList()
+                )
+            }
+            val filteredMovies = updatedMovies
+                .filter { movie ->
+                    movie.name != null &&
+                            movie.poster?.url != "https://raw.githubusercontent.com/RustamKZ/recfi_ap/refs/heads/master/poster.jpg"
+                }
+                .sortedByDescending { movie ->
+                    when {
+                        movie.rating?.kp != null && movie.rating.kp > 0.0 -> movie.rating.kp
+                        movie.rating?.imdb != null && movie.rating.imdb > 0.0 -> movie.rating.imdb
+                        else -> 0.0
+                    }
+                }
+
+            LoadResult.Page(
+                data = filteredMovies,
+                prevKey = if (page == 1) null else page - 1,
+                nextKey = if (response.docs.isNotEmpty()) page + 1 else null
+            )
+        } catch (e: IOException) {
+            LoadResult.Error(e)
+        } catch (e: HttpException) {
+            LoadResult.Error(e)
+        }
+    }
+
+    override fun getRefreshKey(state: PagingState<Int, Movie>): Int? {
+        return state.anchorPosition?.let { state.closestPageToPosition(it)?.prevKey?.plus(1) }
+    }
+}
+
+
 class MoviePagingSource(
     private val apiService: MovieApiService,
     private val apiKey: String,
@@ -152,7 +212,14 @@ class MovieViewModel : ViewModel() {
             }
         }
     }
-
+    fun searchMovies(query: String): Flow<PagingData<Movie>> {
+        return Pager(
+            config = PagingConfig(pageSize = 10, prefetchDistance = 2),
+            pagingSourceFactory = {
+                SearchMoviesPagingSource(RetrofitInstance.api, apiKey, query)
+            }
+        ).flow.cachedIn(viewModelScope)
+    }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val currentContentFlow: Flow<PagingData<Movie>> =

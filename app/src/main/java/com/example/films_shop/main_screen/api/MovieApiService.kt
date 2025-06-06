@@ -70,6 +70,15 @@ interface MovieApiService {
         @Query("limit") limit: Int = 20
     ): ImageResponse
 
+    @GET("v1.4/movie/search")
+    suspend fun searchMoviesByName(
+        @Header("X-API-KEY") apiKey: String,
+        @Query("query") query: String,
+        @Query("page") page: Int = 1,
+        @Query("limit") limit: Int = 10
+    ): MovieResponse
+
+
     data class ImageResponse(
         val docs: List<KpImage>
     )

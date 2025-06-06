@@ -1,5 +1,6 @@
 package com.example.films_shop.main_screen.screens.account
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -20,22 +21,31 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.films_shop.main_screen.login.LoginButton
-import com.example.films_shop.main_screen.login.RoundedCornerTextField
+import com.example.films_shop.main_screen.Genres.AuthorsGoogle
+import com.example.films_shop.main_screen.Genres.GenreKP
+import com.example.films_shop.main_screen.Genres.loadUserAuthors
+import com.example.films_shop.main_screen.Genres.loadUserGenres
+import com.example.films_shop.main_screen.business_logic.addOrChangeName
 import com.example.films_shop.main_screen.business_logic.signIn
 import com.example.films_shop.main_screen.business_logic.signUp
+import com.example.films_shop.main_screen.login.LoginButton
+import com.example.films_shop.main_screen.login.RoundedCornerTextField
+import com.example.films_shop.main_screen.objects.cold_start.ColdStartScreenDataObject
 import com.example.films_shop.main_screen.objects.main_screens_objects.MainScreenDataObject
 import com.example.films_shop.main_screen.screens.custom_font
 import com.example.films_shop.main_screen.screens.test_font
 import com.example.films_shop.ui.theme.BackGroundColor
 import com.example.films_shop.ui.theme.BackGroundColorButton
 import com.example.films_shop.ui.theme.BackGroundColorButtonLightGray
+import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 
 @Composable
 fun LoginScreen(
     onNavigateToMainScreen: (MainScreenDataObject) -> Unit,
+    onNavigateToColdStartScreen: (ColdStartScreenDataObject)-> Unit
 ) {
     val isDark = isSystemInDarkTheme()
     val backColor = if (isDark) BackGroundColor else Color.White
@@ -47,6 +57,9 @@ fun LoginScreen(
     val emailState = remember { mutableStateOf("rustamquee@gmail.com") }
     val passwordState = remember { mutableStateOf("741963rR") }
     val errorState = remember { mutableStateOf("") }
+    val db = remember {
+        Firebase.firestore
+    }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -107,11 +120,32 @@ fun LoginScreen(
                 emailState.value,
                 passwordState.value,
                 onSignInSuccess = { navData ->
-                    onNavigateToMainScreen(navData)
+                    loadUserGenres(db, navData.uid) { loadedGenres ->
+                        if (loadedGenres.isEmpty()) {
+                            onNavigateToColdStartScreen(ColdStartScreenDataObject(navData.uid, navData.email))
+                        } else {
+                            onNavigateToMainScreen(navData)
+                        }
+                    }
                 },
-                onSignInFailure = { error ->
-                    errorState.value = error
+                onSignInFailure = { exception ->
+                    val authException = exception as? FirebaseAuthException
+                    val errorCode = authException?.errorCode
+
+                    val message = when (errorCode) {
+                        "ERROR_USER_NOT_FOUND" -> "Пользователь с таким email не найден"
+                        "ERROR_USER_DISABLED" -> "Аккаунт был отключён"
+                        "ERROR_USER_TOKEN_EXPIRED" -> "Срок действия сессии истёк, войдите заново"
+                        "ERROR_INVALID_USER_TOKEN" -> "Сбой аутентификации, попробуйте снова"
+                        "ERROR_INVALID_EMAIL" -> "Неверный формат email"
+                        "ERROR_WRONG_PASSWORD" -> "Неверный пароль"
+                        "ERROR_TOO_MANY_REQUESTS" -> "Слишком много попыток. Попробуйте позже."
+                        else -> "Ошибка входа"
+                    }
+
+                    errorState.value = message
                 }
+
             )
         }
         Spacer(Modifier.height(10.dp))
@@ -121,11 +155,53 @@ fun LoginScreen(
                 emailState.value,
                 passwordState.value,
                 onSignUpSuccess = { navData ->
-                    onNavigateToMainScreen(navData)
+                    var loadedGenres: List<GenreKP>? = null
+                    var loadedAuthors: List<AuthorsGoogle>? = null
+
+                    fun checkAndNavigate() {
+                        if (loadedGenres != null && loadedAuthors != null) {
+                            Log.d("loadedGenres", loadedGenres.toString())
+                            Log.d("loadedAuthors", loadedAuthors.toString())
+
+                            addOrChangeName(db, navData.uid, "Пользователь") { isSuccess ->
+                                // Здесь можно добавить что-то при успехе/ошибке
+                            }
+
+                            if (loadedGenres!!.isEmpty() && loadedAuthors!!.isEmpty()) {
+                                onNavigateToColdStartScreen(
+                                    ColdStartScreenDataObject(navData.uid, navData.email)
+                                )
+                            } else {
+                                onNavigateToMainScreen(navData)
+                            }
+                        }
+                    }
+
+                    loadUserGenres(db, navData.uid) { genres ->
+                        loadedGenres = genres
+                        checkAndNavigate()
+                    }
+
+                    loadUserAuthors(db, navData.uid) { authors ->
+                        loadedAuthors = authors
+                        checkAndNavigate()
+                    }
                 },
-                onSignUpFailure = { error ->
-                    errorState.value = error
+                onSignUpFailure = { exception ->
+                    val authException = exception as? FirebaseAuthException
+                    val errorCode = authException?.errorCode
+
+                    val message = when (errorCode) {
+                        "ERROR_EMAIL_ALREADY_IN_USE" -> "Этот email уже зарегистрирован"
+                        "ERROR_INVALID_EMAIL" -> "Неверный формат email"
+                        "ERROR_WEAK_PASSWORD" -> "Пароль слишком слабый"
+                        "ERROR_OPERATION_NOT_ALLOWED" -> "Операция регистрации запрещена"
+                        else -> "Ошибка регистрации"
+                    }
+
+                    errorState.value = message
                 }
+
             )
         }
     }

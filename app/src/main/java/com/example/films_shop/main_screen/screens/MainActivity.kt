@@ -59,7 +59,10 @@ import com.example.films_shop.main_screen.screens.account.AccountSettingsScreen
 import com.example.films_shop.main_screen.screens.account.ChatScreen
 import com.example.films_shop.main_screen.screens.account.LoginScreen
 import com.example.films_shop.main_screen.objects.auth_screens_objects.SingleChatScreenDestination
+import com.example.films_shop.main_screen.objects.cold_start.ColdStartScreenDataObject
+import com.example.films_shop.main_screen.objects.main_screens_objects.SearchScreenDataObject
 import com.example.films_shop.main_screen.screens.account.SingleChatScreen
+import com.example.films_shop.main_screen.screens.cold_start.ColdStartScreen
 import com.example.films_shop.main_screen.screens.favourite_screens.FavScreen
 import com.example.films_shop.ui.theme.BackGroundColor
 import com.example.films_shop.ui.theme.BookShopTheme
@@ -108,17 +111,40 @@ class MainActivity : ComponentActivity() {
                     {
                         composable<LoginScreenObject>
                         {
-                            LoginScreen { navData ->
-                                Log.d("TestNavData", "LoginScreen: {$navData.email}")
-                                navController.navigate(navData) {
-                                    popUpTo(LoginScreenObject) { inclusive = true }
+                            LoginScreen(
+                                onNavigateToMainScreen = { mainData ->
+                                    navController.navigate(mainData) {
+                                        popUpTo(LoginScreenObject) { inclusive = true }
+                                    }
+                                },
+                                onNavigateToColdStartScreen = { coldStartData ->
+                                    navController.navigate(coldStartData) {
+                                        popUpTo(LoginScreenObject) { inclusive = true }
+                                    }
                                 }
-                            }
+                            )
+                        }
+                        composable<ColdStartScreenDataObject>
+                        {
+                            navEntry ->
+                            val navData = navEntry.toRoute<ColdStartScreenDataObject>()
+                            ColdStartScreen(navController,navData)
+                        }
+                        composable<SearchScreenDataObject>
+                        { navEntry ->
+                            val navData = navEntry.toRoute<SearchScreenDataObject>()
+                            SearchScreen(
+                                navData,
+                                navController,
+                                viewModel,
+                                movieViewModel,
+                                noOpNestedScrollConnection,
+                                true
+                            )
                         }
                         composable<MainScreenDataObject>
                         { navEntry ->
                             val navData = navEntry.toRoute<MainScreenDataObject>()
-                            Log.d("TestNavData", "MainScreen: {$navData.email}")
                             MainScreen(
                                 navData,
                                 movieViewModel,
