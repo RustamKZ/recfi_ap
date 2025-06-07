@@ -57,6 +57,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
 fun AuthorsBookSelectScreen(
+    flag: Boolean = false,
     selectedAuthors:  SnapshotStateList<AuthorsGoogle>,
     mainScreenDataObject: MainScreenDataObject,
     navController: NavController,
@@ -70,20 +71,13 @@ fun AuthorsBookSelectScreen(
     val bottomAuthors = authors.drop(genres.size / 2)
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Фоновое изображение
-        Image(
-            painter = painterResource(id = R.drawable.welcome_3), // замените на своё изображение
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize()
-        )
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .blur(radius = 16.dp) // работает с API 21+
+                .blur(radius = 16.dp)
         ) {
             Image(
-                painter = painterResource(id = R.drawable.welcome_3), // замените на своё изображение
+                painter = if (flag) painterResource(id = R.drawable.rewelcome_3) else painterResource(id = R.drawable.welcome_3), // замените на своё изображение
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()
@@ -107,47 +101,52 @@ fun AuthorsBookSelectScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp)
         ) {
             Spacer(modifier = Modifier.height(100.dp))
             RowAuthors(authors = topAuthors, selectedAuthors = selectedAuthors)
             Spacer(modifier = Modifier.height(12.dp))
             RowAuthors(authors = bottomAuthors, selectedAuthors = selectedAuthors)
-            Spacer(modifier = Modifier.height(100.dp))
-            Text(
-                text = "Выберите ваших любимых авторов книг",
-                color = if (isDark) Color.White else Color.Black,
-                fontSize = 30.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 12.dp)
-            )
-            Text(
-                text = "От 1 до 6 авторов",
-                color = Color.Gray,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 12.dp)
-            )
-
-            Button(
-                onClick = {
-                    saveSelectedAuthors(db, navData.uid, selectedAuthors)
-                    onContinue()
-//                  navController.navigate(mainScreenDataObject)
-                },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (isDark) backColorChatCard.copy(alpha = 0.5f) else BackGroundColorButtonLightGray
-                ),
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(16.dp))
-                    .padding(top = 16.dp)
+                    .fillMaxSize()
+                    .padding(16.dp)
             ) {
+                Spacer(modifier = Modifier.height(100.dp))
                 Text(
-                    "Далее",
+                    text = "Выберите ваших любимых авторов книг",
+                    color = if (isDark) Color.White else Color.Black,
                     fontSize = 30.sp,
-                    color = mainColorUiGreen
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 12.dp)
                 )
+                Text(
+                    text = "От 1 до 6 авторов",
+                    color = Color.Gray,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 12.dp)
+                )
+
+                Button(
+                    onClick = {
+                        saveSelectedAuthors(db, navData.uid, selectedAuthors)
+                        onContinue()
+//                  navController.navigate(mainScreenDataObject)
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (isDark) backColorChatCard.copy(alpha = 0.5f) else BackGroundColorButtonLightGray
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(16.dp))
+                        .padding(top = 16.dp)
+                ) {
+                    Text(
+                        "Далее",
+                        fontSize = 30.sp,
+                        color = mainColorUiGreen
+                    )
+                }
             }
         }
 
@@ -201,15 +200,18 @@ fun RowAuthors(
 ) {
     LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         items(authors) { author ->
-            val isSelected = selectedAuthors.contains(author)
+            val isSelected = selectedAuthors.any { it.name.equals(author.name, ignoreCase = true) }
 
             Box(
                 modifier = Modifier
                     .size(width = 160.dp, height = 220.dp)
                     .clip(RoundedCornerShape(16.dp))
                     .clickable {
-                        if (isSelected) selectedAuthors.remove(author)
-                        else if (selectedAuthors.size < 6) selectedAuthors.add(author)
+                        if (isSelected) {
+                            selectedAuthors.removeIf { it.name.equals(author.name, ignoreCase = true) }
+                        } else if (selectedAuthors.size < 6) {
+                            selectedAuthors.add(author)
+                        }
                     }
             ) {
                 Image(

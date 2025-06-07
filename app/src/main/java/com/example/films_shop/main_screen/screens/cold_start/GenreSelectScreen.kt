@@ -28,6 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -53,6 +54,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
 fun GenreSelectionScreen(
+    flag: Boolean = false,
     selectedGenres:  SnapshotStateList<GenreKP>,
     mainScreenDataObject: MainScreenDataObject,
     navController: NavController,
@@ -67,12 +69,20 @@ fun GenreSelectionScreen(
 
     Box(modifier = Modifier.fillMaxSize()) {
         // Фоновое изображение
-        Image(
-            painter = painterResource(id = R.drawable.welcome_2), // замените на своё изображение
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize()
-        )
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .blur(radius = 16.dp)
+        ) {
+            Image(
+                painter = if (flag) painterResource(id = R.drawable.rewelcome_2) else painterResource(
+                    id = R.drawable.welcome_2
+                ),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
+        }
 
         // Затемнение или осветление
         Box(
@@ -91,47 +101,51 @@ fun GenreSelectionScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp)
         ) {
             Spacer(modifier = Modifier.height(100.dp))
+
+            // Без паддинга
             GenreRow(genres = topGenres, selectedGenres = selectedGenres)
             Spacer(modifier = Modifier.height(12.dp))
             GenreRow(genres = bottomGenres, selectedGenres = selectedGenres)
-            Spacer(modifier = Modifier.height(100.dp))
-            Text(
-                text = "Выберите ваши любимые жанры",
-                color = if (isDark) Color.White else Color.Black,
-                fontSize = 30.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 12.dp)
-            )
-            Text(
-                text = "От 1 до 6 жанров",
-                color = Color.Gray,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 12.dp)
-            )
 
-            Button(
-                onClick = {
-                    saveSelectedGenres(db, navData.uid, selectedGenres)
-                    onContinue()
-//                  navController.navigate(mainScreenDataObject)
-                },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (isDark) backColorChatCard.copy(alpha = 0.5f) else BackGroundColorButtonLightGray
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(16.dp))
-                    .padding(top = 16.dp)
-            ) {
+            // Оборачиваем только текст и кнопку в отдельную колонку с паддингом
+            Column(modifier = Modifier.padding(16.dp)) {
+                Spacer(modifier = Modifier.height(100.dp))
                 Text(
-                    "Далее",
+                    text = "Выберите ваши любимые жанры",
+                    color = if (isDark) Color.White else Color.Black,
                     fontSize = 30.sp,
-                    color = mainColorUiGreen
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 12.dp)
                 )
+                Text(
+                    text = "От 1 до 6 жанров",
+                    color = Color.Gray,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 12.dp)
+                )
+                Button(
+                    onClick = {
+                        saveSelectedGenres(db, navData.uid, selectedGenres)
+                        onContinue()
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (isDark) backColorChatCard.copy(alpha = 0.5f)
+                        else BackGroundColorButtonLightGray
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(16.dp))
+                        .padding(top = 16.dp)
+                ) {
+                    Text(
+                        "Далее",
+                        fontSize = 30.sp,
+                        color = mainColorUiGreen
+                    )
+                }
             }
         }
 
@@ -185,15 +199,18 @@ fun GenreRow(
 ) {
     LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         items(genres) { genre ->
-            val isSelected = selectedGenres.contains(genre)
+            val isSelected = selectedGenres.any { it.name.equals(genre.name, ignoreCase = true) }
 
             Box(
                 modifier = Modifier
                     .size(width = 160.dp, height = 220.dp)
                     .clip(RoundedCornerShape(16.dp))
                     .clickable {
-                        if (isSelected) selectedGenres.remove(genre)
-                        else if (selectedGenres.size < 6) selectedGenres.add(genre)
+                        if (isSelected) {
+                            selectedGenres.removeIf { it.name.equals(genre.name, ignoreCase = true) }
+                        } else if (selectedGenres.size < 6) {
+                            selectedGenres.add(genre)
+                        }
                     }
             ) {
                 // Фоновое изображение

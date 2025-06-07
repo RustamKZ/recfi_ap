@@ -21,7 +21,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ChevronRight
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -42,10 +41,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.airbnb.lottie.compose.LottieAnimation
@@ -62,6 +59,7 @@ import com.example.films_shop.main_screen.objects.auth_screens_objects.ChatFrien
 import com.example.films_shop.main_screen.objects.auth_screens_objects.FriendsAccountObject
 import com.example.films_shop.main_screen.objects.auth_screens_objects.ImageAccountObject
 import com.example.films_shop.main_screen.objects.auth_screens_objects.SettingsAccountObject
+import com.example.films_shop.main_screen.objects.cold_start.ColdStartScreenDataObject
 import com.example.films_shop.main_screen.screens.custom_font
 import com.example.films_shop.ui.theme.BackGroundColorButton
 import com.example.films_shop.ui.theme.CopyUid
@@ -399,6 +397,48 @@ fun AccountScreen(
                     Spacer(Modifier.width(15.dp))
                     Text(
                         text = "Чат",
+                        fontFamily = custom_font,
+                        fontSize = 25.sp,
+                        color = currentColor5,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Icon(
+                        imageVector = Icons.Outlined.ChevronRight,
+                        contentDescription = "Посмотреть",
+                        tint = currentColor5
+                    )
+                }
+            }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp)
+                    .clickable(
+                        interactionSource = interactionSource5,
+                        indication = null
+                    ) {
+                        navController.navigate(
+                            ColdStartScreenDataObject(
+                                navData.uid,
+                                navData.email,
+                                flag = true
+                            )
+                        )
+                    }
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.baseline_stars_24),
+                        contentDescription = "Любимые жанры и авторы",
+                        modifier = Modifier.size(30.dp),
+                        tint = currentColor5
+                    )
+                    Spacer(Modifier.width(15.dp))
+                    Text(
+                        text = "Любимые жанры и авторы",
                         fontFamily = custom_font,
                         fontSize = 25.sp,
                         color = currentColor5,

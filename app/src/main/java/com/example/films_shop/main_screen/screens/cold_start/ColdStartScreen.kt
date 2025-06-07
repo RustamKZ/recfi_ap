@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -14,6 +15,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.films_shop.main_screen.Genres.AuthorsGoogle
 import com.example.films_shop.main_screen.Genres.GenreKP
+import com.example.films_shop.main_screen.Genres.loadUserAuthors
+import com.example.films_shop.main_screen.Genres.loadUserGenres
 import com.example.films_shop.main_screen.objects.cold_start.ColdStartScreenDataObject
 import com.example.films_shop.main_screen.objects.cold_start.GenreSelectionScreenDataObject
 import com.example.films_shop.main_screen.objects.main_screens_objects.MainScreenDataObject
@@ -35,6 +38,18 @@ fun ColdStartScreen(navController: NavController, navData: ColdStartScreenDataOb
     }
     val selectedGenres = remember { mutableStateListOf<GenreKP>() }
     val selectedAuthors = remember { mutableStateListOf<AuthorsGoogle>() }
+    LaunchedEffect(navData.uid) {
+        loadUserGenres(db, navData.uid) { loadedGenres->
+            if (loadedGenres.isNotEmpty()) {
+                selectedGenres.addAll(loadedGenres)
+            }
+        }
+        loadUserAuthors(db, navData.uid) { loadedAuthors ->
+            if (loadedAuthors.isNotEmpty()) {
+                selectedAuthors.addAll(loadedAuthors)
+            }
+        }
+    }
     Box(modifier = Modifier.fillMaxSize()) {
         HorizontalPager(
             count = 4,
@@ -42,16 +57,16 @@ fun ColdStartScreen(navController: NavController, navData: ColdStartScreenDataOb
             modifier = Modifier.fillMaxSize()
         ) { page ->
             when (page) {
-                0 -> WelcomeScreen {
+                0 -> WelcomeScreen(navData.flag) {
                     coroutineScope.launch { pagerState.animateScrollToPage(1) }
                 }
-                1 -> GenreSelectionScreen(selectedGenres, mainScreenDataObject, navController, genreSelectionScreenDataObject, db) {
+                1 -> GenreSelectionScreen(navData.flag, selectedGenres, mainScreenDataObject, navController, genreSelectionScreenDataObject, db) {
                     coroutineScope.launch { pagerState.animateScrollToPage(2) }
                 }
-                2 -> AuthorsBookSelectScreen(selectedAuthors,mainScreenDataObject, navController, genreSelectionScreenDataObject, db) {
+                2 -> AuthorsBookSelectScreen(navData.flag, selectedAuthors,mainScreenDataObject, navController, genreSelectionScreenDataObject, db) {
                     coroutineScope.launch { pagerState.animateScrollToPage(3) }
                 }
-                3 -> EndWelcomeScreen(db, selectedGenres, selectedAuthors, navController, mainScreenDataObject)
+                3 -> EndWelcomeScreen(navData.flag, db, selectedGenres, selectedAuthors, navController, mainScreenDataObject)
             }
         }
         HorizontalPagerIndicator(

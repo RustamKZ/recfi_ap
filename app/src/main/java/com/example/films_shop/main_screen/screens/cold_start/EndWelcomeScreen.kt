@@ -44,6 +44,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
 fun EndWelcomeScreen(
+    flag: Boolean = false,
     db: FirebaseFirestore,
     selectedGenres: SnapshotStateList<GenreKP>,
     selectedAuthors:  SnapshotStateList<AuthorsGoogle>,
@@ -60,7 +61,7 @@ fun EndWelcomeScreen(
         // Фоновое изображение
 
         Image(
-            painter = painterResource(id = R.drawable.welcome_4), // замените на своё изображение
+            painter = if (flag) painterResource(id = R.drawable.rewelcome_4) else painterResource(id = R.drawable.welcome_4), // замените на своё изображение
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()

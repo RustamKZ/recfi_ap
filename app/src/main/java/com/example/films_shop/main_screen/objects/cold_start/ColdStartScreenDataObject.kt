@@ -4,5 +4,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class ColdStartScreenDataObject(
     val uid: String = "",
-    val email: String = ""
+    val email: String = "",
+    val flag: Boolean = false,
 )

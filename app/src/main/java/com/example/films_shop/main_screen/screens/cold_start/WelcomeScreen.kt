@@ -36,7 +36,10 @@ import com.example.films_shop.ui.theme.backColorChatCard
 import com.example.films_shop.ui.theme.mainColorUiGreen
 
 @Composable
-fun WelcomeScreen(onContinue: () -> Unit) {
+fun WelcomeScreen(
+    flag: Boolean = false,
+    onContinue: () -> Unit
+) {
     val isDark = isSystemInDarkTheme()
     val composition =
         rememberLottieComposition(spec = LottieCompositionSpec.Asset("emptyListAnim.json"))
@@ -47,7 +50,7 @@ fun WelcomeScreen(onContinue: () -> Unit) {
     ) {
         // Фоновое изображение
         Image(
-            painter = painterResource(id = R.drawable.welcome_1), // замените на своё изображение
+            painter = if (flag) painterResource(id = R.drawable.rewelcome_1) else painterResource(id = R.drawable.welcome_1),
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
@@ -67,13 +70,15 @@ fun WelcomeScreen(onContinue: () -> Unit) {
                     )
                 )
         )
-        Box(
-            Modifier.align(Alignment.Center)
-        ) {
-            LottieAnimation(
-                composition = composition.value,
-                iterations = LottieConstants.IterateForever
-            )
+        if (!flag) {
+            Box(
+                Modifier.align(Alignment.Center)
+            ) {
+                LottieAnimation(
+                    composition = composition.value,
+                    iterations = LottieConstants.IterateForever
+                )
+            }
         }
         Column(
             modifier = Modifier
@@ -89,12 +94,21 @@ fun WelcomeScreen(onContinue: () -> Unit) {
                 fontSize = 30.sp
             )
             Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "Выберите ваши любимые жанры, чтобы мы смогли создать для вас рекомендации",
-                color = if (isDark) Color.White else Color.Black,
-                textAlign = TextAlign.Center,
-                fontSize = 20.sp
-            )
+            if (flag) {
+                Text(
+                    text = "Вы можете изменить ваши любимые жанры, чтобы мы смогли создать для вас рекомендации",
+                    color = if (isDark) Color.White else Color.Black,
+                    textAlign = TextAlign.Center,
+                    fontSize = 20.sp
+                )
+            } else {
+                Text(
+                    text = "Выберите ваши любимые жанры, чтобы мы смогли создать для вас рекомендации",
+                    color = if (isDark) Color.White else Color.Black,
+                    textAlign = TextAlign.Center,
+                    fontSize = 20.sp
+                )
+            }
             Spacer(modifier = Modifier.height(32.dp))
             Button(
                 onClick = onContinue,
