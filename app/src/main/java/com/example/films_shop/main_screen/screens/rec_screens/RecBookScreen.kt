@@ -17,7 +17,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.films_shop.main_screen.api.BookApi.Book
@@ -26,7 +25,6 @@ import com.example.films_shop.main_screen.api.BookApi.BookViewModel
 import com.example.films_shop.main_screen.api.recomendations.RecommendationViewModel
 import com.example.films_shop.main_screen.bottom_menu.BottomMenu
 import com.example.films_shop.main_screen.bottom_menu.MainViewModel
-import com.example.films_shop.main_screen.objects.main_screens_objects.BookScreenDataObject
 import com.example.films_shop.main_screen.objects.details_screens_objects.DetailsNavBookObject
 import com.example.films_shop.main_screen.objects.rec_objects.RecBookScreenDataObject
 import com.example.films_shop.main_screen.top_bar.TopBarMenu
@@ -44,12 +42,18 @@ fun RecBookScreen(
     showBottomBar: Boolean = true,
     scrollBehavior: TopAppBarScrollBehavior,
     noOpNestedScrollConnection: NestedScrollConnection,
-    viewModel: MainViewModel
+    viewModel: MainViewModel,
+    flag: Boolean = false
 ) {
+    val recommendationBooksAuthor by recViewModel.recommendationBooksAuthor
+    val recBooks by recViewModel.recommendationCollabBooks
+    val content = when(flag) {
+        true -> recommendationBooksAuthor
+        false -> recBooks
+    }
     val books = bookViewModel.bookPagingFlow.collectAsLazyPagingItems()
     val db = Firebase.firestore
     val booksListState = remember { mutableStateOf(emptyList<Book>()) }
-    val recBooks by recViewModel.recommendationCollabBooks
     LaunchedEffect(books.itemSnapshotList) {
         bookViewModel.loadBookmarkBooks(db, navData.uid)
         bookViewModel.loadFavoriteBooks(db, navData.uid)
@@ -85,7 +89,7 @@ fun RecBookScreen(
                 .nestedScroll(noOpNestedScrollConnection)
                 .padding(top = innerPadding.calculateTopPadding())
         ) {
-            items(recBooks.take(20)) { book ->
+            items(content.take(20)) { book ->
                     BookItemUi(
                         book = book,
                         onBookDetailsClick = {

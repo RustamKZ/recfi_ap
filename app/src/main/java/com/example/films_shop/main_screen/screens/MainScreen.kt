@@ -44,7 +44,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -56,7 +55,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -85,10 +83,14 @@ import com.example.films_shop.main_screen.objects.rec_objects.RecBookScreenDataO
 import com.example.films_shop.main_screen.objects.rec_objects.RecCartoonScreenDataObject
 import com.example.films_shop.main_screen.objects.rec_objects.RecMovieScreenDataObject
 import com.example.films_shop.main_screen.objects.rec_objects.RecTvSeriesScreenDataObject
+import com.example.films_shop.main_screen.objects.rec_objects.genre_authors.RecCartoonScreenGenreObject
+import com.example.films_shop.main_screen.objects.rec_objects.genre_authors.RecMovieScreenGenreObject
+import com.example.films_shop.main_screen.objects.rec_objects.genre_authors.RecTvSeriesScreenGenreObject
 import com.example.films_shop.main_screen.top_bar.TopBarMenu
 import com.example.films_shop.ui.theme.mainColorUiGreen
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.filter
@@ -129,20 +131,17 @@ fun MainScreen(
     showTopBar: Boolean = true,
     showBottomBar: Boolean = true,
     scrollBehavior: TopAppBarScrollBehavior,
-    noOpNestedScrollConnection:  NestedScrollConnection,
-    viewModel: MainViewModel
+    noOpNestedScrollConnection: NestedScrollConnection,
+    viewModel: MainViewModel,
 ) {
     // ui theme
     val isDark = isSystemInDarkTheme()
     val iconColor = if (isDark) Color.White else Color.Gray
-    // ui theme
-    var showOverlay by remember { mutableStateOf(false) }
-    val selectedGenres = remember { mutableStateListOf<GenreKP>() }
-    val selectedAuthors = remember { mutableStateListOf<AuthorsGoogle>() }
     // Инициализируем состояние анимации
     val showLoadingAnimation = remember { mutableStateOf(navData.showLoadingAnimation) }
-    val composition = if (isDark) rememberLottieComposition(spec = LottieCompositionSpec.Asset("green_intro.json")) else
-        rememberLottieComposition(spec = LottieCompositionSpec.Asset("green_intro.json"))
+    val composition =
+        if (isDark) rememberLottieComposition(spec = LottieCompositionSpec.Asset("green_intro.json")) else
+            rememberLottieComposition(spec = LottieCompositionSpec.Asset("green_intro.json"))
     val alpha = remember { Animatable(1f) }
     val dataLoaded = remember { mutableStateOf(false) }
     val movies = movieViewModel.moviesPagingFlow.collectAsLazyPagingItems()
@@ -156,6 +155,8 @@ fun MainScreen(
     val db = remember {
         Firebase.firestore
     }
+    val selectedGenres = remember { mutableStateListOf<GenreKP>() }
+    val selectedAuthors = remember { mutableStateListOf<AuthorsGoogle>() }
     // Коллаборативная фильтрация рекомендации
     LaunchedEffect(Unit) {
         movieViewModel.loadRatedMovies(db, navData.uid, isCollab = true)
@@ -203,25 +204,56 @@ fun MainScreen(
     val recommendationCartoon by recViewModel.recommendationCollabCartoon
     val recommendationTvSeries by recViewModel.recommendationCollabTvSeries
     val recommendationBooks by recViewModel.recommendationCollabBooks
+
+    val recommendationMoviesGenre by recViewModel.recommendationMoviesGenre
+    val recommendationCartoonGenre by recViewModel.recommendationCartoonGenre
+    val recommendationTvSeriesGenre by recViewModel.recommendationTvSeriesGenre
+    val recommendationBooksAuthor by recViewModel.recommendationBooksAuthor
     // Коллаборативная фильтрация рекомендации
+//    LaunchedEffect(navData.uid) {
+//        loadUserGenres(db, navData.uid) { loadedGenres ->
+//            if (loadedGenres.isNotEmpty()) {
+//                selectedGenres.addAll(loadedGenres)
+//            }
+//        }
+//        loadUserAuthors(db, navData.uid) { loadedAuthors ->
+//            if (loadedAuthors.isNotEmpty()) {
+//                selectedAuthors.addAll(loadedAuthors)
+//            }
+//        }
+//    }
+
+    // Рекомендация на основе жанров
     LaunchedEffect(navData.uid) {
+        val genresDeferred = CompletableDeferred<List<GenreKP>>()
+        val authorsDeferred = CompletableDeferred<List<AuthorsGoogle>>()
+
         loadUserGenres(db, navData.uid) { loadedGenres ->
-            if (loadedGenres.isEmpty()) {
-                showOverlay = true
-            } else {
-                selectedGenres.addAll(loadedGenres)
-                showOverlay = false
-            }
+            genresDeferred.complete(loadedGenres)
         }
+
         loadUserAuthors(db, navData.uid) { loadedAuthors ->
-            if (loadedAuthors.isEmpty()) {
-                showOverlay = true
-            } else {
-                selectedAuthors.addAll(loadedAuthors)
-                showOverlay = false
-            }
+            authorsDeferred.complete(loadedAuthors)
+        }
+
+        val loadedGenres = genresDeferred.await()
+        val loadedAuthors = authorsDeferred.await()
+
+        selectedGenres.clear()
+        selectedGenres.addAll(loadedGenres)
+
+        selectedAuthors.clear()
+        selectedAuthors.addAll(loadedAuthors)
+
+        launch {
+            // Например:
+            Log.d("GenreAuthor", "Genres: ${selectedGenres.joinToString { it.name }}")
+            Log.d("GenreAuthor", "Authors: ${selectedAuthors.joinToString { it.name }}")
+            recViewModel.getGenreFilms(selectedGenres)
+            recViewModel.getAuthorBooks(selectedAuthors)
         }
     }
+
     LaunchedEffect(movies.itemSnapshotList) {
         if (movies.itemCount > 0) {
             dataLoaded.value = true
@@ -397,8 +429,7 @@ fun MainScreen(
                                             movie.rating?.imdb != null && movie.rating.imdb > 0.0 -> movie.rating.imdb
                                             else -> 0.0
                                         }
-                                        if (rating != 0.0)
-                                        {
+                                        if (rating != 0.0) {
                                             val backgroundColor = when {
                                                 rating > 7 -> mainColorUiGreen
                                                 rating >= 5 -> Color(0xFFFF9800)
@@ -507,58 +538,174 @@ fun MainScreen(
                                 }
                             }
                         }
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "Фильмы для вас",
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.padding(start = 24.dp)
-                            )
-                            Button(
-                                onClick = {
-                                    navController.navigate(
-                                        RecMovieScreenDataObject(
-                                            navData.uid,
-                                            navData.email
-                                        )
-                                    )
-                                },
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color.Transparent, // Прозрачный фон
-                                    contentColor = Color.Black // Цвет текста
-                                ),
-                                contentPadding = PaddingValues(0.dp), // Убираем отступы внутри кнопки
-                                modifier = Modifier
-                                    .padding(end = 24.dp)
-                                    .wrapContentSize()
+                        if (recommendationMovies.isNotEmpty()) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Icon(
-                                    imageVector = Icons.Outlined.ChevronRight,
-                                    contentDescription = "Посмотреть",
-                                    tint = iconColor
+                                Text(
+                                    text = "Фильмы на основе ваших оценок",
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(start = 24.dp)
                                 )
-                            }
+                                Button(
+                                    onClick = {
+                                        navController.navigate(
+                                            RecMovieScreenDataObject(
+                                                navData.uid,
+                                                navData.email
+                                            )
+                                        )
+                                    },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color.Transparent, // Прозрачный фон
+                                        contentColor = Color.Black // Цвет текста
+                                    ),
+                                    contentPadding = PaddingValues(0.dp), // Убираем отступы внутри кнопки
+                                    modifier = Modifier
+                                        .padding(end = 24.dp)
+                                        .wrapContentSize()
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.ChevronRight,
+                                        contentDescription = "Посмотреть",
+                                        tint = iconColor
+                                    )
+                                }
 
-                        }
-                        if (recommendationMovies.isEmpty()) {
-                            Text(
-                                text = "Пусто",
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                style = MaterialTheme.typography.bodyLarge,
-                                textAlign = TextAlign.Center
-                            )
-                        } else {
+                            }
                             LazyRow(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 items(recommendationMovies.take(10)) { movie ->
+                                    Box(
+                                        modifier = Modifier
+                                            .padding(start = 8.dp)
+                                            .width(170.dp)
+                                            .height(250.dp)
+                                            .clip(RoundedCornerShape(15.dp))
+                                            .background(Color.Gray)
+                                            .clickable {
+                                                navController.navigate(
+                                                    DetailsNavMovieObject(
+                                                        id = movie.id ?: "",
+                                                        tmdbId = movie.externalId?.tmdb ?: 0,
+                                                        title = movie.name ?: "Неизвестно",
+                                                        type = movie.type ?: "Неизвестно",
+                                                        genre = movie.genres?.joinToString(", ") { it.name }
+                                                            ?: "Неизвестно",
+                                                        year = movie.year ?: "Неизвестно",
+                                                        description = movie.description
+                                                            ?: "Описание отсутствует",
+                                                        imageUrl = movie.poster?.url ?: "",
+                                                        backdropUrl = movie.backdrop?.url ?: "",
+                                                        ratingKp = movie.rating?.kp ?: 0.0,
+                                                        ratingImdb = movie.rating?.imdb ?: 0.0,
+                                                        votesKp = movie.votes?.kp ?: 0,
+                                                        votesImdb = movie.votes?.imdb ?: 0,
+                                                        persons = movie.persons?.joinToString(", ") { "${it.name}|${it.photo}" }
+                                                            ?: "Неизвестно",
+                                                        isFavorite = movie.isFavorite,
+                                                        isBookMark = movie.isBookMark,
+                                                        isRated = movie.isRated,
+                                                        userRating = movie.userRating ?: 0
+                                                    )
+                                                )
+                                            },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Box {
+                                            AsyncImage(
+                                                model = movie.poster?.url,
+                                                contentDescription = "Постер фильма",
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .height(250.dp)
+                                                    .clip(RoundedCornerShape(15.dp)),
+                                                contentScale = ContentScale.Crop
+                                            )
+                                            val rating = when {
+                                                movie.rating?.kp != null && movie.rating.kp > 0.0 -> movie.rating.kp
+                                                movie.rating?.imdb != null && movie.rating.imdb > 0.0 -> movie.rating.imdb
+                                                else -> 0.0
+                                            }
+                                            if (rating != 0.0) {
+                                                // Оценка
+                                                val backgroundColor = when {
+                                                    rating > 7 -> mainColorUiGreen
+                                                    rating >= 5 -> Color(0xFFFF9800)
+                                                    else -> Color(0xFFF44336)
+                                                }
+
+                                                Text(
+                                                    text = String.format("%.1f", rating),
+                                                    color = Color.White,
+                                                    fontSize = 14.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    modifier = Modifier
+                                                        .padding(8.dp)
+                                                        .background(
+                                                            color = backgroundColor,
+                                                            shape = RoundedCornerShape(6.dp)
+                                                        )
+                                                        .padding(
+                                                            horizontal = 10.dp,
+                                                            vertical = 2.dp
+                                                        )
+                                                        .align(Alignment.TopStart)
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        if (recommendationMoviesGenre.isNotEmpty()) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "Фильмы на основе ваших интересов",
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(start = 24.dp)
+                                )
+                                Button(
+                                    onClick = {
+                                        navController.navigate(
+                                            RecMovieScreenGenreObject(
+                                                navData.uid,
+                                                navData.email
+                                            )
+                                        )
+                                    },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color.Transparent, // Прозрачный фон
+                                        contentColor = Color.Black // Цвет текста
+                                    ),
+                                    contentPadding = PaddingValues(0.dp), // Убираем отступы внутри кнопки
+                                    modifier = Modifier
+                                        .padding(end = 24.dp)
+                                        .wrapContentSize()
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.ChevronRight,
+                                        contentDescription = "Посмотреть",
+                                        tint = iconColor
+                                    )
+                                }
+
+                            }
+                            LazyRow(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                items(recommendationMoviesGenre.take(10)) { movie ->
                                     Box(
                                         modifier = Modifier
                                             .padding(start = 8.dp)
@@ -771,58 +918,175 @@ fun MainScreen(
                                 }
                             }
                         }
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "Сериалы для вас",
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.padding(start = 24.dp)
-                            )
-                            Button(
-                                onClick = {
-                                    navController.navigate(
-                                        RecTvSeriesScreenDataObject(
-                                            navData.uid,
-                                            navData.email
-                                        )
-                                    )
-                                },
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color.Transparent, // Прозрачный фон
-                                    contentColor = Color.Black // Цвет текста
-                                ),
-                                contentPadding = PaddingValues(0.dp), // Убираем отступы внутри кнопки
-                                modifier = Modifier
-                                    .padding(end = 24.dp)
-                                    .wrapContentSize()
+                        if (recommendationTvSeries.isNotEmpty()) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Icon(
-                                    imageVector = Icons.Outlined.ChevronRight,
-                                    contentDescription = "Посмотреть",
-                                    tint = iconColor
+                                Text(
+                                    text = "Сериалы на основе ваших оценок",
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(start = 24.dp)
                                 )
-                            }
+                                Button(
+                                    onClick = {
+                                        navController.navigate(
+                                            RecTvSeriesScreenDataObject(
+                                                navData.uid,
+                                                navData.email
+                                            )
+                                        )
+                                    },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color.Transparent, // Прозрачный фон
+                                        contentColor = Color.Black // Цвет текста
+                                    ),
+                                    contentPadding = PaddingValues(0.dp), // Убираем отступы внутри кнопки
+                                    modifier = Modifier
+                                        .padding(end = 24.dp)
+                                        .wrapContentSize()
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.ChevronRight,
+                                        contentDescription = "Посмотреть",
+                                        tint = iconColor
+                                    )
+                                }
 
-                        }
-                        if (recommendationTvSeries.isEmpty()) {
-                            Text(
-                                text = "Пусто",
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                style = MaterialTheme.typography.bodyLarge,
-                                textAlign = TextAlign.Center
-                            )
-                        } else {
+                            }
                             LazyRow(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 items(recommendationTvSeries.take(10)) { movie ->
+                                    Box(
+                                        modifier = Modifier
+                                            .padding(start = 8.dp)
+                                            .width(170.dp)
+                                            .height(250.dp)
+                                            .clip(RoundedCornerShape(15.dp))
+                                            .background(Color.Gray)
+                                            .clickable {
+                                                navController.navigate(
+                                                    DetailsNavMovieObject(
+                                                        id = movie.id ?: "",
+                                                        tmdbId = movie.externalId?.tmdb ?: 0,
+                                                        title = movie.name ?: "Неизвестно",
+                                                        type = movie.type ?: "Неизвестно",
+                                                        genre = movie.genres?.joinToString(", ") { it.name }
+                                                            ?: "Неизвестно",
+                                                        year = movie.year ?: "Неизвестно",
+                                                        description = movie.description
+                                                            ?: "Описание отсутствует",
+                                                        imageUrl = movie.poster?.url ?: "",
+                                                        backdropUrl = movie.backdrop?.url ?: "",
+                                                        ratingKp = movie.rating?.kp ?: 0.0,
+                                                        ratingImdb = movie.rating?.imdb ?: 0.0,
+                                                        votesKp = movie.votes?.kp ?: 0,
+                                                        votesImdb = movie.votes?.imdb ?: 0,
+                                                        persons = movie.persons?.joinToString(", ") { "${it.name}|${it.photo}" }
+                                                            ?: "Неизвестно",
+                                                        isFavorite = movie.isFavorite,
+                                                        isBookMark = movie.isBookMark,
+                                                        isRated = movie.isRated,
+                                                        userRating = movie.userRating ?: 0
+                                                    )
+                                                )
+                                            },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Box {
+                                            AsyncImage(
+                                                model = movie.poster?.url,
+                                                contentDescription = "Постер фильма",
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .height(250.dp)
+                                                    .clip(RoundedCornerShape(15.dp)),
+                                                contentScale = ContentScale.Crop
+                                            )
+
+                                            // Оценка
+                                            val rating = when {
+                                                movie.rating?.kp != null && movie.rating.kp > 0.0 -> movie.rating.kp
+                                                movie.rating?.imdb != null && movie.rating.imdb > 0.0 -> movie.rating.imdb
+                                                else -> 0.0
+                                            }
+                                            if (rating != 0.0) {
+                                                val backgroundColor = when {
+                                                    rating > 7 -> mainColorUiGreen
+                                                    rating >= 5 -> Color(0xFFFF9800)
+                                                    else -> Color(0xFFF44336)
+                                                }
+
+                                                Text(
+                                                    text = String.format("%.1f", rating),
+                                                    color = Color.White,
+                                                    fontSize = 14.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    modifier = Modifier
+                                                        .padding(8.dp)
+                                                        .background(
+                                                            color = backgroundColor,
+                                                            shape = RoundedCornerShape(6.dp)
+                                                        )
+                                                        .padding(
+                                                            horizontal = 10.dp,
+                                                            vertical = 2.dp
+                                                        )
+                                                        .align(Alignment.TopStart)
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        if (recommendationTvSeriesGenre.isNotEmpty()) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "Сериалы на основе ваших интересов",
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(start = 24.dp)
+                                )
+                                Button(
+                                    onClick = {
+                                        navController.navigate(
+                                            RecTvSeriesScreenGenreObject(
+                                                navData.uid,
+                                                navData.email
+                                            )
+                                        )
+                                    },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color.Transparent, // Прозрачный фон
+                                        contentColor = Color.Black // Цвет текста
+                                    ),
+                                    contentPadding = PaddingValues(0.dp), // Убираем отступы внутри кнопки
+                                    modifier = Modifier
+                                        .padding(end = 24.dp)
+                                        .wrapContentSize()
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.ChevronRight,
+                                        contentDescription = "Посмотреть",
+                                        tint = iconColor
+                                    )
+                                }
+
+                            }
+                            LazyRow(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                items(recommendationTvSeriesGenre.take(10)) { movie ->
                                     Box(
                                         modifier = Modifier
                                             .padding(start = 8.dp)
@@ -1037,53 +1301,44 @@ fun MainScreen(
                                 }
                             }
                         }
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "Мультфильмы для вас",
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.padding(start = 24.dp)
-                            )
-                            Button(
-                                onClick = {
-                                    navController.navigate(
-                                        RecCartoonScreenDataObject(
-                                            navData.uid,
-                                            navData.email
-                                        )
-                                    )
-                                },
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color.Transparent, // Прозрачный фон
-                                    contentColor = Color.Black // Цвет текста
-                                ),
-                                contentPadding = PaddingValues(0.dp), // Убираем отступы внутри кнопки
-                                modifier = Modifier
-                                    .padding(end = 24.dp)
-                                    .wrapContentSize()
+                        if (recommendationCartoon.isNotEmpty()) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Icon(
-                                    imageVector = Icons.Outlined.ChevronRight,
-                                    contentDescription = "Посмотреть",
-                                    tint = iconColor
+                                Text(
+                                    text = "Мультфильмы на основе ваших оценок",
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(start = 24.dp)
                                 )
-                            }
+                                Button(
+                                    onClick = {
+                                        navController.navigate(
+                                            RecCartoonScreenDataObject(
+                                                navData.uid,
+                                                navData.email
+                                            )
+                                        )
+                                    },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color.Transparent, // Прозрачный фон
+                                        contentColor = Color.Black // Цвет текста
+                                    ),
+                                    contentPadding = PaddingValues(0.dp), // Убираем отступы внутри кнопки
+                                    modifier = Modifier
+                                        .padding(end = 24.dp)
+                                        .wrapContentSize()
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.ChevronRight,
+                                        contentDescription = "Посмотреть",
+                                        tint = iconColor
+                                    )
+                                }
 
-                        }
-                        if (recommendationCartoon.isEmpty()) {
-                            Text(
-                                text = "Пусто",
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                style = MaterialTheme.typography.bodyLarge,
-                                textAlign = TextAlign.Center
-                            )
-                        } else {
+                            }
                             LazyRow(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -1143,27 +1398,156 @@ fun MainScreen(
                                                 else -> 0.0
                                             }
                                             if (rating != 0.0) {
-                                            val backgroundColor = when {
-                                                rating > 7 -> mainColorUiGreen
-                                                rating >= 5 -> Color(0xFFFF9800)
-                                                else -> Color(0xFFF44336)
-                                            }
-
-                                            Text(
-                                                text = String.format("%.1f", rating),
-                                                color = Color.White,
-                                                fontSize = 14.sp,
-                                                fontWeight = FontWeight.Bold,
-                                                modifier = Modifier
-                                                    .padding(8.dp)
-                                                    .background(
-                                                        color = backgroundColor,
-                                                        shape = RoundedCornerShape(6.dp)
-                                                    )
-                                                    .padding(horizontal = 10.dp, vertical = 2.dp)
-                                                    .align(Alignment.TopStart)
-                                            )
+                                                val backgroundColor = when {
+                                                    rating > 7 -> mainColorUiGreen
+                                                    rating >= 5 -> Color(0xFFFF9800)
+                                                    else -> Color(0xFFF44336)
                                                 }
+
+                                                Text(
+                                                    text = String.format("%.1f", rating),
+                                                    color = Color.White,
+                                                    fontSize = 14.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    modifier = Modifier
+                                                        .padding(8.dp)
+                                                        .background(
+                                                            color = backgroundColor,
+                                                            shape = RoundedCornerShape(6.dp)
+                                                        )
+                                                        .padding(
+                                                            horizontal = 10.dp,
+                                                            vertical = 2.dp
+                                                        )
+                                                        .align(Alignment.TopStart)
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        if (recommendationCartoonGenre.isNotEmpty()) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "Мультфильмы на основе ваших интересов",
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(start = 24.dp)
+                                )
+                                Button(
+                                    onClick = {
+                                        navController.navigate(
+                                            RecCartoonScreenGenreObject(
+                                                navData.uid,
+                                                navData.email
+                                            )
+                                        )
+                                    },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color.Transparent, // Прозрачный фон
+                                        contentColor = Color.Black // Цвет текста
+                                    ),
+                                    contentPadding = PaddingValues(0.dp), // Убираем отступы внутри кнопки
+                                    modifier = Modifier
+                                        .padding(end = 24.dp)
+                                        .wrapContentSize()
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.ChevronRight,
+                                        contentDescription = "Посмотреть",
+                                        tint = iconColor
+                                    )
+                                }
+
+                            }
+                            LazyRow(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                items(recommendationCartoonGenre.take(10)) { movie ->
+                                    Box(
+                                        modifier = Modifier
+                                            .padding(start = 8.dp)
+                                            .width(170.dp)
+                                            .height(250.dp)
+                                            .clip(RoundedCornerShape(15.dp))
+                                            .background(Color.Gray)
+                                            .clickable {
+                                                navController.navigate(
+                                                    DetailsNavMovieObject(
+                                                        id = movie.id ?: "",
+                                                        tmdbId = movie.externalId?.tmdb ?: 0,
+                                                        title = movie.name ?: "Неизвестно",
+                                                        type = movie.type ?: "Неизвестно",
+                                                        genre = movie.genres?.joinToString(", ") { it.name }
+                                                            ?: "Неизвестно",
+                                                        year = movie.year ?: "Неизвестно",
+                                                        description = movie.description
+                                                            ?: "Описание отсутствует",
+                                                        imageUrl = movie.poster?.url ?: "",
+                                                        backdropUrl = movie.backdrop?.url ?: "",
+                                                        ratingKp = movie.rating?.kp ?: 0.0,
+                                                        ratingImdb = movie.rating?.imdb ?: 0.0,
+                                                        votesKp = movie.votes?.kp ?: 0,
+                                                        votesImdb = movie.votes?.imdb ?: 0,
+                                                        persons = movie.persons?.joinToString(", ") { "${it.name}|${it.photo}" }
+                                                            ?: "Неизвестно",
+                                                        isFavorite = movie.isFavorite,
+                                                        isBookMark = movie.isBookMark,
+                                                        isRated = movie.isRated,
+                                                        userRating = movie.userRating ?: 0
+                                                    )
+                                                )
+                                            },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Box {
+                                            AsyncImage(
+                                                model = movie.poster?.url,
+                                                contentDescription = "Постер фильма",
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .height(250.dp)
+                                                    .clip(RoundedCornerShape(15.dp)),
+                                                contentScale = ContentScale.Crop
+                                            )
+
+                                            // Оценка
+                                            val rating = when {
+                                                movie.rating?.kp != null && movie.rating.kp > 0.0 -> movie.rating.kp
+                                                movie.rating?.imdb != null && movie.rating.imdb > 0.0 -> movie.rating.imdb
+                                                else -> 0.0
+                                            }
+                                            if (rating != 0.0) {
+                                                val backgroundColor = when {
+                                                    rating > 7 -> mainColorUiGreen
+                                                    rating >= 5 -> Color(0xFFFF9800)
+                                                    else -> Color(0xFFF44336)
+                                                }
+
+                                                Text(
+                                                    text = String.format("%.1f", rating),
+                                                    color = Color.White,
+                                                    fontSize = 14.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    modifier = Modifier
+                                                        .padding(8.dp)
+                                                        .background(
+                                                            color = backgroundColor,
+                                                            shape = RoundedCornerShape(6.dp)
+                                                        )
+                                                        .padding(
+                                                            horizontal = 10.dp,
+                                                            vertical = 2.dp
+                                                        )
+                                                        .align(Alignment.TopStart)
+                                                )
+                                            }
                                         }
                                     }
                                 }
@@ -1241,7 +1625,9 @@ fun MainScreen(
                                                             userRating = book.userRating,
                                                             publisher = book.publisher,
                                                             pageCount = book.pageCount,
-                                                            categories = book.categories?.joinToString(", ")
+                                                            categories = book.categories?.joinToString(
+                                                                ", "
+                                                            )
                                                                 ?: "Неизвестно",
                                                             averageRating = book.averageRating,
                                                             ratingsCount = book.ratingsCount,
@@ -1300,58 +1686,177 @@ fun MainScreen(
                         Column(
 
                         ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = "Книги для вас",
-                                    fontSize = 20.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.padding(start = 24.dp)
-                                )
-                                Button(
-                                    onClick = {
-                                        navController.navigate(
-                                            RecBookScreenDataObject(
-                                                navData.uid,
-                                                navData.email
-                                            )
-                                        )
-                                    },
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color.Transparent, // Прозрачный фон
-                                        contentColor = Color.Black // Цвет текста
-                                    ),
-                                    contentPadding = PaddingValues(0.dp), // Убираем отступы внутри кнопки
-                                    modifier = Modifier
-                                        .padding(end = 24.dp)
-                                        .wrapContentSize()
+                            if (recommendationBooks.isNotEmpty()) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Icon(
-                                        imageVector = Icons.Outlined.ChevronRight,
-                                        contentDescription = "Посмотреть",
-                                        tint = iconColor
+                                    Text(
+                                        text = "Книги на основе ваших оценок",
+                                        fontSize = 20.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        modifier = Modifier.padding(start = 24.dp)
                                     )
-                                }
+                                    Button(
+                                        onClick = {
+                                            navController.navigate(
+                                                RecBookScreenDataObject(
+                                                    navData.uid,
+                                                    navData.email
+                                                )
+                                            )
+                                        },
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = Color.Transparent, // Прозрачный фон
+                                            contentColor = Color.Black // Цвет текста
+                                        ),
+                                        contentPadding = PaddingValues(0.dp), // Убираем отступы внутри кнопки
+                                        modifier = Modifier
+                                            .padding(end = 24.dp)
+                                            .wrapContentSize()
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Outlined.ChevronRight,
+                                            contentDescription = "Посмотреть",
+                                            tint = iconColor
+                                        )
+                                    }
 
-                            }
-                            if (recommendationBooks.isEmpty()) {
-                                Text(
-                                    text = "Пусто",
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(16.dp),
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    textAlign = TextAlign.Center
-                                )
-                            } else {
+                                }
                                 LazyRow(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
                                     items(recommendationBooks.take(10)) { book ->
+                                        Box(
+                                            modifier = Modifier
+                                                .padding(start = 8.dp)
+                                                .width(170.dp)
+                                                .height(250.dp)
+                                                .clip(RoundedCornerShape(15.dp))
+                                                .background(Color.Gray)
+                                                .clickable {
+                                                    navController.navigate(
+                                                        DetailsNavBookObject(
+                                                            id = book.id,
+                                                            isbn10 = book.isbn10,
+                                                            title = book.title,
+                                                            authors = book.authors?.joinToString(
+                                                                ", "
+                                                            )
+                                                                ?: "Неизвестно",
+                                                            description = book.description
+                                                                ?: "Описание отсутствует",
+                                                            thumbnail = book.thumbnail ?: "",
+                                                            publishedDate = book.publishedDate
+                                                                ?: "Неизвестно",
+                                                            isFavorite = book.isFavorite,
+                                                            isBookmark = book.isBookMark,
+                                                            isRated = book.isRated,
+                                                            userRating = book.userRating,
+                                                            publisher = book.publisher,
+                                                            pageCount = book.pageCount,
+                                                            categories = book.categories?.joinToString(
+                                                                ", "
+                                                            )
+                                                                ?: "Неизвестно",
+                                                            averageRating = book.averageRating,
+                                                            ratingsCount = book.ratingsCount,
+                                                            language = book.language
+                                                        )
+                                                    )
+                                                },
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Box {
+                                                AsyncImage(
+                                                    model = book.thumbnail?.replace(
+                                                        "http://",
+                                                        "https://"
+                                                    ),
+                                                    contentDescription = "Обложка книги",
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .height(250.dp)
+                                                        .clip(RoundedCornerShape(15.dp)),
+                                                    contentScale = ContentScale.Crop
+                                                )
+
+                                                // Оценка
+                                                val rating = book.userRating
+                                                val backgroundColor = when {
+                                                    rating > 7 -> mainColorUiGreen
+                                                    rating >= 5 -> Color(0xFFFF9800)
+                                                    else -> Color(0xFFF44336)
+                                                }
+                                                if (rating != -1) {
+                                                    Text(
+                                                        text = String.format("%.1f", rating),
+                                                        color = Color.White,
+                                                        fontSize = 14.sp,
+                                                        fontWeight = FontWeight.Bold,
+                                                        modifier = Modifier
+                                                            .padding(8.dp)
+                                                            .background(
+                                                                color = backgroundColor,
+                                                                shape = RoundedCornerShape(6.dp)
+                                                            )
+                                                            .padding(
+                                                                horizontal = 10.dp,
+                                                                vertical = 2.dp
+                                                            )
+                                                            .align(Alignment.TopStart)
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            if (recommendationBooksAuthor.isNotEmpty()) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "Книги на основе ваших интересов",
+                                        fontSize = 20.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        modifier = Modifier.padding(start = 24.dp)
+                                    )
+                                    Button(
+                                        onClick = {
+                                            navController.navigate(
+                                                RecBookScreenDataObject(
+                                                    navData.uid,
+                                                    navData.email
+                                                )
+                                            )
+                                        },
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = Color.Transparent, // Прозрачный фон
+                                            contentColor = Color.Black // Цвет текста
+                                        ),
+                                        contentPadding = PaddingValues(0.dp), // Убираем отступы внутри кнопки
+                                        modifier = Modifier
+                                            .padding(end = 24.dp)
+                                            .wrapContentSize()
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Outlined.ChevronRight,
+                                            contentDescription = "Посмотреть",
+                                            tint = iconColor
+                                        )
+                                    }
+
+                                }
+                                LazyRow(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    items(recommendationBooksAuthor.take(10)) { book ->
                                         Box(
                                             modifier = Modifier
                                                 .padding(start = 8.dp)

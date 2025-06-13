@@ -78,6 +78,21 @@ interface MovieApiService {
         @Query("limit") limit: Int = 10
     ): MovieResponse
 
+    @GET("v1.4/movie")
+    suspend fun getMoviesByGenres(
+        @Header("X-API-KEY") apiKey: String,
+        @Query("genres.name") genres: List<String>, // ← фильтрация по жанрам
+        @Query("type") type: String, // "movie", "cartoon", "tv-series"
+        @Query("limit") limit: Int = 30,
+        @Query("page") page: Int = 1,
+        @Query("selectFields") selectFields: List<String> = listOf(
+            "persons", "id", "year", "description", "rating", "votes", "genres", "poster","backdrop", "name", "type", "externalId"
+        ),
+        @Query("sortField") sortField: String = "rating.kp",
+        @Query("sortType") sortType: String = "-1",
+    ): MovieResponse
+
+
 
     data class ImageResponse(
         val docs: List<KpImage>

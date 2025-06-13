@@ -1,16 +1,18 @@
 package com.example.films_shop.main_screen.api.recomendations
 
-import ContentType
 import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.films_shop.main_screen.Genres.AuthorsGoogle
+import com.example.films_shop.main_screen.Genres.GenreKP
 import com.example.films_shop.main_screen.api.Backdrop
 import com.example.films_shop.main_screen.api.BookApi.Book
 import com.example.films_shop.main_screen.api.BookApi.BookViewModel
 import com.example.films_shop.main_screen.api.BookApi.RetrofitInstanceBooks
 import com.example.films_shop.main_screen.api.Movie
+import com.example.films_shop.main_screen.api.MovieResponse
 import com.example.films_shop.main_screen.api.Poster
 import com.example.films_shop.main_screen.api.RetrofitInstance
 import com.example.films_shop.main_screen.api.apiKey
@@ -44,6 +46,21 @@ class RecommendationViewModel : ViewModel() {
     private val _recommendationCollabBooks = mutableStateOf<List<Book>>(emptyList())
     val recommendationCollabBooks: State<List<Book>> = _recommendationCollabBooks
     //Коллаборативная фильтрация
+
+    //Жанры и авторы
+    private val _recommendationMoviesGenre = mutableStateOf<List<Movie>>(emptyList())
+    val recommendationMoviesGenre: State<List<Movie>> = _recommendationMoviesGenre
+
+    private val _recommendationCartoonGenre = mutableStateOf<List<Movie>>(emptyList())
+    val recommendationCartoonGenre: State<List<Movie>> = _recommendationCartoonGenre
+
+    private val _recommendationTvSeriesGenre = mutableStateOf<List<Movie>>(emptyList())
+    val recommendationTvSeriesGenre: State<List<Movie>> = _recommendationTvSeriesGenre
+
+    private val _recommendationBooksAuthor = mutableStateOf<List<Book>>(emptyList())
+    val recommendationBooksAuthor: State<List<Book>> = _recommendationBooksAuthor
+    //Жанры и авторы
+
 
     private val _isbn10RecommendationIds = mutableStateOf<List<String>>(emptyList())
 
@@ -180,6 +197,147 @@ class RecommendationViewModel : ViewModel() {
             }
         }
     }
+
+    fun getGenreFilms(selectedGenres: List<GenreKP>) {
+        viewModelScope.launch {
+            try {
+                val genreNames = selectedGenres.map { it.name.lowercase() }
+
+                val moviesDeferred = async {
+                    RetrofitInstance.api.getMoviesByGenres(
+                        genres = genreNames,
+                        type = "movie",
+                        apiKey = apiKey,
+                    )
+                }
+                val cartoonsDeferred = async {
+                    RetrofitInstance.api.getMoviesByGenres(
+                        genres = genreNames,
+                        type = "cartoon",
+                        apiKey = apiKey,
+                    )
+                }
+                val seriesDeferred = async {
+                    RetrofitInstance.api.getMoviesByGenres(
+                        genres = genreNames,
+                        type = "tv-series",
+                        apiKey = apiKey,
+                    )
+                }
+
+                // Ждём ответа
+                val moviesResponse = moviesDeferred.await()
+                val cartoonsResponse = cartoonsDeferred.await()
+                val seriesResponse = seriesDeferred.await()
+
+                // Обработка MovieResponse, например для фильмов
+                val processedMovies = processMovies(moviesResponse)
+                val processedCartoons = processMovies(cartoonsResponse)
+                val processedSeries = processMovies(seriesResponse)
+
+                // Обновляем стейты
+                _recommendationMoviesGenre.value = processedMovies
+                _recommendationCartoonGenre.value = processedCartoons
+                _recommendationTvSeriesGenre.value = processedSeries
+
+                Log.d("GenreAuthor", "Movies: ${processedMovies.size}")
+                Log.d("GenreAuthor", "Cartoon: ${processedCartoons.size}")
+                Log.d("GenreAuthor", "TvSeries: ${processedSeries.size}")
+
+            } catch (e: Exception) {
+                Log.e("RecommendationVM", "Ошибка при загрузке по жанрам: ${e.message}")
+            }
+        }
+    }
+
+    fun getAuthorBooks(selectedAuthors: List<AuthorsGoogle>) {
+        viewModelScope.launch {
+            try {
+                val allBooks = mutableListOf<Book>()
+
+                selectedAuthors.forEach { author ->
+                    try {
+                        val response = RetrofitInstanceBooks.api.searchBooks(
+                            query = "inauthor:${author.name}",
+                            maxResults = 20,
+                            lang = "ru",
+                            orderBy = "relevance"
+                        )
+
+                        val books = response.items.orEmpty()
+                            .map { item ->
+                                val isbn = item.volumeInfo.industryIdentifiers
+                                    ?.firstOrNull { it.type == "ISBN_10" }
+                                    ?.identifier ?: "Неизвестно"
+
+                                Book(
+                                    id = item.id,
+                                    title = item.volumeInfo.title,
+                                    authors = item.volumeInfo.authors ?: listOf("Неизвестный автор"),
+                                    thumbnail = item.volumeInfo.imageLinks?.thumbnail,
+                                    publishedDate = item.volumeInfo.publishedDate,
+                                    description = item.volumeInfo.description,
+                                    isbn10 = isbn,
+                                    publisher = item.volumeInfo.publisher,
+                                    pageCount = item.volumeInfo.pageCount,
+                                    categories = item.volumeInfo.categories,
+                                    averageRating = item.volumeInfo.averageRating,
+                                    ratingsCount = item.volumeInfo.ratingsCount,
+                                    language = item.volumeInfo.language
+                                )
+                            }
+                            .filter { it.title.isNotBlank()}
+                            .sortedWith(
+                                compareByDescending<Book> { it.averageRating ?: 0.0 }
+                                    .thenByDescending { it.ratingsCount ?: 0 }
+                            )
+                            .take(5) // Берем только 5 лучших книг
+
+                        allBooks.addAll(books)
+                    } catch (e: Exception) {
+                        Log.e("AuthorBooks", "Ошибка при загрузке книг автора: ${author.name}", e)
+                    }
+                }
+
+                // Удаляем дубликаты по id книги
+                val uniqueBooks = allBooks.distinctBy { it.id }
+
+                _recommendationBooksAuthor.value = uniqueBooks
+
+                Log.d("AuthorBooks", "Книг по авторам загружено: ${uniqueBooks.size}")
+
+            } catch (e: Exception) {
+                Log.e("RecommendationVM", "Ошибка при загрузке книг по авторам: ${e.message}")
+            }
+        }
+    }
+
+
+    // Вынесем обработку фильмов в отдельную функцию
+    private fun processMovies(response: MovieResponse): List<Movie> {
+        val defaultPosterUrl = "https://raw.githubusercontent.com/RustamKZ/recfi_ap/refs/heads/master/poster.jpg"
+
+        val updatedMovies = response.docs.map { movie ->
+            movie.copy(
+                poster = movie.poster?.url?.let { Poster(it) } ?: Poster(defaultPosterUrl),
+                backdrop = when {
+                    movie.backdrop?.url != null -> Backdrop(movie.backdrop.url)
+                    movie.poster?.url != null -> Backdrop(movie.poster.url)
+                    else -> Backdrop(defaultPosterUrl)
+                },
+                persons = movie.persons?.filter { it.profession == "режиссеры" } ?: emptyList()
+            )
+        }
+
+        return updatedMovies
+            .filter { movie -> movie.name != null && movie.poster?.url != defaultPosterUrl }
+            .sortedByDescending { movie ->
+                movie.rating?.kp?.takeIf { it > 0.0 }
+                    ?: movie.rating?.imdb?.takeIf { it > 0.0 }
+                    ?: 0.0
+            }
+    }
+
 
     fun fetchRecommendationsBooks(isbn10: String, authors: String) {
         if (isbn10 == "") {

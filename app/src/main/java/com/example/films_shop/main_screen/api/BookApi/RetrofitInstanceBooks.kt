@@ -1,9 +1,9 @@
 package com.example.films_shop.main_screen.api.BookApi
 
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor // <-- Импорт для HttpLoggingInterceptor
 
 object RetrofitInstanceBooks {
     private const val BASE_URL = "https://www.googleapis.com/books/v1/"
@@ -37,7 +37,6 @@ object RetrofitInstanceBooks {
         Retrofit.Builder()
             .baseUrl(BASE_URL)
             .addConverterFactory(GsonConverterFactory.create())
-            .client(okHttpClient) // <-- Подключаем настроенный OkHttpClient
             .build()
             .create(BookApiService::class.java)
     }

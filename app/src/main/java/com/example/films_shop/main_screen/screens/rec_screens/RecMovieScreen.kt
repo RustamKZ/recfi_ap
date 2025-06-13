@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -22,7 +23,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.films_shop.main_screen.api.Movie
@@ -48,33 +48,46 @@ fun RecMovieScreen(
     scrollBehavior: TopAppBarScrollBehavior,
     noOpNestedScrollConnection: NestedScrollConnection,
     contentType: ContentType,
-    viewModel: MainViewModel
+    viewModel: MainViewModel,
+    flag: Boolean = false,
 ) {
-    LaunchedEffect(contentType) {
-        movieViewModel.setContentType(contentType)
-    }
-    val movies = movieViewModel.currentContentFlow.collectAsLazyPagingItems()
-    val recMovies by recViewModel.recommendationCollabMovies
-    val recTvSeries by recViewModel.recommendationCollabTvSeries
-    val recCartoons by recViewModel.recommendationCollabCartoon
+    val recommendationContent: List<Movie>
+    if (flag) {
+        val recommendationMoviesGenre by recViewModel.recommendationMoviesGenre
+        val recommendationCartoonGenre by recViewModel.recommendationCartoonGenre
+        val recommendationTvSeriesGenre by recViewModel.recommendationTvSeriesGenre
+        recommendationContent = when (contentType) {
+            ContentType.MOVIES -> recommendationMoviesGenre
+            ContentType.TV_SERIES -> recommendationTvSeriesGenre
+            ContentType.CARTOONS -> recommendationCartoonGenre
+        }
+    } else {
+        LaunchedEffect(contentType) {
+            movieViewModel.setContentType(contentType)
+        }
+        val movies = movieViewModel.currentContentFlow.collectAsLazyPagingItems()
+        val recMovies by recViewModel.recommendationCollabMovies
+        val recTvSeries by recViewModel.recommendationCollabTvSeries
+        val recCartoons by recViewModel.recommendationCollabCartoon
 
-    val recommendationContent = when (contentType) {
-        ContentType.MOVIES -> recMovies
-        ContentType.TV_SERIES -> recTvSeries
-        ContentType.CARTOONS -> recCartoons
-    }
+        recommendationContent = when (contentType) {
+            ContentType.MOVIES -> recMovies
+            ContentType.TV_SERIES -> recTvSeries
+            ContentType.CARTOONS -> recCartoons
+        }
 
-    val db = Firebase.firestore
-    val moviesListState = remember { mutableStateOf(emptyList<Movie>()) }
+        val db = Firebase.firestore
+        val moviesListState = remember { mutableStateOf(emptyList<Movie>()) }
 
-    LaunchedEffect(movies.itemSnapshotList) {
-        movieViewModel.loadFavoriteMovies(db, navData.uid, contentType)
-        movieViewModel.loadBookmarkMovies(db, navData.uid, contentType)
-        movieViewModel.loadRatedMovies(db, navData.uid, contentType)
-        val movieList = movies.itemSnapshotList.items
-        if (movieList.isNotEmpty()) {
-            moviesListState.value = movieList
-            Log.d("MyLog", "moviesListState загружено: ${movieList.size}")
+        LaunchedEffect(movies.itemSnapshotList) {
+            movieViewModel.loadFavoriteMovies(db, navData.uid, contentType)
+            movieViewModel.loadBookmarkMovies(db, navData.uid, contentType)
+            movieViewModel.loadRatedMovies(db, navData.uid, contentType)
+            val movieList = movies.itemSnapshotList.items
+            if (movieList.isNotEmpty()) {
+                moviesListState.value = movieList
+                Log.d("MyLog", "moviesListState загружено: ${movieList.size}")
+            }
         }
     }
     Scaffold(
@@ -104,36 +117,39 @@ fun RecMovieScreen(
                 .nestedScroll(noOpNestedScrollConnection)
         ) {
             items(recommendationContent.take(20)) { movie ->
-                    MovieitemUi(
-                        movie = movie,
-                        onMovieDetailsClick = {
-                            navController.navigate(
-                                DetailsNavMovieObject(
-                                    id = movie.id ?: "",
-                                    tmdbId = movie.externalId?.tmdb ?: 0,
-                                    title = movie.name ?: "Неизвестно",
-                                    type = movie.type ?: "Неизвестно",
-                                    genre = movie.genres?.joinToString(", ") { it.name }
-                                        ?: "Неизвестно",
-                                    year = movie.year ?: "Неизвестно",
-                                    description = movie.description ?: "Описание отсутствует",
-                                    imageUrl = movie.poster?.url ?: "",
-                                    backdropUrl = movie.backdrop?.url ?: "",
-                                    ratingKp = movie.rating?.kp ?: 0.0,
-                                    ratingImdb = movie.rating?.imdb ?: 0.0,
-                                    votesKp = movie.votes?.kp ?: 0,
-                                    votesImdb = movie.votes?.imdb ?: 0,
-                                    persons = movie.persons?.joinToString(", ") { "${it.name}|${it.photo}" }
-                                        ?: "Неизвестно",
-                                    isFavorite = movie.isFavorite,
-                                    isBookMark = movie.isBookMark,
-                                    isRated = movie.isRated,
-                                    userRating = movie.userRating ?: 0
-                                )
+                MovieitemUi(
+                    movie = movie,
+                    onMovieDetailsClick = {
+                        navController.navigate(
+                            DetailsNavMovieObject(
+                                id = movie.id ?: "",
+                                tmdbId = movie.externalId?.tmdb ?: 0,
+                                title = movie.name ?: "Неизвестно",
+                                type = movie.type ?: "Неизвестно",
+                                genre = movie.genres?.joinToString(", ") { it.name }
+                                    ?: "Неизвестно",
+                                year = movie.year ?: "Неизвестно",
+                                description = movie.description ?: "Описание отсутствует",
+                                imageUrl = movie.poster?.url ?: "",
+                                backdropUrl = movie.backdrop?.url ?: "",
+                                ratingKp = movie.rating?.kp ?: 0.0,
+                                ratingImdb = movie.rating?.imdb ?: 0.0,
+                                votesKp = movie.votes?.kp ?: 0,
+                                votesImdb = movie.votes?.imdb ?: 0,
+                                persons = movie.persons?.joinToString(", ") { "${it.name}|${it.photo}" }
+                                    ?: "Неизвестно",
+                                isFavorite = movie.isFavorite,
+                                isBookMark = movie.isBookMark,
+                                isRated = movie.isRated,
+                                userRating = movie.userRating ?: 0
                             )
-                        }
-                    )
-                }
+                        )
+                    }
+                )
+            }
+            item(span = { GridItemSpan(2) }) {
+                Spacer(modifier = Modifier.height(100.dp))
+            }
         }
     }
 }
