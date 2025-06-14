@@ -2,6 +2,7 @@
 
 package com.example.films_shop.main_screen.screens.cold_start
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -44,7 +45,6 @@ import androidx.navigation.NavController
 import com.example.films_shop.R
 import com.example.films_shop.main_screen.Genres.AuthorsGoogle
 import com.example.films_shop.main_screen.Genres.authors
-import com.example.films_shop.main_screen.Genres.genres
 import com.example.films_shop.main_screen.Genres.saveSelectedAuthors
 import com.example.films_shop.main_screen.objects.cold_start.GenreSelectionScreenDataObject
 import com.example.films_shop.main_screen.objects.main_screens_objects.MainScreenDataObject
@@ -67,9 +67,10 @@ fun AuthorsBookSelectScreen(
 ) {
     val context = LocalContext.current
     val isDark = isSystemInDarkTheme()
-    val topAuthors = authors.take(genres.size / 2)
-    val bottomAuthors = authors.drop(genres.size / 2)
-
+    val topAuthors = authors.take(5)
+    Log.d("Size", topAuthors.size.toString())
+    val bottomAuthors = authors.drop(6)
+    Log.d("Size", bottomAuthors.size.toString())
     Box(modifier = Modifier.fillMaxSize()) {
         Box(
             modifier = Modifier

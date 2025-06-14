@@ -393,11 +393,16 @@ fun TestDetailsMovieScreen(
                 FloatingActionButton(
                     onClick = {
                         navData?.let { data ->
+                            var type = navObject.type
+                            if (navObject.type == "anime")
+                            {
+                                type = "cartoon"
+                            }
                             val movie = Movie(
                                 id = navObject.id,
                                 externalId = ExternalId(tmdb = navObject.tmdbId),
                                 name = navObject.title,
-                                type = navObject.type,
+                                type = type,
                                 description = navObject.description,
                                 poster = Poster(url = navObject.imageUrl),
                                 backdrop = Backdrop(url = navObject.backdropUrl),
@@ -443,11 +448,16 @@ fun TestDetailsMovieScreen(
                 FloatingActionButton(
                     onClick = {
                         navData?.let { data ->
+                            var type = navObject.type
+                            if (navObject.type == "anime")
+                            {
+                                type = "cartoon"
+                            }
                             val movie = Movie(
                                 id = navObject.id,
                                 externalId = ExternalId(tmdb = navObject.tmdbId),
                                 name = navObject.title,
-                                type = navObject.type,
+                                type = type,
                                 description = navObject.description,
                                 poster = Poster(url = navObject.imageUrl),
                                 backdrop = Backdrop(url = navObject.backdropUrl),
@@ -548,12 +558,17 @@ fun TestDetailsMovieScreen(
 
                             Button(
                                 onClick = {
+                                    var type = navObject.type
+                                    if (navObject.type == "anime")
+                                    {
+                                        type = "cartoon"
+                                    }
                                     navData?.let { data ->
                                         val movie = Movie(
                                             id = navObject.id,
                                             externalId = ExternalId(tmdb = navObject.tmdbId),
                                             name = navObject.title,
-                                            type = navObject.type,
+                                            type = type,
                                             description = navObject.description,
                                             poster = Poster(url = navObject.imageUrl),
                                             backdrop = Backdrop(url = navObject.backdropUrl),
@@ -642,17 +657,39 @@ fun TestDetailsMovieScreen(
                         .padding(horizontal = 16.dp),
                     contentAlignment = Alignment.Center
                 ) {
+                    val genreText = navObject.genre.lowercase()
+
+                    var fontFamily = if (
+                        genreText.contains("триллер") || genreText.contains("ужасы")
+                    ) {
+                        scary_font
+                    } else if (genreText.contains("боевик"))
+                    {
+                        boevik_font
+                    }
+                    else if (genreText.contains("драма"))
+                    {
+                        drama_font
+                    }
+                    else {
+                        test_font
+                    }
+                    if (navObject.type == "cartoon")
+                    {
+                        fontFamily = font_cartoon_rus_2
+                    }
                     Text(
                         text = navObject.title,
                         color = textColor,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 60.sp,
-                        fontFamily = test_font,
+                        fontSize = if (navObject.title.length > 10 && navObject.type == "cartoon") 40.sp else 60.sp,
+                        fontFamily = fontFamily,
                         textAlign = TextAlign.Center,
-                        maxLines = 3, // можно больше
+                        maxLines = 3,
                         overflow = TextOverflow.Ellipsis,
-                        lineHeight = 64.sp // можно чуть больше, чем fontSize, чтобы не налезал
+                        lineHeight = if (navObject.title.length > 10 && navObject.type == "cartoon") 44.sp else 64.sp
                     )
+
                 }
                 Spacer(modifier = Modifier.height(20.dp))
                 val genresFormatted = navObject.genre.split(",")
@@ -825,27 +862,29 @@ fun TestDetailsMovieScreen(
                             }
                         }
                         Spacer(modifier = Modifier.height(25.dp))
-                        when (navObject.type) {
-                            "movie" -> Text(
-                                text = "Похожие фильмы",
-                                fontSize = 25.sp,
-                                style = MaterialTheme.typography.headlineMedium,
-                                fontWeight = FontWeight.Bold
-                            )
+                        if (recommendationMovies.isNotEmpty()) {
+                            when (navObject.type) {
+                                "movie" -> Text(
+                                    text = "Похожие фильмы",
+                                    fontSize = 25.sp,
+                                    style = MaterialTheme.typography.headlineMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
 
-                            "tv-series" -> Text(
-                                text = "Похожие сериалы",
-                                fontSize = 25.sp,
-                                style = MaterialTheme.typography.headlineMedium,
-                                fontWeight = FontWeight.Bold
-                            )
+                                "tv-series" -> Text(
+                                    text = "Похожие сериалы",
+                                    fontSize = 25.sp,
+                                    style = MaterialTheme.typography.headlineMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
 
-                            "cartoon" -> Text(
-                                text = "Похожие мультфильмы",
-                                fontSize = 25.sp,
-                                style = MaterialTheme.typography.headlineMedium,
-                                fontWeight = FontWeight.Bold
-                            )
+                                "cartoon" -> Text(
+                                    text = "Похожие мультфильмы",
+                                    fontSize = 25.sp,
+                                    style = MaterialTheme.typography.headlineMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
                         }
                         Spacer(modifier = Modifier.height(12.dp))
                         LazyRow(

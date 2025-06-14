@@ -1,9 +1,12 @@
 package com.example.films_shop.main_screen.screens
 
 import android.util.Log
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -17,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.films_shop.main_screen.api.BookApi.Book
@@ -43,12 +47,14 @@ fun RecBookScreen(
     scrollBehavior: TopAppBarScrollBehavior,
     noOpNestedScrollConnection: NestedScrollConnection,
     viewModel: MainViewModel,
-    flag: Boolean = false
+    flag: Boolean = false,
+    customFlag: Boolean = false
 ) {
     val recommendationBooksAuthor by recViewModel.recommendationBooksAuthor
+    val customBooks by recViewModel.booksDataset
     val recBooks by recViewModel.recommendationCollabBooks
     val content = when(flag) {
-        true -> recommendationBooksAuthor
+        true -> if (customFlag) customBooks else recommendationBooksAuthor
         false -> recBooks
     }
     val books = bookViewModel.bookPagingFlow.collectAsLazyPagingItems()
@@ -119,6 +125,9 @@ fun RecBookScreen(
                         }
                     )
                 }
+            item(span = { GridItemSpan(2) }) {
+                Spacer(modifier = Modifier.height(100.dp))
+            }
             }
         }
     }

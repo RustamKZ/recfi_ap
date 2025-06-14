@@ -67,6 +67,9 @@ class RecommendationViewModel : ViewModel() {
     private val _recommendationBooks = mutableStateOf<List<Book>>(emptyList())
     val recommendationBooks: State<List<Book>> = _recommendationBooks
 
+    private val _booksDataset = mutableStateOf<List<Book>>(emptyList())
+    val booksDataset: State<List<Book>> = _booksDataset
+
     private val _isLoading = mutableStateOf(false)
     val isLoading: State<Boolean> = _isLoading
 
@@ -200,55 +203,55 @@ class RecommendationViewModel : ViewModel() {
 
     fun getGenreFilms(selectedGenres: List<GenreKP>) {
         viewModelScope.launch {
-            try {
-                val genreNames = selectedGenres.map { it.name.lowercase() }
+            val genreNames = selectedGenres.map { it.name.lowercase() }
 
-                val moviesDeferred = async {
-                    RetrofitInstance.api.getMoviesByGenres(
-                        genres = genreNames,
-                        type = "movie",
-                        apiKey = apiKey,
-                    )
-                }
-                val cartoonsDeferred = async {
-                    RetrofitInstance.api.getMoviesByGenres(
-                        genres = genreNames,
-                        type = "cartoon",
-                        apiKey = apiKey,
-                    )
-                }
-                val seriesDeferred = async {
-                    RetrofitInstance.api.getMoviesByGenres(
-                        genres = genreNames,
-                        type = "tv-series",
-                        apiKey = apiKey,
-                    )
-                }
-
-                // Ждём ответа
-                val moviesResponse = moviesDeferred.await()
-                val cartoonsResponse = cartoonsDeferred.await()
-                val seriesResponse = seriesDeferred.await()
-
-                // Обработка MovieResponse, например для фильмов
-                val processedMovies = processMovies(moviesResponse)
-                val processedCartoons = processMovies(cartoonsResponse)
-                val processedSeries = processMovies(seriesResponse)
-
-                // Обновляем стейты
-                _recommendationMoviesGenre.value = processedMovies
-                _recommendationCartoonGenre.value = processedCartoons
-                _recommendationTvSeriesGenre.value = processedSeries
-
-                Log.d("GenreAuthor", "Movies: ${processedMovies.size}")
-                Log.d("GenreAuthor", "Cartoon: ${processedCartoons.size}")
-                Log.d("GenreAuthor", "TvSeries: ${processedSeries.size}")
-
+            val movies = try {
+                val response = RetrofitInstance.api.getMoviesByGenres(
+                    genres = genreNames,
+                    type = "movie",
+                    apiKey = apiKey,
+                )
+                processMovies(response)
             } catch (e: Exception) {
-                Log.e("RecommendationVM", "Ошибка при загрузке по жанрам: ${e.message}")
+                Log.e("GenreAuthor", "Ошибка при загрузке фильмов: ${e.message}")
+                emptyList()
             }
+
+            val cartoons = try {
+                val response = RetrofitInstance.api.getMoviesByGenres(
+                    genres = genreNames,
+                    type = "cartoon",
+                    apiKey = apiKey,
+                )
+                processMovies(response)
+            } catch (e: Exception) {
+                Log.e("GenreAuthor", "Ошибка при загрузке мультфильмов: ${e.message}")
+                emptyList()
+            }
+
+            val series = try {
+                val response = RetrofitInstance.api.getMoviesByGenres(
+                    genres = genreNames,
+                    type = "tv-series",
+                    apiKey = apiKey,
+                )
+                processMovies(response)
+            } catch (e: Exception) {
+                Log.e("GenreAuthor", "Ошибка при загрузке сериалов: ${e.message}")
+                emptyList()
+            }
+
+            // Просто присваиваем — если произошла ошибка, список будет пустым
+            _recommendationMoviesGenre.value = movies
+            _recommendationCartoonGenre.value = cartoons
+            _recommendationTvSeriesGenre.value = series
+
+            Log.d("GenreAuthor", "Movies: ${movies.size}")
+            Log.d("GenreAuthor", "Cartoon: ${cartoons.size}")
+            Log.d("GenreAuthor", "TvSeries: ${series.size}")
         }
     }
+
 
     fun getAuthorBooks(selectedAuthors: List<AuthorsGoogle>) {
         viewModelScope.launch {
@@ -259,22 +262,24 @@ class RecommendationViewModel : ViewModel() {
                     try {
                         val response = RetrofitInstanceBooks.api.searchBooks(
                             query = "inauthor:${author.name}",
-                            maxResults = 20,
+                            maxResults = 30,
                             lang = "ru",
                             orderBy = "relevance"
                         )
-
                         val books = response.items.orEmpty()
                             .map { item ->
                                 val isbn = item.volumeInfo.industryIdentifiers
                                     ?.firstOrNull { it.type == "ISBN_10" }
                                     ?.identifier ?: "Неизвестно"
+                                val thumbnail = item.volumeInfo.imageLinks?.run {
+                                    extraLarge ?: large ?: medium ?: small ?: thumbnail ?: smallThumbnail
+                                } ?: ""
 
                                 Book(
                                     id = item.id,
                                     title = item.volumeInfo.title,
                                     authors = item.volumeInfo.authors ?: listOf("Неизвестный автор"),
-                                    thumbnail = item.volumeInfo.imageLinks?.thumbnail,
+                                    thumbnail = thumbnail,
                                     publishedDate = item.volumeInfo.publishedDate,
                                     description = item.volumeInfo.description,
                                     isbn10 = isbn,
@@ -286,12 +291,18 @@ class RecommendationViewModel : ViewModel() {
                                     language = item.volumeInfo.language
                                 )
                             }
-                            .filter { it.title.isNotBlank()}
+                            .filter { book ->
+                                book.title.isNotBlank() &&
+                                        book.authors != listOf("Неизвестный автор") &&
+                                        !book.thumbnail.isNullOrBlank() &&
+                                        !book.description.isNullOrBlank() &&
+                                        book.description != "Описание отсутствует"
+                            }
                             .sortedWith(
                                 compareByDescending<Book> { it.averageRating ?: 0.0 }
                                     .thenByDescending { it.ratingsCount ?: 0 }
                             )
-                            .take(5) // Берем только 5 лучших книг
+                            .take(10)
 
                         allBooks.addAll(books)
                     } catch (e: Exception) {
@@ -299,7 +310,6 @@ class RecommendationViewModel : ViewModel() {
                     }
                 }
 
-                // Удаляем дубликаты по id книги
                 val uniqueBooks = allBooks.distinctBy { it.id }
 
                 _recommendationBooksAuthor.value = uniqueBooks
@@ -311,6 +321,7 @@ class RecommendationViewModel : ViewModel() {
             }
         }
     }
+
 
 
     // Вынесем обработку фильмов в отдельную функцию
@@ -417,8 +428,9 @@ class RecommendationViewModel : ViewModel() {
         }
     }
 
-    // Получение деталей фильмов по TMDB ID
     private suspend fun fetchMoviesByTmdbIds(tmdbIds: List<Int>) {
+        var filteredMovies: List<Movie> = emptyList()
+
         try {
             val response = RetrofitInstance.api.getMoviesByTmdbIds(
                 apiKey = apiKey,
@@ -427,7 +439,6 @@ class RecommendationViewModel : ViewModel() {
 
             Log.d("RecommendationVM", "Получены детали фильмов: ${response.docs.size}")
 
-            // Обрабатываем полученные фильмы так же, как в MovieViewModel
             val updatedMovies = response.docs.map { movie ->
                 movie.copy(
                     poster = if (movie.poster?.url != null) {
@@ -436,50 +447,34 @@ class RecommendationViewModel : ViewModel() {
                         Poster("https://raw.githubusercontent.com/RustamKZ/recfi_ap/refs/heads/master/poster.jpg")
                     },
                     backdrop = when {
-                        // Проверяем наличие backdrop и что его url не null
-                        movie.backdrop != null && movie.backdrop.url != null ->
-                            movie.backdrop.copy(url = movie.backdrop.url)
-                        // Если есть постер и его url не null, создаем Backdrop
-                        movie.poster != null && movie.poster.url != null ->
-                            Backdrop(movie.poster.url)
-                        // Иначе используем дефолтную ссылку
-                        else ->
-                            Backdrop("https://raw.githubusercontent.com/RustamKZ/recfi_ap/refs/heads/master/poster.jpg")
+                        movie.backdrop?.url != null -> movie.backdrop.copy(url = movie.backdrop.url)
+                        movie.poster?.url != null -> Backdrop(movie.poster.url)
+                        else -> Backdrop("https://raw.githubusercontent.com/RustamKZ/recfi_ap/refs/heads/master/poster.jpg")
                     },
                     persons = movie.persons?.filter { it.profession == "режиссеры" } ?: emptyList()
                 )
             }
 
-            // Фильтруем фильмы без названия
-            val filteredMovies = updatedMovies
-                .filter { movie ->
-                    movie.name != null &&
-                            movie.poster?.url != "https://raw.githubusercontent.com/RustamKZ/recfi_ap/refs/heads/master/poster.jpg"
-                }
-                .sortedByDescending { movie ->
+
+            filteredMovies = updatedMovies
+                .filter { it.name != null && it.poster?.url != "https://raw.githubusercontent.com/RustamKZ/recfi_ap/refs/heads/master/poster.jpg" }
+                .sortedByDescending {
                     when {
-                        movie.rating?.kp != null && movie.rating.kp > 0.0 -> movie.rating.kp
-                        movie.rating?.imdb != null && movie.rating.imdb > 0.0 -> movie.rating.imdb
+                        it.rating?.kp != null && it.rating.kp > 0.0 -> it.rating.kp
+                        it.rating?.imdb != null && it.rating.imdb > 0.0 -> it.rating.imdb
                         else -> 0.0
                     }
                 }
 
-
-            _recommendationMovies.value = filteredMovies
-
-        } catch (e: IOException) {
-            Log.e("RecommendationVM", "Ошибка сети при получении деталей фильмов", e)
-            _error.value = "Ошибка сети. Проверьте подключение к интернету."
-        } catch (e: HttpException) {
-            Log.e("RecommendationVM", "HTTP ошибка при получении деталей фильмов: ${e.code()}", e)
-            _error.value = "Ошибка сервера: ${e.code()}"
         } catch (e: Exception) {
-            Log.e("RecommendationVM", "Непредвиденная ошибка при получении деталей фильмов", e)
-            _error.value = "Произошла ошибка: ${e.message}"
+            Log.e("RecommendationVM", "Ошибка при получении деталей фильмов", e)
+            // Игнорируем ошибку, не показываем _error и не крашим
         } finally {
+            _recommendationMovies.value = filteredMovies
             _isLoading.value = false
         }
     }
+
 
     // Получение деталей фильмов по TMDB ID
     private suspend fun fetchMoviesByTmdbIdsCollab(tmdbIds: List<Int>, type: String) {
@@ -606,6 +601,73 @@ class RecommendationViewModel : ViewModel() {
                 _isLoading.value = false
 
                 Log.d("RecommendationBooks", "Загружены книги: ${_recommendationBooks.value}")
+
+            } catch (e: Exception) {
+                Log.e("RecommendationVM", "Ошибка при получении книг по ISBN", e)
+                _error.value = "Ошибка загрузки книг: ${e.message}"
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun getCustomBooksFromDataset(isbn10Ids: List<String>) {
+        viewModelScope.launch {
+            try {
+                _isLoading.value = true
+                _error.value = null
+
+                // Параллельно запрашиваем книги
+                val response = coroutineScope {
+                    val deferredList = isbn10Ids.map { isbn ->
+                        async {
+                            try {
+                                RetrofitInstanceBooks.api.searchBookByIsbn("isbn:$isbn", "AIzaSyAKHz0gmZ5IWWlvSGcw-ATX-8hMzm5dFJQ")
+                            } catch (e: Exception) {
+                                Log.e("RecommendationVM", "Ошибка загрузки книги по ISBN $isbn", e)
+                                null
+                            }
+                        }
+                    }
+                    deferredList.mapNotNull { it.await() }
+                }
+                val books = response.flatMap { it.items ?: emptyList() }  // собираем все items со всех BookResponse
+                    .map { item ->
+                        val isbn10 = item.volumeInfo.industryIdentifiers
+                            ?.firstOrNull { it.type == "ISBN_10" }
+                            ?.identifier ?: "Неизвестно"
+
+                        Book(
+                            id = item.id,
+                            title = item.volumeInfo.title,
+                            authors = item.volumeInfo.authors ?: listOf("Неизвестный автор"),
+                            thumbnail = item.volumeInfo.imageLinks?.thumbnail,
+                            publishedDate = item.volumeInfo.publishedDate,
+                            description = item.volumeInfo.description,
+                            isbn10 = isbn10,
+                            publisher = item.volumeInfo.publisher,
+                            pageCount = item.volumeInfo.pageCount,
+                            categories = item.volumeInfo.categories,
+                            averageRating = item.volumeInfo.averageRating,
+                            ratingsCount = item.volumeInfo.ratingsCount,
+                            language = item.volumeInfo.language
+                        )
+                    }
+                    .filter { book ->
+                        book.title.isNotBlank() &&
+                                book.authors != listOf("Неизвестный автор") &&
+                                !book.thumbnail.isNullOrBlank() &&
+                                !book.description.isNullOrBlank() &&
+                                book.description != "Описание отсутствует"
+                    }
+                    .sortedWith(
+                        compareByDescending<Book> { it.averageRating ?: 0.0 }
+                            .thenByDescending { it.ratingsCount ?: 0 }
+                    )
+
+                _booksDataset.value = books
+                _isLoading.value = false
+
+                Log.d("RecommendationCustomBooks", "Загружены книги: ${_booksDataset.value}")
 
             } catch (e: Exception) {
                 Log.e("RecommendationVM", "Ошибка при получении книг по ISBN", e)

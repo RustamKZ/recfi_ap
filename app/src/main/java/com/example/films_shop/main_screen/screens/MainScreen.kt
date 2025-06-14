@@ -66,6 +66,7 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.films_shop.R
 import com.example.films_shop.main_screen.Genres.AuthorsGoogle
 import com.example.films_shop.main_screen.Genres.GenreKP
+import com.example.films_shop.main_screen.Genres.isbn10List
 import com.example.films_shop.main_screen.Genres.loadUserAuthors
 import com.example.films_shop.main_screen.Genres.loadUserGenres
 import com.example.films_shop.main_screen.api.BookApi.BookViewModel
@@ -79,10 +80,12 @@ import com.example.films_shop.main_screen.objects.main_screens_objects.CartoonSc
 import com.example.films_shop.main_screen.objects.main_screens_objects.MainScreenDataObject
 import com.example.films_shop.main_screen.objects.main_screens_objects.MovieScreenDataObject
 import com.example.films_shop.main_screen.objects.main_screens_objects.SeriesScreenDataObject
+import com.example.films_shop.main_screen.objects.rec_objects.CustomDatasetBooksObject
 import com.example.films_shop.main_screen.objects.rec_objects.RecBookScreenDataObject
 import com.example.films_shop.main_screen.objects.rec_objects.RecCartoonScreenDataObject
 import com.example.films_shop.main_screen.objects.rec_objects.RecMovieScreenDataObject
 import com.example.films_shop.main_screen.objects.rec_objects.RecTvSeriesScreenDataObject
+import com.example.films_shop.main_screen.objects.rec_objects.genre_authors.RecBookScreenAuthorObject
 import com.example.films_shop.main_screen.objects.rec_objects.genre_authors.RecCartoonScreenGenreObject
 import com.example.films_shop.main_screen.objects.rec_objects.genre_authors.RecMovieScreenGenreObject
 import com.example.films_shop.main_screen.objects.rec_objects.genre_authors.RecTvSeriesScreenGenreObject
@@ -100,8 +103,24 @@ import kotlinx.coroutines.withTimeoutOrNull
 val custom_font = FontFamily(
     Font(R.font.custom_font, FontWeight.Normal),
 )
+
+val book_font = FontFamily(
+    Font(R.font.eng_books, FontWeight.Normal),
+)
 val test_font = FontFamily(
     Font(R.font.lumiosmarker_0, FontWeight.Normal),
+)
+
+val scary_font = FontFamily(
+    Font(R.font.topor_regular, FontWeight.Normal),
+)
+
+val boevik_font = FontFamily(
+    Font(R.font.boevik_font, FontWeight.Normal),
+)
+
+val drama_font = FontFamily(
+    Font(R.font.drama_font, FontWeight.Normal),
 )
 
 val font_books_rus = FontFamily(
@@ -118,6 +137,10 @@ val font_films_rus = FontFamily(
 
 val font_cartoon_rus = FontFamily(
     Font(R.font.cartoon_font, FontWeight.Normal),
+)
+
+val font_cartoon_rus_2 = FontFamily(
+    Font(R.font.cartoon_font_2, FontWeight.Normal),
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -209,6 +232,8 @@ fun MainScreen(
     val recommendationCartoonGenre by recViewModel.recommendationCartoonGenre
     val recommendationTvSeriesGenre by recViewModel.recommendationTvSeriesGenre
     val recommendationBooksAuthor by recViewModel.recommendationBooksAuthor
+
+    val customBooks by recViewModel.booksDataset
     // Коллаборативная фильтрация рекомендации
 //    LaunchedEffect(navData.uid) {
 //        loadUserGenres(db, navData.uid) { loadedGenres ->
@@ -253,7 +278,11 @@ fun MainScreen(
             recViewModel.getAuthorBooks(selectedAuthors)
         }
     }
-
+    LaunchedEffect(Unit) {
+        if (customBooks.isEmpty()) {
+            recViewModel.getCustomBooksFromDataset(isbn10List)
+        }
+    }
     LaunchedEffect(movies.itemSnapshotList) {
         if (movies.itemCount > 0) {
             dataLoaded.value = true
@@ -1829,7 +1858,7 @@ fun MainScreen(
                                     Button(
                                         onClick = {
                                             navController.navigate(
-                                                RecBookScreenDataObject(
+                                                RecBookScreenAuthorObject(
                                                     navData.uid,
                                                     navData.email
                                                 )
@@ -1857,6 +1886,134 @@ fun MainScreen(
                                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
                                     items(recommendationBooksAuthor.take(10)) { book ->
+                                        Box(
+                                            modifier = Modifier
+                                                .padding(start = 8.dp)
+                                                .width(170.dp)
+                                                .height(250.dp)
+                                                .clip(RoundedCornerShape(15.dp))
+                                                .background(Color.Gray)
+                                                .clickable {
+                                                    navController.navigate(
+                                                        DetailsNavBookObject(
+                                                            id = book.id,
+                                                            isbn10 = book.isbn10,
+                                                            title = book.title,
+                                                            authors = book.authors?.joinToString(
+                                                                ", "
+                                                            )
+                                                                ?: "Неизвестно",
+                                                            description = book.description
+                                                                ?: "Описание отсутствует",
+                                                            thumbnail = book.thumbnail ?: "",
+                                                            publishedDate = book.publishedDate
+                                                                ?: "Неизвестно",
+                                                            isFavorite = book.isFavorite,
+                                                            isBookmark = book.isBookMark,
+                                                            isRated = book.isRated,
+                                                            userRating = book.userRating,
+                                                            publisher = book.publisher,
+                                                            pageCount = book.pageCount,
+                                                            categories = book.categories?.joinToString(
+                                                                ", "
+                                                            )
+                                                                ?: "Неизвестно",
+                                                            averageRating = book.averageRating,
+                                                            ratingsCount = book.ratingsCount,
+                                                            language = book.language
+                                                        )
+                                                    )
+                                                },
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Box {
+                                                AsyncImage(
+                                                    model = book.thumbnail?.replace(
+                                                        "http://",
+                                                        "https://"
+                                                    ),
+                                                    contentDescription = "Обложка книги",
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .height(250.dp)
+                                                        .clip(RoundedCornerShape(15.dp)),
+                                                    contentScale = ContentScale.Crop
+                                                )
+
+                                                // Оценка
+                                                val rating = book.userRating
+                                                val backgroundColor = when {
+                                                    rating > 7 -> mainColorUiGreen
+                                                    rating >= 5 -> Color(0xFFFF9800)
+                                                    else -> Color(0xFFF44336)
+                                                }
+                                                if (rating != -1) {
+                                                    Text(
+                                                        text = String.format("%.1f", rating),
+                                                        color = Color.White,
+                                                        fontSize = 14.sp,
+                                                        fontWeight = FontWeight.Bold,
+                                                        modifier = Modifier
+                                                            .padding(8.dp)
+                                                            .background(
+                                                                color = backgroundColor,
+                                                                shape = RoundedCornerShape(6.dp)
+                                                            )
+                                                            .padding(
+                                                                horizontal = 10.dp,
+                                                                vertical = 2.dp
+                                                            )
+                                                            .align(Alignment.TopStart)
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            if (customBooks.isNotEmpty()) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "Подборка книг от разработчика",
+                                        fontSize = 20.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        modifier = Modifier.padding(start = 24.dp)
+                                    )
+                                    Button(
+                                        onClick = {
+                                            navController.navigate(
+                                                CustomDatasetBooksObject(
+                                                    navData.uid,
+                                                    navData.email
+                                                )
+                                            )
+                                        },
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = Color.Transparent, // Прозрачный фон
+                                            contentColor = Color.Black // Цвет текста
+                                        ),
+                                        contentPadding = PaddingValues(0.dp), // Убираем отступы внутри кнопки
+                                        modifier = Modifier
+                                            .padding(end = 24.dp)
+                                            .wrapContentSize()
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Outlined.ChevronRight,
+                                            contentDescription = "Посмотреть",
+                                            tint = iconColor
+                                        )
+                                    }
+
+                                }
+                                LazyRow(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    items(customBooks.take(10)) { book ->
                                         Box(
                                             modifier = Modifier
                                                 .padding(start = 8.dp)

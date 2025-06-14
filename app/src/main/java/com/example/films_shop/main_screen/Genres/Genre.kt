@@ -31,21 +31,31 @@ val genres = listOf(
 data class AuthorsGoogle(val name: String, @DrawableRes val imageResId: Int)
 
 val authors = listOf(
-    AuthorsGoogle("Э.М.Ремарк", R.drawable.remark),
-    AuthorsGoogle("Ф.Достоевский", R.drawable.dost),
-    AuthorsGoogle("Дж.Лондон", R.drawable.london),
-    AuthorsGoogle("Н.Гоголь", R.drawable.gogol),
-    AuthorsGoogle("Э.Хэмингуэй", R.drawable.heming),
-    AuthorsGoogle("Р.Брэдбери", R.drawable.bredbjpg),
-    AuthorsGoogle("Д.Глуховский", R.drawable.gluh),
-    AuthorsGoogle("Дж.К.Роулинг", R.drawable.rowling),
-    AuthorsGoogle("Дж.Р.Р.Мартин", R.drawable.martin),
-    AuthorsGoogle("Г.Лавкрафт", R.drawable.lavcr),
-    AuthorsGoogle("В.Пелевин", R.drawable.pelevin),
-    AuthorsGoogle("Дж.Оруэлл", R.drawable.oruell),
-    AuthorsGoogle("О.Уальд", R.drawable.oscar),
-    AuthorsGoogle("Ч.Диккенс", R.drawable.dickenz),
+    AuthorsGoogle("Ремарк", R.drawable.remark),
+    AuthorsGoogle("Достоевский", R.drawable.dost),
+    AuthorsGoogle("Лондон", R.drawable.london),
+    AuthorsGoogle("Гоголь", R.drawable.gogol),
+    AuthorsGoogle("Хемингуэй", R.drawable.heming),
+    AuthorsGoogle("Глуховский", R.drawable.gluh),
+    AuthorsGoogle("Роулинг", R.drawable.rowling),
+    AuthorsGoogle("Лавкрафт", R.drawable.lavcr),
+    AuthorsGoogle("Пелевин", R.drawable.pelevin),
+    AuthorsGoogle("Оруэлл", R.drawable.oruell),
+    AuthorsGoogle("Диккенс", R.drawable.dickenz),
 )
+
+//val isbn10List: List<String> = listOf("0002258811", "0002740230", "0002259656",
+//    "0002259834", "0003277585", "0002258560", "000433549X", "0002259893",
+//    "0002257602", "0002258579", "0385472579"
+//)
+
+val isbn10List: List<String> = listOf("0439023483","0439358078","0316015849",
+    "0375831002","0451526341","0062024035","0545010225","043965548X","0553588486",
+    "0446675539","1400096898","0439064864","0786838655","0316769177","0060256656","0142437204",
+    "0345538374","0618260307","0062315005","0140283331", "0143058142", "0451527747", "0385333846",
+    "059309932X", "055357342X", "0450040186", "0142437174"
+)
+
 
 fun saveSelectedGenres(
     db: FirebaseFirestore,

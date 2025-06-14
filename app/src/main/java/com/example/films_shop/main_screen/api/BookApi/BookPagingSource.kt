@@ -1,5 +1,6 @@
 package com.example.films_shop.main_screen.api.BookApi
 
+import android.util.Log
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 
@@ -37,6 +38,7 @@ class BookPagingSource(
                     val thumbnail = item.volumeInfo.imageLinks?.run {
                         extraLarge ?: large ?: medium ?: small ?: thumbnail ?: smallThumbnail
                     }
+                    Log.d("TestImageBook", thumbnail?:"")
                     if (thumbnail.isNullOrEmpty()) return@mapNotNull null
 
                         Book(

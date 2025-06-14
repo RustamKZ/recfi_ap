@@ -52,6 +52,7 @@ import com.example.films_shop.main_screen.objects.main_screens_objects.MainScree
 import com.example.films_shop.main_screen.objects.main_screens_objects.MovieScreenDataObject
 import com.example.films_shop.main_screen.objects.main_screens_objects.SearchScreenDataObject
 import com.example.films_shop.main_screen.objects.main_screens_objects.SeriesScreenDataObject
+import com.example.films_shop.main_screen.objects.rec_objects.CustomDatasetBooksObject
 import com.example.films_shop.main_screen.objects.rec_objects.RecBookScreenDataObject
 import com.example.films_shop.main_screen.objects.rec_objects.RecCartoonScreenDataObject
 import com.example.films_shop.main_screen.objects.rec_objects.RecMovieScreenDataObject
@@ -404,6 +405,22 @@ class MainActivity : ComponentActivity() {
                                 scrollBehavior,
                                 noOpNestedScrollConnection,
                                 viewModel,
+                                true
+                            )
+                        }
+                        composable<CustomDatasetBooksObject> { navEntry ->
+                            val navData = navEntry.toRoute<RecBookScreenDataObject>()
+                            RecBookScreen(
+                                navController = navController,
+                                bookViewModel = bookViewModel,
+                                recViewModel = recViewModel,
+                                navData = navData,
+                                showTopBar = false,
+                                showBottomBar = true,
+                                scrollBehavior,
+                                noOpNestedScrollConnection,
+                                viewModel,
+                                true,
                                 true
                             )
                         }
