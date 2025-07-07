@@ -58,8 +58,8 @@ data class KpImage(
 )
 
 
-//const val apiKey = "CS3QP35-CCE4F8D-N7APS7G-VAN76RX"
-//const val apiKey = "MQ3ZZZE-KQT4R67-P2MFJBZ-JD20K49"
-//const val apiKey = "WP6PH1H-X084H8Z-P8MZHP5-AXQ8A45"
-const val apiKey = "GDY53QV-B224Y8D-PGSDM5F-X3H8EKE"
-const val apiKeyBook = "AIzaSyAKHz0gmZ5IWWlvSGcw-ATX-8hMzm5dFJQ"
+//const val apiKey = ""
+//const val apiKey = ""
+//const val apiKey = ""
+const val apiKey = ""
+const val apiKeyBook = ""

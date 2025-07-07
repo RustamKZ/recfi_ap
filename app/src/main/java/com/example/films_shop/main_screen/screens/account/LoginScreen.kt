@@ -54,8 +54,8 @@ fun LoginScreen(
     val auth = remember {
         Firebase.auth
     }
-    val emailState = remember { mutableStateOf("rustamquee@gmail.com") }
-    val passwordState = remember { mutableStateOf("741963rR") }
+    val emailState = remember { mutableStateOf("") }
+    val passwordState = remember { mutableStateOf("") }
     val errorState = remember { mutableStateOf("") }
     val db = remember {
         Firebase.firestore
