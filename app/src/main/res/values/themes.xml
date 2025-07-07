@@ -2,7 +2,8 @@
 <resources>
 
     <style name="Theme.BookShop" parent="android:Theme.Material.Light.NoActionBar" >
-    <item name="android:statusBarColor">@color/custom_blue</item>
-    <item name="android:navigationBarColor">@color/custom_blue</item>
+    <item name="android:statusBarColor">@color/white</item>
+        <item name="android:windowLightStatusBar">true</item>
+    <item name="android:navigationBarColor">@color/white</item>
     </style>
 </resources>

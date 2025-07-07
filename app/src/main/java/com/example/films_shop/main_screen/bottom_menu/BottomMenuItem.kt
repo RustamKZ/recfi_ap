@@ -10,16 +10,21 @@ sealed class BottomMenuItem(
     object Home : BottomMenuItem(
         route = "home",
         title = "Home",
-        icon = R.drawable.home_logo,
+        icon = R.drawable.baseline_home_24,
+    )
+    object Search : BottomMenuItem(
+        route = "search",
+        title = "Search",
+        icon = R.drawable.error_avatar,
     )
     object Account : BottomMenuItem(
         route = "account",
         title = "Account",
-        icon = R.drawable.account_logo,
+        icon = R.drawable.baseline_person_24,
     )
-    object Settings : BottomMenuItem(
-        route = "settings",
-        title = "Settings",
-        icon = R.drawable.baseline_app_settings_alt_24,
+    object Favourite : BottomMenuItem(
+        route = "favourite",
+        title = "favourite",
+        icon = R.drawable.favorite_bottom_bar,
     )
 }

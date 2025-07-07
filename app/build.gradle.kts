@@ -2,8 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     //alias(libs.plugins.kotlin.compose)
+    id("kotlin-parcelize")
     alias(libs.plugins.gms)
-
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.plugin.serialization)
 }
@@ -44,7 +44,18 @@ android {
 }
 
 dependencies {
+    implementation ("com.google.accompanist:accompanist-pager:0.32.0")
+    implementation ("com.google.accompanist:accompanist-pager-indicators:0.32.0")
+    implementation ("com.squareup.okhttp3:logging-interceptor:4.12.0")
+    implementation("androidx.compose.material:material-icons-extended")
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("androidx.compose.foundation:foundation:1.4.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
+    implementation(libs.accompanist.placeholder.material)
     implementation("com.airbnb.android:lottie-compose:6.1.0")
+    implementation("androidx.paging:paging-compose:3.3.6")
     implementation(libs.coil.compose)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.kotlinx.serialization.json)
@@ -60,6 +71,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.activity.ktx)
+    implementation(libs.androidx.paging.common.android)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
