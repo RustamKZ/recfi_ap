@@ -45,18 +45,9 @@
 |---------------|
 | <p align="center"> <img src="screenshots/rec1.png" width="20%"/> <img src="screenshots/rec2.png" width="20%"/> <img src="screenshots/rec3.png" width="20%"/> <img src="screenshots/rec4.png" width="20%"/> </p> |
 
-| Чат и профиль |
+| Поддержка светлой и темной темы |
 |---------------|
 | <p align="center"> <img src="screenshots/white1.png" width="15%" style="vertical-align: middle;"/> <img src="screenshots/white2.png" width="16%" style="vertical-align: middle;"/> <img src="screenshots/white3.png" width="17%" style="vertical-align: middle;"/> <img src="screenshots/black1.png" width="17%" style="vertical-align: middle;"/> <img src="screenshots/black2.png" width="16%" style="vertical-align: middle;"/> <img src="screenshots/black3.png" width="15%" style="vertical-align: middle;"/> </p> |
-
----
-
-## 🏗️ Технологии
-
-- Kotlin, Jetpack Compose
-- MVVM + ViewModel + State
-- Retrofit, Firebase, FastAPI
-- ML-модель для рекомендаций (KNN + TF-IDF)
 
 ---
 
@@ -65,3 +56,20 @@
 ```bash
 git clone https://github.com/RustamKZ/recfi_ap.git
 cd recfi_ap
+
+```
+
+| 🧩 Технологии       | 💻 Используемый стек |
+|---------------------|----------------------|
+| **Языки программирования** | Kotlin, Python |
+| **Фреймворки**             | FastAPI, Jetpack Compose |
+| **Библиотеки**             | **Серверная часть**: joblib, scikit-learn, pandas, NumPy<br>**Клиентская часть**: Retrofit, Kotlin Coroutines, Accompanist Pager, Coil |
+| **Базы данных**            | Firebase Firestore |
+| **Внешние API**            | Кинопоиск API, Google Books API |
+
+| 📞 Контакты        | ✉️ Как со мной связаться |
+|--------------------|---------------------------|
+| **Email**          | urazalin-rustam@mail.ru |
+| **Telegram**       | [@iwbylitd](https://t.me/iwbylitd) |
+| **GitHub**         | [github.com/your_repo](https://github.com/RustamKZ) |
+
