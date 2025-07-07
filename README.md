@@ -39,8 +39,15 @@
 
 | Чат и профиль |
 |---------------|
-| <p align="center"> <img src="screenshots/friends.png" width="17%" style="vertical-align: middle;"/> <img src="screenshots/addfriend.png" width="17%" style="vertical-align: middle;"/> <img src="screenshots/profile.png" width="20%" style="vertical-align: middle;"/> <img src="screenshots/chat.png" width="17%" style="vertical-align: middle;"/> <img src="screenshots/chat_collections.png" width="17%" style="vertical-align: middle;"/> </p> |
+| <p align="center"> <img src="screenshots/friends.png" width="15%" style="vertical-align: middle;"/> <img src="screenshots/addfriend.png" width="17%" style="vertical-align: middle;"/> <img src="screenshots/profile.png" width="20%" style="vertical-align: middle;"/> <img src="screenshots/chat.png" width="17%" style="vertical-align: middle;"/> <img src="screenshots/chat_collections.png" width="15%" style="vertical-align: middle;"/> </p> |
 
+| Рекомендации |
+|---------------|
+| <p align="center"> <img src="screenshots/rec1.png" width="20%"/> <img src="screenshots/rec2.png" width="20%"/> <img src="screenshots/rec3.png" width="20%"/> <img src="screenshots/rec4.png" width="20%"/> </p> |
+
+| Чат и профиль |
+|---------------|
+| <p align="center"> <img src="screenshots/white1.png" width="15%" style="vertical-align: middle;"/> <img src="screenshots/white2.png" width="16%" style="vertical-align: middle;"/> <img src="screenshots/white3.png" width="17%" style="vertical-align: middle;"/> <img src="screenshots/black1.png" width="17%" style="vertical-align: middle;"/> <img src="screenshots/black2.png" width="16%" style="vertical-align: middle;"/> <img src="screenshots/black3.png" width="15%" style="vertical-align: middle;"/> </p> |
 
 ---
 
