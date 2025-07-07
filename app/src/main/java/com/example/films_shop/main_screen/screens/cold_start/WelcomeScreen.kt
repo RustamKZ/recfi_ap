@@ -48,15 +48,12 @@ fun WelcomeScreen(
             .fillMaxSize(),
         contentAlignment = Alignment.BottomCenter
     ) {
-        // Фоновое изображение
         Image(
             painter = if (flag) painterResource(id = R.drawable.rewelcome_1) else painterResource(id = R.drawable.welcome_1),
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
         )
-
-        // Затемнение или осветление
         Box(
             modifier = Modifier
                 .fillMaxSize()

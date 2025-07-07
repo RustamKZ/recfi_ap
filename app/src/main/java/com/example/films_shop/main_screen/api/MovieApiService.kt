@@ -82,7 +82,7 @@ interface MovieApiService {
     suspend fun getMoviesByGenres(
         @Header("X-API-KEY") apiKey: String,
         @Query("genres.name") genres: List<String>, // ← фильтрация по жанрам
-        @Query("type") type: String, // "movie", "cartoon", "tv-series"
+        @Query("type") type: String,
         @Query("limit") limit: Int = 30,
         @Query("page") page: Int = 1,
         @Query("selectFields") selectFields: List<String> = listOf(

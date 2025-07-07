@@ -1,10 +1,8 @@
 package com.example.films_shop.main_screen.screens
 
 import MovieViewModel
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
@@ -39,6 +37,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -47,18 +46,13 @@ import androidx.navigation.NavController
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import coil.compose.rememberAsyncImagePainter
-import com.example.films_shop.main_screen.api.MovieitemUi
 import com.example.films_shop.main_screen.bottom_menu.BottomMenu
 import com.example.films_shop.main_screen.bottom_menu.MainViewModel
-import com.example.films_shop.main_screen.login.RoundedCornerTextField
 import com.example.films_shop.main_screen.objects.details_screens_objects.DetailsNavMovieObject
 import com.example.films_shop.main_screen.objects.main_screens_objects.SearchScreenDataObject
 import com.example.films_shop.ui.theme.BackGroundColor
-import com.example.films_shop.ui.theme.BackGroundColorButton
-import com.example.films_shop.ui.theme.BackGroundColorButtonLightGray
 import com.example.films_shop.ui.theme.backColorChatCard
 import com.example.films_shop.ui.theme.mainColorUiGreen
-import androidx.compose.ui.text.TextStyle
 
 
 @Composable
@@ -129,7 +123,6 @@ fun SearchScreen(
     val textColor = if (isDark) Color.White else BackGroundColor
     val searchColor = if (isDark) Color.Black else Color.White
     val colorText = if (isDark) Color.White else Color.Black
-    val backColorTextField = if (isDark) BackGroundColorButton else BackGroundColorButtonLightGray
     val query = remember { mutableStateOf("") }
 
     val movies = movieViewModel.searchMovies(query.value).collectAsLazyPagingItems()

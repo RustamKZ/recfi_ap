@@ -14,7 +14,6 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -27,7 +26,6 @@ import com.example.films_shop.main_screen.objects.auth_screens_objects.AccountDe
 import com.example.films_shop.main_screen.objects.fav_screens_objects.FavScreenDataObject
 import com.example.films_shop.main_screen.objects.main_screens_objects.MainScreenDataObject
 import com.example.films_shop.main_screen.objects.main_screens_objects.SearchScreenDataObject
-import com.example.films_shop.ui.theme.AppColor
 import com.example.films_shop.ui.theme.mainColorUiGreen
 
 class MainViewModel : ViewModel() {

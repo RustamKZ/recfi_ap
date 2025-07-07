@@ -29,7 +29,6 @@ class RecommendationViewModel : ViewModel() {
     private val _recommendationMovies = mutableStateOf<List<Movie>>(emptyList())
     val recommendationMovies: State<List<Movie>> = _recommendationMovies
 
-    //Коллаборативная фильтрация
     private val _tmdbCollabRecommendationIdsMovies = mutableStateOf<List<Int>>(emptyList())
     private val _recommendationCollabMovies = mutableStateOf<List<Movie>>(emptyList())
     val recommendationCollabMovies: State<List<Movie>> = _recommendationCollabMovies
@@ -114,7 +113,7 @@ class RecommendationViewModel : ViewModel() {
                 }
 
                 // Теперь запрашиваем информацию о фильмах по этим TMDB ID
-                fetchMoviesByTmdbIds(tmdbIds)
+                fetchMoviesByTmdbIds(tmdbIds, type)
 
             } catch (e: Exception) {
                 Log.e("RecommendationVM", "Ошибка при получении рекомендаций", e)
@@ -322,9 +321,7 @@ class RecommendationViewModel : ViewModel() {
         }
     }
 
-
-
-    // Вынесем обработку фильмов в отдельную функцию
+    // Обработка фильмов
     private fun processMovies(response: MovieResponse): List<Movie> {
         val defaultPosterUrl = "https://raw.githubusercontent.com/RustamKZ/recfi_ap/refs/heads/master/poster.jpg"
 
@@ -428,7 +425,7 @@ class RecommendationViewModel : ViewModel() {
         }
     }
 
-    private suspend fun fetchMoviesByTmdbIds(tmdbIds: List<Int>) {
+    private suspend fun fetchMoviesByTmdbIds(tmdbIds: List<Int>, type: String) {
         var filteredMovies: List<Movie> = emptyList()
 
         try {
@@ -457,7 +454,7 @@ class RecommendationViewModel : ViewModel() {
 
 
             filteredMovies = updatedMovies
-                .filter { it.name != null && it.poster?.url != "https://raw.githubusercontent.com/RustamKZ/recfi_ap/refs/heads/master/poster.jpg" }
+                .filter { it.type == type && it.name != null && it.poster?.url != "https://raw.githubusercontent.com/RustamKZ/recfi_ap/refs/heads/master/poster.jpg" }
                 .sortedByDescending {
                     when {
                         it.rating?.kp != null && it.rating.kp > 0.0 -> it.rating.kp
@@ -503,13 +500,10 @@ class RecommendationViewModel : ViewModel() {
                         Poster("https://raw.githubusercontent.com/RustamKZ/recfi_ap/refs/heads/master/poster.jpg")
                     },
                     backdrop = when {
-                        // Проверяем наличие backdrop и что его url не null
                         movie.backdrop != null && movie.backdrop.url != null ->
                             movie.backdrop.copy(url = movie.backdrop.url)
-                        // Если есть постер и его url не null, создаем Backdrop
                         movie.poster != null && movie.poster.url != null ->
                             Backdrop(movie.poster.url)
-                        // Иначе используем дефолтную ссылку
                         else ->
                             Backdrop("https://raw.githubusercontent.com/RustamKZ/recfi_ap/refs/heads/master/poster.jpg")
                     },
@@ -560,7 +554,6 @@ class RecommendationViewModel : ViewModel() {
                 _isLoading.value = true
                 _error.value = null
 
-                // Параллельно запрашиваем книги
                 val response = coroutineScope {
                     val deferredList = isbn10Ids.map { isbn ->
                         async {
@@ -574,7 +567,7 @@ class RecommendationViewModel : ViewModel() {
                     }
                     deferredList.mapNotNull { it.await() }
                 }
-                val books = response.flatMap { it.items ?: emptyList() }  // собираем все items со всех BookResponse
+                val books = response.flatMap { it.items ?: emptyList() }
                     .map { item ->
                         val isbn10 = item.volumeInfo.industryIdentifiers
                             ?.firstOrNull { it.type == "ISBN_10" }
@@ -616,7 +609,6 @@ class RecommendationViewModel : ViewModel() {
                 _isLoading.value = true
                 _error.value = null
 
-                // Параллельно запрашиваем книги
                 val response = coroutineScope {
                     val deferredList = isbn10Ids.map { isbn ->
                         async {
@@ -630,7 +622,7 @@ class RecommendationViewModel : ViewModel() {
                     }
                     deferredList.mapNotNull { it.await() }
                 }
-                val books = response.flatMap { it.items ?: emptyList() }  // собираем все items со всех BookResponse
+                val books = response.flatMap { it.items ?: emptyList() }
                     .map { item ->
                         val isbn10 = item.volumeInfo.industryIdentifiers
                             ?.firstOrNull { it.type == "ISBN_10" }
@@ -683,7 +675,6 @@ class RecommendationViewModel : ViewModel() {
                 _isLoading.value = true
                 _error.value = null
 
-                // Параллельно запрашиваем книги
                 val response = coroutineScope {
                     val deferredList = isbn10Ids.map { isbn ->
                         async {
@@ -697,7 +688,7 @@ class RecommendationViewModel : ViewModel() {
                     }
                     deferredList.mapNotNull { it.await() }
                 }
-                val books = response.flatMap { it.items ?: emptyList() }  // собираем все items со всех BookResponse
+                val books = response.flatMap { it.items ?: emptyList() }
                     .map { item ->
                         val isbn10 = item.volumeInfo.industryIdentifiers
                             ?.firstOrNull { it.type == "ISBN_10" }
@@ -723,7 +714,7 @@ class RecommendationViewModel : ViewModel() {
                 _recommendationCollabBooks.value = books
                 _isLoading.value = false
 
-                Log.d("RecommendationBooks", "Загружены коллаб книги: ${_recommendationCollabBooks.value}")
+                Log.d("RecommendationBooks", "Загружены коллаб рекомендованные книги: ${_recommendationCollabBooks.value}")
 
             } catch (e: Exception) {
                 Log.e("RecommendationVM", "Ошибка при получении книг по ISBN", e)
@@ -746,7 +737,7 @@ class RecommendationViewModel : ViewModel() {
                     orderBy = "relevance"
                 )
 
-                val books = response.items.orEmpty()  // безопасно обрабатываем null
+                val books = response.items.orEmpty()
                     .map { item ->
                         val isbn = item.volumeInfo.industryIdentifiers
                             ?.firstOrNull { it.type == "ISBN_10" }
@@ -768,7 +759,7 @@ class RecommendationViewModel : ViewModel() {
                             language = item.volumeInfo.language
                         )
                     }
-                    .filter { it.isbn10 != isbn10 } // <--- Вот здесь исключаем саму книгу по ISBN!
+                    .filter { it.isbn10 != isbn10 }
 
                 _recommendationBooks.value = books
                 _isLoading.value = false

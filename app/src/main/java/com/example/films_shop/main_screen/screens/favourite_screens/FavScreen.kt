@@ -1,6 +1,5 @@
 package com.example.films_shop.main_screen.screens.favourite_screens
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -20,14 +19,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.films_shop.R
 import com.example.films_shop.main_screen.bottom_menu.BottomMenu
 import com.example.films_shop.main_screen.bottom_menu.MainViewModel
 import com.example.films_shop.main_screen.objects.fav_screens_objects.FavBookScreenDataObject
@@ -39,10 +34,6 @@ import com.example.films_shop.main_screen.screens.font_books_rus
 import com.example.films_shop.main_screen.screens.font_cartoon_rus
 import com.example.films_shop.main_screen.screens.font_films_rus
 import com.example.films_shop.main_screen.screens.font_series_rus
-import com.example.films_shop.ui.theme.BackGroundColor
-import com.example.films_shop.ui.theme.BackGroundColorButtonLightGray
-import com.example.films_shop.ui.theme.BackGroundColorChatCardDarkGray
-import com.example.films_shop.ui.theme.backColorChatCard
 import com.example.films_shop.ui.theme.mainColorUiGreen
 
 @Composable

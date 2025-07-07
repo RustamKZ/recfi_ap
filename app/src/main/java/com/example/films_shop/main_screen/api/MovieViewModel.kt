@@ -1,3 +1,4 @@
+
 import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -12,7 +13,6 @@ import com.example.films_shop.main_screen.api.Backdrop
 import com.example.films_shop.main_screen.api.ExternalId
 import com.example.films_shop.main_screen.api.Genre
 import com.example.films_shop.main_screen.api.KpImage
-import kotlinx.coroutines.flow.Flow
 import com.example.films_shop.main_screen.api.Movie
 import com.example.films_shop.main_screen.api.MovieApiService
 import com.example.films_shop.main_screen.api.Persons
@@ -21,11 +21,12 @@ import com.example.films_shop.main_screen.api.Rating
 import com.example.films_shop.main_screen.api.RetrofitInstance
 import com.example.films_shop.main_screen.api.Votes
 import com.example.films_shop.main_screen.api.apiKey
-import com.example.films_shop.main_screen.business_logic.data_classes.FavoriteMovie
 import com.example.films_shop.main_screen.business_logic.data_classes.BookmarkMovie
+import com.example.films_shop.main_screen.business_logic.data_classes.FavoriteMovie
 import com.example.films_shop.main_screen.business_logic.data_classes.RatedMovie
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
@@ -123,7 +124,6 @@ class MoviePagingSource(
                     limit = 10
                 )
             }
-            // ЛОГ: выводим все поля каждого фильма
             response.docs.forEach { movie ->
                 Log.d("MovieDebug", "Загружен фильм: ${movie.name}, tmdbId: ${movie.externalId}")
             }
@@ -135,20 +135,17 @@ class MoviePagingSource(
                     )
                         ?: Poster("https://raw.githubusercontent.com/RustamKZ/recfi_ap/refs/heads/master/poster.jpg"),
                     backdrop = when {
-                        // Проверяем наличие backdrop и что его url не null
                         movie.backdrop != null && movie.backdrop.url != null ->
                             movie.backdrop.copy(url = movie.backdrop.url)
-                        // Если есть постер и его url не null, создаем Backdrop
                         movie.poster != null && movie.poster.url != null ->
                             Backdrop(movie.poster.url)
-                        // Иначе используем дефолтную ссылку
                         else ->
                             Backdrop("https://raw.githubusercontent.com/RustamKZ/recfi_ap/refs/heads/master/poster.jpg")
                     },
                     persons = movie.persons?.filter { it.profession == "режиссеры" } ?: emptyList()
                 )
             }
-            val filteredMovies = updatedMovies.filter { it.name != null }
+            val filteredMovies = updatedMovies.filter { it.name != null && it.poster?.url != "https://raw.githubusercontent.com/RustamKZ/recfi_ap/refs/heads/master/poster.jpg"}
 
             LoadResult.Page(
                 data = filteredMovies,
@@ -182,9 +179,6 @@ class MovieViewModel : ViewModel() {
     val ratedCartoonsState = mutableStateOf<List<Movie>>(emptyList())
 
     //Коллаборативная фильтрация
-//    val ratedMoviesMapState = mutableStateOf<Map<String, Int>>(emptyMap())
-//    val ratedTvSeriesMapState = mutableStateOf<Map<String, Int>>(emptyMap())
-//    val ratedCartoonsMapState = mutableStateOf<Map<String, Int>>(emptyMap())
     val ratedMoviesMapState = MutableStateFlow<Map<String, Int>>(emptyMap())
     val ratedTvSeriesMapState = MutableStateFlow<Map<String, Int>>(emptyMap())
     val ratedCartoonsMapState = MutableStateFlow<Map<String, Int>>(emptyMap())
@@ -296,7 +290,7 @@ class MovieViewModel : ViewModel() {
                                 )
                             }
 
-                    // Если тип контента не указан, обновляем все состояния
+                    // Если тип контента не указан, то обновляем все состояния
                     if (contentType == null) {
                         favoriteMoviesState.value =
                             allFavorites.filter { it.type == ContentType.MOVIES.apiValue }
@@ -310,7 +304,7 @@ class MovieViewModel : ViewModel() {
                                     "сериалы=${favoriteTvSeriesState.value.size}, мультфильмы=${favoriteCartoonsState.value.size}"
                         )
                     } else {
-                        // Если тип указан, обновляем только соответствующее состояние
+                        // Если тип указан, обновляем только соотвествующее состояние
                         val filtered = allFavorites.filter { it.type == contentType.apiValue }
                         when (contentType) {
                             ContentType.MOVIES -> favoriteMoviesState.value = filtered
@@ -376,7 +370,7 @@ class MovieViewModel : ViewModel() {
                                     "сериалы=${bookmarkTvSeriesState.value.size}, мультфильмы=${bookmarkCartoonsState.value.size}"
                         )
                     } else {
-                        // Если тип указан, обновляем только соответствующее состояние
+                        // Если тип указан, обновляем только соотвествующее состояние
                         val filtered = allBookmark.filter { it.type == contentType.apiValue }
                         when (contentType) {
                             ContentType.MOVIES -> bookmarkMoviesState.value = filtered

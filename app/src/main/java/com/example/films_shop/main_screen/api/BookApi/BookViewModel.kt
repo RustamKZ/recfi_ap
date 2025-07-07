@@ -15,7 +15,6 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 
 data class RatedBookTriple(
@@ -26,7 +25,7 @@ data class RatedBookTriple(
 
 
 class BookViewModel : ViewModel() {
-    private val _query = MutableStateFlow("роман") // По умолчанию ищем "python"
+    private val _query = MutableStateFlow("роман")
     val authors = listOf("Ремарк", "Булгаков", "Достоевский")
     val favoriteBooksState = mutableStateOf<List<Book>>(emptyList())
     val bookmarkBooksState = mutableStateOf<List<Book>>(emptyList())

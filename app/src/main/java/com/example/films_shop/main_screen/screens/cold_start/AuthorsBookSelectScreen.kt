@@ -132,7 +132,6 @@ fun AuthorsBookSelectScreen(
                     onClick = {
                         saveSelectedAuthors(db, navData.uid, selectedAuthors)
                         onContinue()
-//                  navController.navigate(mainScreenDataObject)
                     },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = if (isDark) backColorChatCard.copy(alpha = 0.5f) else BackGroundColorButtonLightGray
@@ -158,7 +157,6 @@ fun AuthorsBookSelectScreen(
                 } else {
                     saveSelectedAuthors(db, navData.uid, selectedAuthors)
                     onContinue()
-//                    navController.navigate(mainScreenDataObject)
                 }
             },
             colors = ButtonDefaults.buttonColors(
@@ -174,23 +172,6 @@ fun AuthorsBookSelectScreen(
                 color = mainColorUiGreen
             )
         }
-//        Text(
-//            text = "Пропустить",
-//            fontSize = 20.sp,
-//            modifier = Modifier
-//                .align(Alignment.TopEnd)
-//                .padding(top = 32.dp, end = 20.dp)
-//                .clickable {
-//                    if (selectedGenres.isEmpty()) {
-//                        Toast.makeText(context, "Выберите хотя бы один жанр", Toast.LENGTH_SHORT).show()
-//                    } else {
-//                        saveSelectedGenres(db, navData.uid, selectedGenres)
-//                        navController.navigate(mainScreenDataObject)
-//                    }
-//                },
-//            color = mainColorUiGreen,
-//            fontWeight = FontWeight.Bold
-//        )
     }
 }
 
@@ -222,12 +203,12 @@ fun RowAuthors(
                     modifier = Modifier.fillMaxSize()
                 )
 
-                // Затемнение (если НЕ выбрано)
+                // Затемнение (если не выбрано)
                 if (!isSelected) {
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(Color.Black.copy(alpha = 0.4f)) // любое нужное затемнение
+                            .background(Color.Black.copy(alpha = 0.4f))
                     )
                 }
 

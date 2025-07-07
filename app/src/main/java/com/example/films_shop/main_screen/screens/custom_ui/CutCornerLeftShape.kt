@@ -7,7 +7,6 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
-import androidx.compose.ui.unit.dp
 
 class CutCornerLeftShape(private val cutSize: Dp) : Shape {
     override fun createOutline(

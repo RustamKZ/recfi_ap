@@ -1,6 +1,5 @@
 package com.example.films_shop.main_screen.business_logic
 
-import com.example.films_shop.main_screen.Genres.GenreKP
 import com.example.films_shop.main_screen.objects.main_screens_objects.MainScreenDataObject
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore

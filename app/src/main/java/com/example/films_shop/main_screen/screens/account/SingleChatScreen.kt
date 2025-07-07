@@ -1,9 +1,9 @@
 package com.example.films_shop.main_screen.screens.account
 
+import ContentType
 import MovieViewModel
 import android.os.Parcelable
 import android.util.Log
-import android.widget.Toast
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -14,7 +14,16 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -28,17 +37,32 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AttachFile
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.outlined.ChevronLeft
 import androidx.compose.material.icons.outlined.ChevronRight
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldColors
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -47,19 +71,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
-import com.example.films_shop.main_screen.Genres.genres
-import com.example.films_shop.main_screen.api.BookApi.Book
 import com.example.films_shop.main_screen.api.BookApi.BookViewModel
-import com.example.films_shop.main_screen.api.BookApi.RetrofitInstanceBooks
 import com.example.films_shop.main_screen.api.Movie
 import com.example.films_shop.main_screen.api.RetrofitInstance
 import com.example.films_shop.main_screen.api.apiKey
-import com.example.films_shop.main_screen.api.apiKeyBook
-import com.example.films_shop.main_screen.objects.details_screens_objects.DetailsNavBookObject
 import com.example.films_shop.main_screen.objects.details_screens_objects.DetailsNavMovieObject
-import com.example.films_shop.ui.theme.BackGroundColorButton
-import com.example.films_shop.ui.theme.BackGroundColorButtonLightGray
-import com.example.films_shop.ui.theme.BackGroundColorChatCardDarkGray
 import com.example.films_shop.ui.theme.BackGroundColorChatDarkGray
 import com.example.films_shop.ui.theme.backColorChatCard
 import com.example.films_shop.ui.theme.mainColorUiGreen
@@ -69,7 +85,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.parcelize.Parcelize
-import retrofit2.HttpException
 
 @Parcelize
 data class ChatMessage(
@@ -90,30 +105,6 @@ data class ChatMessage(
     val backdrop: String = "",
     val type: String = "",
 ) : Parcelable
-
-//@Composable
-//fun ShakingCard(
-//    isMe: Boolean,
-//    content: @Composable () -> Unit
-//) {
-//    val infiniteTransition = rememberInfiniteTransition(label = "")
-//    val offsetX by infiniteTransition.animateFloat(
-//        initialValue = -2f,
-//        targetValue = 2f,
-//        animationSpec = infiniteRepeatable(
-//            animation = tween(100),
-//            repeatMode = RepeatMode.Reverse
-//        ), label = ""
-//    )
-//
-//    Box(
-//        modifier = Modifier
-//            .offset(x = offsetX.dp)
-//    ) {
-//        content()
-//    }
-//}
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -521,7 +512,7 @@ fun sendContentMessage(
     year: String = "",
     backdrop: String = "",
     type: String = "",
-    onSuccess: ((String) -> Unit)? = null, // Колбэк для получения messageId
+    onSuccess: ((String) -> Unit)? = null,
     onFailure: ((Exception) -> Unit)? = null,
 ) {
     val db = FirebaseFirestore.getInstance()
@@ -620,7 +611,6 @@ fun MediaCardRow(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
-
             Text(
                 text = "$genres_ch · $year · $type",
                 fontSize = 14.sp,
@@ -978,18 +968,17 @@ fun ContentCardPlaceholder(
     }
 }
 
-// Вспомогательная функция для объединения коллекций медиа контента
 fun combineAndDeduplicateMovies(
     rated: List<Movie>,
     favorite: List<Movie>,
     bookmarked: List<Movie>,
 ): List<Pair<Movie, Int?>> {
     val ratedMap =
-        rated.associateBy { it.externalId?.tmdb } // ключ: tmdbId, значение: Movie (с оценкой)
+        rated.associateBy { it.externalId?.tmdb }
     val combined = (rated + favorite + bookmarked)
-        .distinctBy { it.externalId?.tmdb } // убираем дубликаты
+        .distinctBy { it.externalId?.tmdb }
         .map { movie ->
-            val rating = ratedMap[movie.externalId?.tmdb]?.userRating // если есть, берём оценку
+            val rating = ratedMap[movie.externalId?.tmdb]?.userRating
             movie to rating
         }
     return combined

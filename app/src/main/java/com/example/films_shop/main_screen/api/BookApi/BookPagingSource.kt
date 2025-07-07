@@ -61,12 +61,9 @@ class BookPagingSource(
                 booksChunk.addAll(books)
 
             } catch (e: Exception) {
-                // Игнорируем ошибки одного автора, продолжаем со следующими
             }
         }
-
-        // Перемешиваем результат: например, можно просто случайно или по очереди
-        val shuffledBooks = booksChunk.shuffled() // или customMix(booksByAuthor)
+        val shuffledBooks = booksChunk.shuffled()
 
         val nextKey = if (authorPageIndex + 1 < pagesPerAuthor) page + 1 else null
 

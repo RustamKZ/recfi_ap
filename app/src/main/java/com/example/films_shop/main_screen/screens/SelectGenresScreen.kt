@@ -29,10 +29,7 @@ fun OverlayExampleScreen() {
     var showOverlay by remember { mutableStateOf(true) }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Основной экран
         MainContent()
-
-        // Экран поверх
         AnimatedVisibility(
             visible = showOverlay,
             enter = fadeIn(),

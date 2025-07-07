@@ -192,7 +192,7 @@ fun DetailsBookScreen(
 
     // ui userRating
     var showRatingDialog by remember { mutableStateOf(false) }
-    var userRating by remember { mutableStateOf(5f) } // Ползунок будет от 1 до 10
+    var userRating by remember { mutableStateOf(5f) }
     // ui userRating
 
     // ui colors
@@ -224,13 +224,12 @@ fun DetailsBookScreen(
                 modifier = Modifier
                     .padding(horizontal = 16.dp, vertical = 12.dp)
             ) {
-                // Кнопка "Оценить" (только иконка)
                 FloatingActionButton(
                     onClick = { showRatingDialog = true },
                     containerColor = buttonBottom,
                     contentColor = mainColorUiGreen,
                     shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.size(56.dp), // Круглая кнопка
+                    modifier = Modifier.size(56.dp),
                     elevation = FloatingActionButtonDefaults.elevation(0.dp)
                 ) {
                     Icon(
@@ -239,7 +238,6 @@ fun DetailsBookScreen(
                     )
                 }
 
-                // Кнопка "В избранное" (только иконка)
                 FloatingActionButton(
                     onClick = {
                         navData?.let { data ->
@@ -277,7 +275,6 @@ fun DetailsBookScreen(
                     )
                 }
 
-                // Кнопка "Прочитать позже" (иконка + текст)
                 FloatingActionButton(
                     onClick = {
                         navData?.let { data ->
@@ -402,7 +399,7 @@ fun DetailsBookScreen(
                                         )
                                         onRatedBooks(db, data.uid, book)
                                     }
-                                    showRatingDialog = false // Закрыть диалог
+                                    showRatingDialog = false
                                 },
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = buttonRate,
@@ -432,7 +429,6 @@ fun DetailsBookScreen(
                         .fillMaxWidth()
                         .height(500.dp)
                 ) {
-                    // 1. Фоновое замыленное изображение
                     AsyncImage(
                         model = navObject.thumbnail.replace("http://", "https://"),
                         contentDescription = "Фон книги",
@@ -441,8 +437,6 @@ fun DetailsBookScreen(
                             .fillMaxSize()
                             .blur(20.dp)
                     )
-
-                    // 2. Градиент поверх фона
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -457,8 +451,6 @@ fun DetailsBookScreen(
                                 )
                             )
                     )
-
-                    // 3. Четкое изображение обложки поверх всего
                     AsyncImage(
                         model = navObject.thumbnail.replace("http://", "https://"),
                         contentDescription = "Обложка книги",
@@ -474,7 +466,7 @@ fun DetailsBookScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .heightIn(min = 80.dp) // можешь подстроить под высоту строки
+                        .heightIn(min = 80.dp)
                         .padding(horizontal = 16.dp),
                     contentAlignment = Alignment.Center
                 ) {
@@ -487,7 +479,7 @@ fun DetailsBookScreen(
                         textAlign = TextAlign.Center,
                         maxLines = 3, // можно больше
                         overflow = TextOverflow.Ellipsis,
-                        lineHeight = 64.sp // можно чуть больше, чем fontSize, чтобы не налезал
+                        lineHeight = 64.sp
                     )
                 }
 
@@ -607,7 +599,6 @@ fun DetailsBookScreen(
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             if (isLoading) {
-                                // Показать индикатор загрузки
                                 items(3) {
                                     Box(
                                         modifier = Modifier
@@ -635,7 +626,6 @@ fun DetailsBookScreen(
                                             .clip(RoundedCornerShape(15.dp))
                                             .background(Color.Gray)
                                             .clickable {
-                                                // Навигация к деталям рекомендуемого фильма
                                                 navData.let { data ->
                                                     val detailsNavBookObject = DetailsNavBookObject(
                                                         id = book.id,
@@ -681,7 +671,6 @@ fun DetailsBookScreen(
                                     }
                                 }
                             } else if (error != null) {
-                                // Показать сообщение об ошибке
                                 item {
                                     Box(
                                         modifier = Modifier
@@ -697,7 +686,6 @@ fun DetailsBookScreen(
                                     }
                                 }
                             } else {
-                                // Показать сообщение, если рекомендаций нет
                                 item {
                                     Box(
                                         modifier = Modifier

@@ -157,10 +157,8 @@ fun MainScreen(
     noOpNestedScrollConnection: NestedScrollConnection,
     viewModel: MainViewModel,
 ) {
-    // ui theme
     val isDark = isSystemInDarkTheme()
     val iconColor = if (isDark) Color.White else Color.Gray
-    // Инициализируем состояние анимации
     val showLoadingAnimation = remember { mutableStateOf(navData.showLoadingAnimation) }
     val composition =
         if (isDark) rememberLottieComposition(spec = LottieCompositionSpec.Asset("green_intro.json")) else
@@ -180,7 +178,6 @@ fun MainScreen(
     }
     val selectedGenres = remember { mutableStateListOf<GenreKP>() }
     val selectedAuthors = remember { mutableStateListOf<AuthorsGoogle>() }
-    // Коллаборативная фильтрация рекомендации
     LaunchedEffect(Unit) {
         movieViewModel.loadRatedMovies(db, navData.uid, isCollab = true)
         bookViewModel.loadRatedBooks(db, navData.uid, isCollab = true)
@@ -234,21 +231,6 @@ fun MainScreen(
     val recommendationBooksAuthor by recViewModel.recommendationBooksAuthor
 
     val customBooks by recViewModel.booksDataset
-    // Коллаборативная фильтрация рекомендации
-//    LaunchedEffect(navData.uid) {
-//        loadUserGenres(db, navData.uid) { loadedGenres ->
-//            if (loadedGenres.isNotEmpty()) {
-//                selectedGenres.addAll(loadedGenres)
-//            }
-//        }
-//        loadUserAuthors(db, navData.uid) { loadedAuthors ->
-//            if (loadedAuthors.isNotEmpty()) {
-//                selectedAuthors.addAll(loadedAuthors)
-//            }
-//        }
-//    }
-
-    // Рекомендация на основе жанров
     LaunchedEffect(navData.uid) {
         val genresDeferred = CompletableDeferred<List<GenreKP>>()
         val authorsDeferred = CompletableDeferred<List<AuthorsGoogle>>()
@@ -302,21 +284,14 @@ fun MainScreen(
     LaunchedEffect(Unit) {
         viewModel.onTabSelected("Home")
     }
-    // Управляем анимацией и её завершением
     LaunchedEffect(key1 = showLoadingAnimation.value, key2 = dataLoaded.value) {
         if (showLoadingAnimation.value) {
-            // Минимальное время показа анимации
             delay(2000)
-
-            // Даже если прошло 2 секунды, ждем загрузки данных
-            // но с ограничением по времени в 5 секунд
             withTimeoutOrNull(3000) {
                 while (!dataLoaded.value) {
                     delay(100)
                 }
             }
-
-            // Плавное скрытие анимации
             alpha.animateTo(
                 targetValue = 0f,
                 animationSpec = tween(500)
@@ -383,10 +358,10 @@ fun MainScreen(
                                 )
                             },
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = Color.Transparent, // Прозрачный фон
-                                contentColor = Color.Black // Цвет текста
+                                containerColor = Color.Transparent,
+                                contentColor = Color.Black
                             ),
-                            contentPadding = PaddingValues(0.dp), // Убираем отступы внутри кнопки
+                            contentPadding = PaddingValues(0.dp),
                             modifier = Modifier
                                 .padding(end = 24.dp)
                                 .wrapContentSize()
@@ -507,10 +482,10 @@ fun MainScreen(
                                     )
                                 },
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color.Transparent, // Прозрачный фон
-                                    contentColor = Color.Black // Цвет текста
+                                    containerColor = Color.Transparent,
+                                    contentColor = Color.Black
                                 ),
-                                contentPadding = PaddingValues(0.dp), // Убираем отступы внутри кнопки
+                                contentPadding = PaddingValues(0.dp),
                                 modifier = Modifier
                                     .padding(end = 24.dp)
                                     .wrapContentSize()
@@ -558,7 +533,7 @@ fun MainScreen(
                                 repeat(minOf(5, movies.itemCount)) { index ->
                                     Box(
                                         modifier = Modifier
-                                            .size(if (pagerState.currentPage == index) 10.dp else 8.dp) // Активная точка больше
+                                            .size(if (pagerState.currentPage == index) 10.dp else 8.dp)
                                             .background(
                                                 if (pagerState.currentPage == index) Color.DarkGray else Color.LightGray,
                                                 shape = CircleShape
@@ -589,10 +564,10 @@ fun MainScreen(
                                         )
                                     },
                                     colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color.Transparent, // Прозрачный фон
-                                        contentColor = Color.Black // Цвет текста
+                                        containerColor = Color.Transparent,
+                                        contentColor = Color.Black
                                     ),
-                                    contentPadding = PaddingValues(0.dp), // Убираем отступы внутри кнопки
+                                    contentPadding = PaddingValues(0.dp),
                                     modifier = Modifier
                                         .padding(end = 24.dp)
                                         .wrapContentSize()
@@ -714,10 +689,10 @@ fun MainScreen(
                                         )
                                     },
                                     colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color.Transparent, // Прозрачный фон
-                                        contentColor = Color.Black // Цвет текста
+                                        containerColor = Color.Transparent,
+                                        contentColor = Color.Black
                                     ),
-                                    contentPadding = PaddingValues(0.dp), // Убираем отступы внутри кнопки
+                                    contentPadding = PaddingValues(0.dp),
                                     modifier = Modifier
                                         .padding(end = 24.dp)
                                         .wrapContentSize()
@@ -969,10 +944,10 @@ fun MainScreen(
                                         )
                                     },
                                     colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color.Transparent, // Прозрачный фон
-                                        contentColor = Color.Black // Цвет текста
+                                        containerColor = Color.Transparent,
+                                        contentColor = Color.Black
                                     ),
-                                    contentPadding = PaddingValues(0.dp), // Убираем отступы внутри кнопки
+                                    contentPadding = PaddingValues(0.dp),
                                     modifier = Modifier
                                         .padding(end = 24.dp)
                                         .wrapContentSize()
@@ -1095,10 +1070,10 @@ fun MainScreen(
                                         )
                                     },
                                     colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color.Transparent, // Прозрачный фон
-                                        contentColor = Color.Black // Цвет текста
+                                        containerColor = Color.Transparent,
+                                        contentColor = Color.Black
                                     ),
-                                    contentPadding = PaddingValues(0.dp), // Убираем отступы внутри кнопки
+                                    contentPadding = PaddingValues(0.dp),
                                     modifier = Modifier
                                         .padding(end = 24.dp)
                                         .wrapContentSize()
@@ -1224,10 +1199,10 @@ fun MainScreen(
                                         )
                                     },
                                     colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color.Transparent, // Прозрачный фон
-                                        contentColor = Color.Black // Цвет текста
+                                        containerColor = Color.Transparent,
+                                        contentColor = Color.Black
                                     ),
-                                    contentPadding = PaddingValues(0.dp), // Убираем отступы внутри кнопки
+                                    contentPadding = PaddingValues(0.dp),
                                     modifier = Modifier
                                         .padding(end = 24.dp)
                                         .wrapContentSize()
@@ -1352,10 +1327,10 @@ fun MainScreen(
                                         )
                                     },
                                     colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color.Transparent, // Прозрачный фон
-                                        contentColor = Color.Black // Цвет текста
+                                        containerColor = Color.Transparent,
+                                        contentColor = Color.Black
                                     ),
-                                    contentPadding = PaddingValues(0.dp), // Убираем отступы внутри кнопки
+                                    contentPadding = PaddingValues(0.dp),
                                     modifier = Modifier
                                         .padding(end = 24.dp)
                                         .wrapContentSize()
@@ -1478,10 +1453,10 @@ fun MainScreen(
                                         )
                                     },
                                     colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color.Transparent, // Прозрачный фон
-                                        contentColor = Color.Black // Цвет текста
+                                        containerColor = Color.Transparent,
+                                        contentColor = Color.Black
                                     ),
-                                    contentPadding = PaddingValues(0.dp), // Убираем отступы внутри кнопки
+                                    contentPadding = PaddingValues(0.dp),
                                     modifier = Modifier
                                         .padding(end = 24.dp)
                                         .wrapContentSize()
@@ -1606,10 +1581,10 @@ fun MainScreen(
                                         )
                                     },
                                     colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color.Transparent, // Прозрачный фон
-                                        contentColor = Color.Black // Цвет текста
+                                        containerColor = Color.Transparent,
+                                        contentColor = Color.Black
                                     ),
-                                    contentPadding = PaddingValues(0.dp), // Убираем отступы внутри кнопки
+                                    contentPadding = PaddingValues(0.dp),
                                     modifier = Modifier
                                         .padding(end = 24.dp)
                                         .wrapContentSize()
@@ -1737,10 +1712,10 @@ fun MainScreen(
                                             )
                                         },
                                         colors = ButtonDefaults.buttonColors(
-                                            containerColor = Color.Transparent, // Прозрачный фон
-                                            contentColor = Color.Black // Цвет текста
+                                            containerColor = Color.Transparent,
+                                            contentColor = Color.Black
                                         ),
-                                        contentPadding = PaddingValues(0.dp), // Убираем отступы внутри кнопки
+                                        contentPadding = PaddingValues(0.dp),
                                         modifier = Modifier
                                             .padding(end = 24.dp)
                                             .wrapContentSize()
@@ -1865,10 +1840,10 @@ fun MainScreen(
                                             )
                                         },
                                         colors = ButtonDefaults.buttonColors(
-                                            containerColor = Color.Transparent, // Прозрачный фон
-                                            contentColor = Color.Black // Цвет текста
+                                            containerColor = Color.Transparent,
+                                            contentColor = Color.Black
                                         ),
-                                        contentPadding = PaddingValues(0.dp), // Убираем отступы внутри кнопки
+                                        contentPadding = PaddingValues(0.dp),
                                         modifier = Modifier
                                             .padding(end = 24.dp)
                                             .wrapContentSize()
@@ -1993,10 +1968,10 @@ fun MainScreen(
                                             )
                                         },
                                         colors = ButtonDefaults.buttonColors(
-                                            containerColor = Color.Transparent, // Прозрачный фон
-                                            contentColor = Color.Black // Цвет текста
+                                            containerColor = Color.Transparent,
+                                            contentColor = Color.Black
                                         ),
-                                        contentPadding = PaddingValues(0.dp), // Убираем отступы внутри кнопки
+                                        contentPadding = PaddingValues(0.dp),
                                         modifier = Modifier
                                             .padding(end = 24.dp)
                                             .wrapContentSize()

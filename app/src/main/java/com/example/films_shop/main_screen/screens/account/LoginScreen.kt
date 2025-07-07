@@ -164,7 +164,7 @@ fun LoginScreen(
                             Log.d("loadedAuthors", loadedAuthors.toString())
 
                             addOrChangeName(db, navData.uid, "Пользователь") { isSuccess ->
-                                // Здесь можно добавить что-то при успехе/ошибке
+                                // Здесь нужно будет добавить что-то при успехе/ошибке
                             }
 
                             if (loadedGenres!!.isEmpty() && loadedAuthors!!.isEmpty()) {

@@ -20,17 +20,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.films_shop.main_screen.Genres.saveSelectedGenres
 import com.example.films_shop.main_screen.business_logic.addOrChangeName
 import com.example.films_shop.main_screen.login.LoginButton
 import com.example.films_shop.main_screen.login.RoundedCornerTextField
-import com.example.films_shop.main_screen.business_logic.signIn
-import com.example.films_shop.main_screen.business_logic.signUp
-import com.example.films_shop.main_screen.objects.auth_screens_objects.AccountDetailsObject
 import com.example.films_shop.main_screen.objects.auth_screens_objects.SettingsAccountObject
-import com.example.films_shop.main_screen.objects.main_screens_objects.MainScreenDataObject
 import com.example.films_shop.main_screen.screens.custom_font
-import com.example.films_shop.main_screen.screens.test_font
 import com.example.films_shop.ui.theme.BackGroundColor
 import com.example.films_shop.ui.theme.BackGroundColorButton
 import com.example.films_shop.ui.theme.BackGroundColorButtonLightGray

@@ -109,17 +109,17 @@ import com.google.firebase.ktx.Firebase
 @Composable
 fun ShimmerImageItem(
     imageUrl: String,
-    onClick: (String) -> Unit, // Добавляем колбэк для обработки клика
+    onClick: (String) -> Unit,
 ) {
     var isImageLoading by remember { mutableStateOf(true) }
 
-    Box( // Используем Box, чтобы позволить размещать clickable поверх, хотя Modifier.clickable работает и напрямую на AsyncImage
+    Box(
         modifier = Modifier
             .padding(end = 12.dp)
             .height(200.dp)
             .width(350.dp)
             .clip(RoundedCornerShape(12.dp))
-            .clickable { onClick(imageUrl) } // Делаем весь элемент кликабельным
+            .clickable { onClick(imageUrl) }
     ) {
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
@@ -133,7 +133,7 @@ fun ShimmerImageItem(
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier
-                .fillMaxSize() // Делаем AsyncImage заполняющим Box
+                .fillMaxSize()
                 .placeholder(
                     visible = isImageLoading,
                     color = Color.LightGray,
@@ -273,7 +273,7 @@ fun CastItem(cast: Cast) {
             modifier = Modifier
                 .size(72.dp)
                 .clip(CircleShape)
-                .background(Color.LightGray) // placeholder bg
+                .background(Color.LightGray)
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -357,7 +357,7 @@ fun TestDetailsMovieScreen(
 
     // ui userRating
     var showRatingDialog by remember { mutableStateOf(false) }
-    var userRating by remember { mutableStateOf(5f) } // Ползунок будет от 1 до 10
+    var userRating by remember { mutableStateOf(5f) }
     // ui userRating
     Scaffold(
         containerColor = Color.Transparent,
@@ -374,7 +374,6 @@ fun TestDetailsMovieScreen(
                 modifier = Modifier
                     .padding(horizontal = 16.dp, vertical = 12.dp)
             ) {
-                // Кнопка "Оценить" (только иконка)
                 FloatingActionButton(
                     onClick = { showRatingDialog = true },
                     containerColor = buttonBottom,
@@ -388,8 +387,6 @@ fun TestDetailsMovieScreen(
                         contentDescription = "Оценить"
                     )
                 }
-
-                // Кнопка "В избранное" (только иконка)
                 FloatingActionButton(
                     onClick = {
                         navData?.let { data ->
@@ -443,8 +440,6 @@ fun TestDetailsMovieScreen(
                         contentDescription = "В избранное"
                     )
                 }
-
-                // Кнопка "Прочитать позже" (иконка + текст)
                 FloatingActionButton(
                     onClick = {
                         navData?.let { data ->
@@ -492,11 +487,11 @@ fun TestDetailsMovieScreen(
                     ) {
                         Icon(
                             imageVector = if (!isBookmark) Icons.Default.BookmarkBorder else Icons.Default.Bookmark,
-                            contentDescription = "Прочитать позже"
+                            contentDescription = "Посмотреть позже"
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Прочитать позже",
+                            text = "Посмотреть позже",
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Bold,
                             fontFamily = custom_font
@@ -539,7 +534,7 @@ fun TestDetailsMovieScreen(
                                 value = userRating,
                                 onValueChange = { userRating = it },
                                 valueRange = 1f..10f,
-                                steps = 8, // чтобы по 1 шагу (10-1)/9 = 1
+                                steps = 8,
                                 colors = SliderDefaults.colors(
                                     thumbColor = mainColorUiGreen,
                                     activeTrackColor = mainColorUiGreen
@@ -590,12 +585,12 @@ fun TestDetailsMovieScreen(
                                             isFavorite = isFavorite,
                                             isBookMark = isBookmark,
                                             isRated = isRated,
-                                            userRating = userRating.toInt() // <-- Ставим выбранный рейтинг
+                                            userRating = userRating.toInt()
                                         )
                                         onRatedMovies(db, data.uid, movie)
                                         Log.d("TestNavData", "User: ${navData.email}")
                                     }
-                                    showRatingDialog = false // Закрыть диалог
+                                    showRatingDialog = false
                                 },
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = buttonRate,
@@ -632,8 +627,6 @@ fun TestDetailsMovieScreen(
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize()
                     )
-
-                    // Затемнение снизу выбранным цветом
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -644,7 +637,7 @@ fun TestDetailsMovieScreen(
                                     colors = listOf(
                                         Color.Transparent,
                                         imageGradColor
-                                    ) // здесь можно указать любой цвет
+                                    )
                                 )
                             )
                     )
@@ -653,7 +646,7 @@ fun TestDetailsMovieScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .heightIn(min = 80.dp) // можешь подстроить под высоту строки
+                        .heightIn(min = 80.dp)
                         .padding(horizontal = 16.dp),
                     contentAlignment = Alignment.Center
                 ) {
@@ -744,11 +737,9 @@ fun TestDetailsMovieScreen(
                             color = textColor,
                             fontSize = 16.sp,
                             fontFamily = custom_font,
-                            maxLines = if (expanded) Int.MAX_VALUE else 4, // Ограничение строк
+                            maxLines = if (expanded) Int.MAX_VALUE else 4,
                             overflow = TextOverflow.Ellipsis
                         )
-
-                        // Кнопка "Читать далее"
                         TextButton(onClick = { expanded = !expanded }) {
                             Text(
                                 text = if (expanded) "Скрыть" else "Читать далее",
@@ -800,14 +791,11 @@ fun TestDetailsMovieScreen(
                             selectedImageUrl?.let { imageUrl ->
                                 Dialog(
                                     onDismissRequest = { selectedImageUrl = null },
-                                    properties = DialogProperties(usePlatformDefaultWidth = false) // Отключаем стандартную ширину платформы
+                                    properties = DialogProperties(usePlatformDefaultWidth = false)
                                 ) {
-                                    // Состояния для зума и панорамирования
                                     var scale by remember { mutableStateOf(1f) }
                                     var offset by remember { mutableStateOf(Offset.Zero) }
-
-                                    // Порог для закрытия диалога при панорамировании
-                                    val dismissThreshold = 100.dp // Порог в dp
+                                    val dismissThreshold = 100.dp
 
                                     Box(
                                         modifier = Modifier
@@ -825,7 +813,7 @@ fun TestDetailsMovieScreen(
                                                         scale = (scale * zoom).coerceIn(
                                                             0.5f,
                                                             5f
-                                                        ) // Ограничиваем зум от 0.5x до 5x
+                                                        )
 
 
                                                         if (scale > 1.05f) {
@@ -892,7 +880,6 @@ fun TestDetailsMovieScreen(
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             if (isLoading) {
-                                // Показать индикатор загрузки
                                 items(3) {
                                     Box(
                                         modifier = Modifier
@@ -918,7 +905,6 @@ fun TestDetailsMovieScreen(
                                             .clip(RoundedCornerShape(15.dp))
                                             .background(Color.Gray)
                                             .clickable {
-                                                // Навигация к деталям рекомендуемого фильма
                                                 navData?.let { data ->
                                                     val detailsNavObject = DetailsNavMovieObject(
                                                         id = movie.id,
@@ -964,8 +950,6 @@ fun TestDetailsMovieScreen(
                                                     .clip(RoundedCornerShape(15.dp)),
                                                 contentScale = ContentScale.Crop
                                             )
-
-                                            // Оценка
                                             val rating = when {
                                                 movie.rating?.kp != null && movie.rating.kp > 0.0 -> movie.rating.kp
                                                 movie.rating?.imdb != null && movie.rating.imdb > 0.0 -> movie.rating.imdb

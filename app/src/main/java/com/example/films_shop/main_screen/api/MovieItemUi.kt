@@ -16,13 +16,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.example.films_shop.R
 import com.example.films_shop.ui.theme.mainColorUiGreen
 
 @Composable
@@ -33,7 +31,6 @@ fun MovieitemUi(
     Column(
         modifier = Modifier
             .padding(8.dp)
-            //.background(Color.Red)
             .clickable {
                 onMovieDetailsClick(movie)
             }

@@ -77,10 +77,8 @@ fun AccountScreen(
     viewModel: MainViewModel,
     onExitClick: () -> Unit,
 ) {
-    // Добавление в друзья
     val clipboardManager = LocalClipboardManager.current
     val context = LocalContext.current
-    // Добавление в друзья
     val db = Firebase.firestore
     val nameState = remember { mutableStateOf<String?>(null) }
     val photoUrl = remember { mutableStateOf<String?>(null) }
@@ -170,10 +168,9 @@ fun AccountScreen(
                         modifier = Modifier
                             .fillMaxSize()
                             .graphicsLayer {
-                                scaleY = 1.3f      // немного увеличиваем по вертикали
-                                scaleX =
-                                    1.3f      // можно и по горизонтали, чтобы не было обрезания краёв
-                                translationY = +90f // сдвигаем вверх — подбирай по своему вкусу
+                                scaleY = 1.3f
+                                scaleX = 1.3f
+                                translationY = +90f
                             }
                     )
                 }
@@ -456,7 +453,7 @@ fun AccountScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(start = 16.dp),
-                contentAlignment = Alignment.CenterStart // Выравнивание Row по левому краю
+                contentAlignment = Alignment.CenterStart
             ) {
                 Row(
                     modifier = Modifier.clickable {
@@ -485,7 +482,7 @@ fun AccountScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(start = 16.dp),
-                contentAlignment = Alignment.CenterStart // Выравнивание Row по левому краю
+                contentAlignment = Alignment.CenterStart
             ) {
                 Row(
                     modifier = Modifier.clickable {

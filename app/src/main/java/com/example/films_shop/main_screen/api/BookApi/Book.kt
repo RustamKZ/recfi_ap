@@ -12,8 +12,6 @@ data class Book(
     val isBookMark: Boolean = false,
     val isRated: Boolean = false,
     val userRating: Int = -1,
-
-    // Новые поля
     val publisher: String?,
     val pageCount: Int?,
     val categories: List<String>?,
@@ -29,8 +27,6 @@ data class VolumeInfo(
     val publishedDate: String?,
     val imageLinks: ImageLinks?,
     val industryIdentifiers: List<IndustryIdentifier>?,
-
-    // Новые поля
     val publisher: String?,
     val pageCount: Int?,
     val categories: List<String>?,

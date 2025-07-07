@@ -68,7 +68,6 @@ fun GenreSelectionScreen(
     val bottomGenres = genres.drop(genres.size / 2)
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Фоновое изображение
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -83,8 +82,6 @@ fun GenreSelectionScreen(
                 modifier = Modifier.fillMaxSize()
             )
         }
-
-        // Затемнение или осветление
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -103,13 +100,9 @@ fun GenreSelectionScreen(
                 .fillMaxSize()
         ) {
             Spacer(modifier = Modifier.height(100.dp))
-
-            // Без паддинга
             GenreRow(genres = topGenres, selectedGenres = selectedGenres)
             Spacer(modifier = Modifier.height(12.dp))
             GenreRow(genres = bottomGenres, selectedGenres = selectedGenres)
-
-            // Оборачиваем только текст и кнопку в отдельную колонку с паддингом
             Column(modifier = Modifier.padding(16.dp)) {
                 Spacer(modifier = Modifier.height(100.dp))
                 Text(
@@ -156,7 +149,6 @@ fun GenreSelectionScreen(
                 } else {
                     saveSelectedGenres(db, navData.uid, selectedGenres)
                     onContinue()
-//                    navController.navigate(mainScreenDataObject)
                 }
             },
             colors = ButtonDefaults.buttonColors(
@@ -172,23 +164,6 @@ fun GenreSelectionScreen(
                 color = mainColorUiGreen
             )
         }
-//        Text(
-//            text = "Пропустить",
-//            fontSize = 20.sp,
-//            modifier = Modifier
-//                .align(Alignment.TopEnd)
-//                .padding(top = 32.dp, end = 20.dp)
-//                .clickable {
-//                    if (selectedGenres.isEmpty()) {
-//                        Toast.makeText(context, "Выберите хотя бы один жанр", Toast.LENGTH_SHORT).show()
-//                    } else {
-//                        saveSelectedGenres(db, navData.uid, selectedGenres)
-//                        navController.navigate(mainScreenDataObject)
-//                    }
-//                },
-//            color = mainColorUiGreen,
-//            fontWeight = FontWeight.Bold
-//        )
     }
 }
 
@@ -213,7 +188,6 @@ fun GenreRow(
                         }
                     }
             ) {
-                // Фоновое изображение
                 Image(
                     painter = painterResource(id = genre.imageResId),
                     contentDescription = genre.name,
@@ -221,16 +195,13 @@ fun GenreRow(
                     modifier = Modifier.fillMaxSize()
                 )
 
-                // Затемнение (если НЕ выбрано)
                 if (!isSelected) {
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(Color.Black.copy(alpha = 0.4f)) // любое нужное затемнение
+                            .background(Color.Black.copy(alpha = 0.4f))
                     )
                 }
-
-                // Название жанра
                 Text(
                     text = genre.name.replaceFirstChar { it.uppercase() },
                     fontSize = 15.sp,
@@ -240,8 +211,6 @@ fun GenreRow(
                         .align(Alignment.BottomCenter)
                         .padding(8.dp)
                 )
-
-                // Иконка поверх всего, всегда яркая
                 Icon(
                     imageVector = if (!isSelected) Icons.Default.FavoriteBorder else Icons.Default.Favorite,
                     modifier = Modifier

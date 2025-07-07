@@ -74,7 +74,7 @@ import com.example.films_shop.ui.theme.BookShopTheme
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 
-@Suppress("IMPLICIT_CAST_TO_ANY") // это связано с тем что путь не в строком формате
+@Suppress("IMPLICIT_CAST_TO_ANY")
 class MainActivity : ComponentActivity() {
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     @OptIn(ExperimentalMaterial3Api::class)
@@ -91,7 +91,6 @@ class MainActivity : ComponentActivity() {
             currentUser.email ?: "",
             showLoadingAnimation = true
         ) else LoginScreenObject
-        //val startDestination = TestScreenObject
         setContent {
             val window = (this@MainActivity).window
             val isDarkTheme = isSystemInDarkTheme()

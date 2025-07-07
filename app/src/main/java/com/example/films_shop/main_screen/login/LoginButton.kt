@@ -12,7 +12,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.films_shop.main_screen.screens.custom_font
-import com.example.films_shop.ui.theme.ButtonColor
 
 @Composable
 fun LoginButton(
