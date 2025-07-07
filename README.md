@@ -19,11 +19,12 @@
 
 | Авторизация и регистрация |
 |---------------------------|
-| ![Авторизация и регистрация](screenshots/login.png) |
+| <img src="screenshots/login.png" width="30%"/> |
 
 | Выбор предпочтений |
 |--------------------|
-| ![1](screenshots/start1.png) ![2](screenshots/start2.png) ![3](screenshots/start3.png) |
+| <img src="screenshots/start1.png" width="30%"/> <img src="screenshots/start2.png" width="30%"/> <img src="screenshots/start3.png" width="30%"/> |
+
 
 
 ---
