@@ -71,5 +71,5 @@ cd recfi_ap
 |--------------------|---------------------------|
 | **Email**          | urazalin-rustam@mail.ru |
 | **Telegram**       | [@iwbylitd](https://t.me/iwbylitd) |
-| **GitHub**         | [github.com/your_repo](https://github.com/RustamKZ) |
+| **GitHub**         | [github.com/RustamKZ](https://github.com/RustamKZ) |
 
