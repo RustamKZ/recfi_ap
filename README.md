@@ -19,12 +19,15 @@
 
 | Авторизация и регистрация |
 |---------------------------|
-| <img src="screenshots/login.png" width="30%"/> |
+| <p align="center"><img src="screenshots/login.png" width="65%"></p> |
 
 | Выбор предпочтений |
 |--------------------|
 | <img src="screenshots/start1.png" width="30%"/> <img src="screenshots/start2.png" width="30%"/> <img src="screenshots/start3.png" width="30%"/> |
 
+| Главный экран |
+|--------------------|
+| <img src="screenshots/main1.png" width="25%"/> <img src="screenshots/main2.png" width="25%"/> <img src="screenshots/main3.png" width="25%"/> <img src="screenshots/main4.png" width="25%"/>|
 
 
 ---
