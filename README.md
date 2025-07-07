@@ -23,11 +23,23 @@
 
 | Выбор предпочтений |
 |--------------------|
-| <img src="screenshots/start1.png" width="30%"/> <img src="screenshots/start2.png" width="30%"/> <img src="screenshots/start3.png" width="30%"/> |
+| <p align="center"> <img src="screenshots/start1.png" width="30%"/> <img src="screenshots/start2.png" width="30%"/> <img src="screenshots/start3.png" width="30%"/> </p>|
 
 | Главный экран |
+|---------------|
+| <p align="center"> <img src="screenshots/main1.png" width="20%"/> <img src="screenshots/main2.png" width="20%"/> <img src="screenshots/main3.png" width="20%"/> <img src="screenshots/main4.png" width="20%"/> </p> |
+
+| Фильмы и детали |
 |--------------------|
-| <img src="screenshots/main1.png" width="25%"/> <img src="screenshots/main2.png" width="25%"/> <img src="screenshots/main3.png" width="25%"/> <img src="screenshots/main4.png" width="25%"/>|
+| <p align="center"> <img src="screenshots/films.png" width="30%"/> <img src="screenshots/details1.png" width="30%"/> <img src="screenshots/details2.png" width="30%"/> </p>|
+
+| Пользовательские коллекции |
+|--------------------|
+| <p align="center"> <img src="screenshots/collections1.png" width="40%"/> <img src="screenshots/collections2.png" width="40%"/> </p>|
+
+| Чат и профиль |
+|---------------|
+| <p align="center"> <img src="screenshots/friends.png" width="17%" style="vertical-align: middle;"/> <img src="screenshots/addfriend.png" width="17%" style="vertical-align: middle;"/> <img src="screenshots/profile.png" width="20%" style="vertical-align: middle;"/> <img src="screenshots/chat.png" width="17%" style="vertical-align: middle;"/> <img src="screenshots/chat_collections.png" width="17%" style="vertical-align: middle;"/> </p> |
 
 
 ---
